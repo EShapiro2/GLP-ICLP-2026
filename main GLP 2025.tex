@@ -3,7 +3,6 @@
 % Essential packages
 \usepackage{graphicx}
 \usepackage{amsmath,amssymb,amsfonts}
-\usepackage{aopmath}
 \usepackage{xspace}
 \usepackage{hyperref}
 \usepackage{cleveref}
@@ -21,6 +20,19 @@
 \usepackage{bm}
 \usepackage{verbatimbox}
 \usepackage{wrapfig}
+
+% Theorem-like environments (not provided by new_tlp class)
+\usepackage{amsthm}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}[definition]{Example}
+\theoremstyle{plain}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{proposition}[definition]{Proposition}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{corollary}[definition]{Corollary}
+\theoremstyle{remark}
+\newtheorem{remark}[definition]{Remark}
 
 % Custom formatting commands
 \newcommand{\mypara}[1]{\smallskip\noindent\textbf{#1.}}
