@@ -23,24 +23,28 @@ A transition $c \rightarrow c' \in T$ is \temph{enabled} from configuration $c$.
 
 
 \subsection{Logic Programs Syntax}
+\label{sec:lp-syntax}
 
-The syntax of Logic Programs follows the standard in logic programming and Prolog, and is formally defined in Appendix~\ref{appendix:lp}. We note that $V$ denotes the set of all variables and $\calT$ the set of all terms.
-We recall the quintessential logic program for list concatenation as an example:
+We employ standard LP notions. Let $\calV$ denote the set of \temph{variables} (identifiers beginning with uppercase). A \temph{term} is a variable, a constant (numbers, strings, or the empty list \verb|[]|), or a compound term $f(T_1,\ldots,T_n)$ with functor $f$ and subterms $T_i$. Let $\calT$ denote the set of all terms. We use standard list notation: \verb=[X|Xs]= for a list cell, \verb|[X1,...,Xn]| for finite lists. A term is \temph{ground} if it contains no variables.
+
+A \temph{goal} is a multiset of atoms; the empty goal is written \verb|true|. A \temph{clause} $A$~\verb|:-|~$B$ has head atom $A$ and body goal $B$; a \temph{unit clause} has empty body. A \temph{logic program} is a finite set of clauses; clauses for the same predicate form a \temph{procedure}. Let $\calG(P)$ denote the set of goals over program $P$.
+
 \begin{example}[Append]
+The quintessential logic program for list concatenation:
 \begin{verbatim}
 append([X|Xs], Ys, [X|Zs]) :- append(Xs, Ys, Zs).
 append([], Ys, Ys).
 \end{verbatim}
-Logically, a logic program clause $A$\verb|:-| $B$ is a universally-quantified implication in which $B$ implies $A$, and a program is a conjunction of its clauses.
-By convention, we use plural variable names like \verb|Xs| to denote a list of \verb|X|'s, 
+Logically, a clause $A$\verb|:-| $B$ is a universally-quantified implication in which $B$ implies $A$, and a program is a conjunction of its clauses.
+By convention, we use plural variable names like \verb|Xs| to denote a list of \verb|X|'s.
 \end{example}
 
 \subsection{Logic Programs Operational Semantics}
 
 \begin{definition}[Substitution, Instance, Unifier, Most-General Unifier]\label{definition:substitution}
-A \temph{substitution} $\sigma$ is an idempotent function $\sigma: V \xrightarrow{} \calT$, namely a mapping from variables to terms applied to a fixed point. By convention, $\sigma(x)=x\sigma$.
+A \temph{substitution} $\sigma$ is an idempotent function $\sigma: \calV \xrightarrow{} \calT$, namely a mapping from variables to terms applied to a fixed point. By convention, $\sigma(x)=x\sigma$. Let $\Sigma$ denote the set of all substitutions.
 \begin{itemize}
-    \item Given a substitution $\sigma$, $V_\sigma := \{ X \in V ~|~ X\sigma \ne X\}$.
+    \item Given a substitution $\sigma$, $\calV_\sigma := \{ X \in \calV ~|~ X\sigma \ne X\}$.
     \item Given a term $T \in \calT$ and a substitution $\sigma$,  $T\sigma$ is the term obtained from $T$ by replacing every variable $X \in T$ by the term $X\sigma$.
     \item The partial order on terms $\preceq \subset \calT \times \calT$ is defined by $T \preceq T'$, or $T'$ is an \temph{instance} of $T$, if there is a substitution $\sigma$ for which $T\sigma = T'$.
     If $T \ne T\sigma$ we say that $\sigma$ \temph{instantiates} $T$. 
@@ -57,7 +61,7 @@ We  view a substitution $\sigma$ equivalently as a set of assignments $\{X_1:=T_
 \end{remark}
 
 \begin{definition}[Renaming, Rename apart]\label{definition:renaming}
-A \temph{renaming} is a substitution $\sigma: V \mapsto V$ that maps variables to variables.
+A \temph{renaming} is a substitution $\sigma: \calV \mapsto \calV$ that maps variables to variables.
 A renaming $\sigma$ renames $T'$ \temph{apart from} $T$ if $T'\sigma$ and $T$  have no variable in common.
 \end{definition}
 We assume a fixed renaming-apart function, so that the result of renaming $T'$ apart from $T$ is well defined.
@@ -68,23 +72,22 @@ Given LP goal $A$ and clause $C$,  with $H \verb|:-| B$ being the result of rena
 \end{definition}
 
 \begin{definition}[Logic Programs Transition System]\label{definition:lp-ts}
-A transition system $LP = (C,c0, T)$ is a \temph{Logic Programs transition system} for a logic program $M$ and initial goal $G_0 \in \mathcal{G}(M)$ if 
-$C=\mathcal{G}(M)$, $c0=G_0$, and $T$
-is the set of all transitions $G \rightarrow G' \in \mathcal{G}(M)^2$ such that for some atom $A \in G$ and clause $C \in M$  the LP reduction of $A$ with $C$ succeeds with result $(B,\sigma)$, and $G' = (G \setminus \{A\} \cup B)\sigma$.
+A transition system $LP(P) = (C,c_0, T)$ is a \temph{Logic Programs transition system} for a logic program $P$ and initial goal $G_0 \in \mathcal{G}(P)$ if
+$C=\mathcal{G}(P) \times \Sigma$, $c_0=(G_0, \emptyset)$, and $T$
+is the set of all transitions $(G,\sigma) \rightarrow (G',\sigma') \in (\mathcal{G}(P) \times \Sigma)^2$ such that for some atom $A \in G$ and clause $C \in P$ the LP reduction of $A$ with $C$ succeeds with result $(B,\hat\sigma)$, $G' = (G \setminus \{A\} \cup B)\hat\sigma$, and $\sigma' = \sigma \circ \hat\sigma$.
 \end{definition}
 We write $G \xrightarrow{\sigma} G'$ when we want to make the substitution of a reduction explicit.
 As a tribute to resolution theorem proving~\cite{robinson1965machine}—the intellectual ancestor of logic programming—a configuration of $LP$ is also referred to as a \emph{resolvent}.
 
-Logic Programs have two forms of nondeterminism: the choice of $A\in G$, called \emph{and-nondeterminism}, and then choice of  $C\in M$, called \emph{or-nondeterminism}.  Thus, as an abstract model of computation, LP  are  closely-related to \emph{Alternating Turing Machines}, a generalization of Nondeterministic Turing Machines~\cite{shapiro1984alternation}.
+Logic Programs have two forms of nondeterminism: the choice of $A\in G$, called \emph{and-nondeterminism}, and then choice of $C\in P$, called \emph{or-nondeterminism}. Thus, as an abstract model of computation, LP are closely-related to \emph{Alternating Turing Machines}, a generalization of Nondeterministic Turing Machines~\cite{shapiro1984alternation}.
 
 \begin{definition}[Proper Run and Outcome]\label{definition:proper-run}
-A run $\rho: G_0 \xrightarrow{\sigma_1} G_1 \xrightarrow{\sigma_2} \cdots \xrightarrow{\sigma_n} G_n$ of $LP$ is \temph{proper} if for any $1\le i<  n$,  a variable that occurs in  $G_{i+1}$ but not in  $G_i$ also does not occur in any $G_j$, $j<i$.   If proper, the \temph{outcome} of $\rho$ is $(G_0 \verb|:-| G_n)\sigma$ where $\sigma = \sigma_1 \circ \sigma_2 \circ \cdots \circ \sigma_n$.
+A run $\rho: (G_0,\sigma_0) \rightarrow (G_1,\sigma_1) \rightarrow \cdots \rightarrow (G_n, \sigma_n)$ of $LP(P)$ is \temph{proper} if for any $1\le i< n$, a variable that occurs in $G_{i+1}$ but not in $G_i$ also does not occur in any $G_j$, $j<i$. If proper, the \temph{outcome} of $\rho$ is $(G_0 \verb|:-| G_n)\sigma_n$. Such a run is \temph{successful} if $G_n = \emptyset$.
 \end{definition}
 It so happens that the set of all outcomes of all proper runs of a logic program constitutes its fully-abstract compositional semantics~\cite{gaifman1989fully}.
 Next we prove the key safety property of LP:
 
 \begin{restatable}[LP Computation is Deduction]{proposition}{LPComputationisDeduction}\label{proposition:LP-computation-deduction}
-The outcome\linebreak $(G_0$ :- $G_n)\sigma$ 
-of a proper run $\rho: G_0 \xrightarrow{\sigma_1} G_1 \xrightarrow{\sigma_2} \cdots \xrightarrow{\sigma_n} G_n$ of $LP$, where $\sigma = \sigma_1 \circ \sigma_2 \circ \cdots \circ \sigma_n$,  is a logical consequence of $M$.
+The outcome $(G_0$ \verb|:-| $G_n)\sigma$ of a proper run $\rho: (G_0,\emptyset) \rightarrow \cdots \rightarrow (G_n, \sigma)$ of $LP(P)$ is a logical consequence of $P$.
 \end{restatable}
 
