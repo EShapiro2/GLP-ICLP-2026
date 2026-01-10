@@ -3,6 +3,11 @@ Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: main GLP 2025.aux
 The style file: acmtrans.bst
 Database file #1: bib.bib
+Warning--I didn't find a database entry for "mierowsky1985fcp"
+Warning--I didn't find a database entry for "levi1985readonly"
+Warning--I didn't find a database entry for "ueda1994moded"
+Warning--I didn't find a database entry for "ueda1995io"
+Warning--I didn't find a database entry for "ueda2001resource"
 Warning--no number and no volume in almeida2024blocklace
 Warning--page numbers missing in almeida2024blocklace
 Warning--empty address in armstrong2013programming
@@ -31,15 +36,15 @@ Warning--empty publisher in kleinman1990distributed
 Warning--empty address in kleinman1990distributed
 Warning--empty publisher in kowalski1974predicate
 Warning--empty address in kowalski1974predicate
-Warning--no number and no volume in levi1985readonly
 Warning--no number and no volume in lewis2025morpheus
 Warning--page numbers missing in lewis2025morpheus
 Warning--no number and no volume in lindley2017lightweight
 Warning--empty address in lloyd1987foundations
 Warning--empty address in menezes1996handbook
-Warning--no number and no volume in mierowsky1985fcp
 Warning--empty address in mukhopadhyay2018ethereum
 Warning--page numbers missing in nakamoto2008peer
+Warning--empty publisher in raman2019challenges
+Warning--empty address in raman2019challenges
 Warning--empty address in reppy1999concurrent
 Warning--empty publisher in sabt2015trusted
 Warning--empty address in sabt2015trusted
@@ -65,47 +70,45 @@ Warning--empty publisher in silverman1988logix
 Warning--empty address in silverman1988logix
 Warning--empty address in sterling1994art
 Warning--empty address in ueda1986guarded
-Warning--no number and no volume in ueda2001resource
-Warning--empty address in ueda1995io
-You've used 79 entries,
+You've used 77 entries,
             2969 wiz_defined-function locations,
-            1110 strings with 18028 characters,
-and the built_in function-call counts, 55405 in all, are:
-= -- 4672
-> -- 4001
+            1106 strings with 17926 characters,
+and the built_in function-call counts, 53737 in all, are:
+= -- 4508
+> -- 3897
 < -- 4
-+ -- 1202
-- -- 1386
-* -- 4917
-:= -- 10077
-add.period$ -- 350
-call.type$ -- 79
-change.case$ -- 564
-chr.to.int$ -- 77
-cite$ -- 143
-duplicate$ -- 1623
-empty$ -- 3303
-format.name$ -- 1574
-if$ -- 10321
++ -- 1170
+- -- 1346
+* -- 4761
+:= -- 9796
+add.period$ -- 342
+call.type$ -- 77
+change.case$ -- 549
+chr.to.int$ -- 75
+cite$ -- 139
+duplicate$ -- 1587
+empty$ -- 3199
+format.name$ -- 1526
+if$ -- 10007
 int.to.chr$ -- 3
 int.to.str$ -- 0
-missing$ -- 93
-newline$ -- 408
-num.names$ -- 786
-pop$ -- 525
+missing$ -- 91
+newline$ -- 398
+num.names$ -- 766
+pop$ -- 522
 preamble$ -- 1
-purify$ -- 1045
+purify$ -- 1019
 quote$ -- 0
-skip$ -- 1672
+skip$ -- 1629
 stack$ -- 0
-substring$ -- 2641
-swap$ -- 539
+substring$ -- 2504
+swap$ -- 528
 text.length$ -- 4
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 1462
-warning$ -- 64
-while$ -- 783
+type$ -- 1412
+warning$ -- 62
+while$ -- 755
 width$ -- 0
-write$ -- 1086
-(There were 64 warnings)
+write$ -- 1060
+(There were 67 warnings)

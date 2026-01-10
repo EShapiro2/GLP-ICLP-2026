@@ -57,6 +57,12 @@
 \newblock {\em Protocols for authentication and key establishment}.
 \newblock Springer.
 
+\bibitem[\protect\citeauthoryear{Buterin}{Buterin}{2018}]{vitalikplutocracy}
+{\sc Buterin, V.} 2018.
+\newblock Governance, part 2: Plutocracy is still bad.
+\newblock Available at
+  \url{https://vitalik.eth.limo/general/2018/03/28/plutocracy.html}.
+
 \bibitem[\protect\citeauthoryear{Castro-Perez, Hu, Jongmans, Ng, and
   Yoshida}{Castro-Perez et~al\mbox{.}}{2019}]{castro2019distributed}
 {\sc Castro-Perez, D.}, {\sc Hu, R.}, {\sc Jongmans, S.-S.}, {\sc Ng, N.}, {\sc
@@ -224,14 +230,6 @@
 \newblock {\em ACM Transactions on Programming Languages and Systems\/}~{\em
   4,\/}~3, 382--401.
 
-\bibitem[\protect\citeauthoryear{Levi and Palamidessi}{Levi and
-  Palamidessi}{1985}]{levi1985readonly}
-{\sc Levi, G.} {\sc and} {\sc Palamidessi, C.} 1985.
-\newblock The declarative semantics of read-only annotations in logic
-  programming.
-\newblock {\em Proceedings of the 1985 Symposium on Logic Programming\/},
-  212--220.
-
 \bibitem[\protect\citeauthoryear{Lewis-Pye and Shapiro}{Lewis-Pye and
   Shapiro}{2025}]{lewis2025morpheus}
 {\sc Lewis-Pye, A.} {\sc and} {\sc Shapiro, E.} 2025.
@@ -290,14 +288,6 @@
 \newblock \url{https://dotnet.github.io/orleans}.
 \newblock Accessed October 2025.
 
-\bibitem[\protect\citeauthoryear{Mierowsky, Taylor, Shapiro, Levy, and
-  Safra}{Mierowsky et~al\mbox{.}}{1985}]{mierowsky1985fcp}
-{\sc Mierowsky, C.}, {\sc Taylor, S.}, {\sc Shapiro, E.}, {\sc Levy, J.}, {\sc
-  and} {\sc Safra, M.} 1985.
-\newblock On the implementation of flat concurrent prolog.
-\newblock {\em Proceedings of the 1985 Symposium on Logic Programming\/},
-  276--286.
-
 \bibitem[\protect\citeauthoryear{Miller}{Miller}{2006}]{miller2006robust}
 {\sc Miller, M.~S.} 2006.
 \newblock Robust composition: Towards a unified approach to access control and
@@ -336,6 +326,14 @@
 {\sc Pinto, S.} {\sc and} {\sc Santos, N.} 2019.
 \newblock Demystifying arm trustzone: A comprehensive survey.
 \newblock {\em ACM Computing Surveys\/}~{\em 51,\/}~6, 1--36.
+
+\bibitem[\protect\citeauthoryear{Raman, Joglekar, Cristofaro, Sastry, and
+  Tyson}{Raman et~al\mbox{.}}{2019}]{raman2019challenges}
+{\sc Raman, A.}, {\sc Joglekar, S.}, {\sc Cristofaro, E.~D.}, {\sc Sastry, N.},
+  {\sc and} {\sc Tyson, G.} 2019.
+\newblock Challenges in the decentralised web: The mastodon case.
+\newblock In {\em Proceedings of the internet measurement conference}.
+  217--229.
 
 \bibitem[\protect\citeauthoryear{Reppy}{Reppy}{1999}]{reppy1999concurrent}
 {\sc Reppy, J.~H.} 1999.
@@ -496,26 +494,15 @@
 \newblock In {\em Logic Programming '85}. Lecture Notes in Computer Science,
   vol. 221. Springer, 168--179.
 
-\bibitem[\protect\citeauthoryear{Ueda}{Ueda}{1994}]{ueda1994moded}
-{\sc Ueda, K.} 1994.
-\newblock Moded flat ghc and its message-oriented implementation technique.
-\newblock {\em New Generation Computing\/}~{\em 12,\/}~4, 337--368.
-
-\bibitem[\protect\citeauthoryear{Ueda}{Ueda}{2001}]{ueda2001resource}
-{\sc Ueda, K.} 2001.
-\newblock Resource-passing concurrent programming.
-\newblock {\em Proceedings of TACS 2001\/}, 95--126.
-
-\bibitem[\protect\citeauthoryear{Ueda and Morita}{Ueda and
-  Morita}{1995}]{ueda1995io}
-{\sc Ueda, K.} {\sc and} {\sc Morita, M.} 1995.
-\newblock I/o mode analysis in concurrent logic programming.
-\newblock In {\em Proceedings of the International Symposium on Theory and
-  Practice of Parallel Programming}. Springer, 356--368.
-
 \bibitem[\protect\citeauthoryear{Wadler}{Wadler}{1990}]{wadler1990linear}
 {\sc Wadler, P.} 1990.
 \newblock Linear types can change the world.
 \newblock {\em Programming concepts and methods\/}~{\em 2}, 347--359.
+
+\bibitem[\protect\citeauthoryear{Zuboff}{Zuboff}{2019}]{zuboff2019age}
+{\sc Zuboff, S.} 2019.
+\newblock {\em The age of surveillance capitalism: The fight for a human future
+  at the new frontier of power}.
+\newblock Public Affairs, US.
 
 \end{thebibliography}
