@@ -33,3 +33,278 @@ Smart contract languages like Solidity~\cite{mukhopadhyay2018ethereum} and Move~
 
 \mypara{Authorization languages}
 OPA/Rego~\cite{opa2021} and Cedar~\cite{hicks2023cedar} provide declarative policy specification but are specialized for policy evaluation. They consume authentication tokens as inputs but do not integrate attestation as first-class primitives for verifying remote code execution.
+
+
+
+\newcommand{\LP}{\textsf{LP}}
+\newcommand{\LPSRSW}{\textsf{LP}_{\textsf{SRSW}}}
+
+abstract:
+
+We analyze how established refinement frameworks handle the relationship between GLP (Grassroots Logic Programming) and standard Logic Programs (LP).  The key challenge is that GLP's Single-Reader/Single-Writer (SRSW) constraint introduces suspension semantics: GLP states can deadlock where the corresponding LP states have enabled transitions.  We compare I/O Automata forward simulation, TLA+ refinement mappings, and Shapiro's multiagent transition systems framework.  We conclude that Shapiro's instance/subset mechanism provides the most natural treatment, where GLP correctly and completely implements $\LPSRSW \subset \LP$---the instance of LP respecting SRSW constraints.
+
+
+\section{Introduction}
+
+GLP extends Logic Programs with reader/writer variable pairs and the SRSW syntactic restriction, yielding a concurrent language where:
+\begin{enumerate}
+    \item Writer unification may \emph{suspend} when it requires instantiating readers (awaiting communication from writers).
+    \item Deterministic first-clause selection replaces LP's nondeterministic clause choice.
+    \item Reader assignments are communicated asynchronously.
+\end{enumerate}
+
+A natural question arises: in what sense does GLP ``implement'' LP?  Every GLP computation can be mapped to an LP computation via the pure logic variant $L$ that replaces readers $X?$ with their paired writers $X$.  However, the converse fails: there exist GLP states that deadlock (all goals suspended) where the mapped LP state has enabled transitions.
+
+This document analyzes how three refinement frameworks handle this situation, focusing on their treatment of \emph{liveness} (must enabled actions eventually execute?) and \emph{implementation deadlock} (what if the implementation blocks when the specification could proceed?).
+
+\section{The GLP$\to$LP Problem}
+
+\subsection{LP Transition System}
+
+Following~\cite{glp2025}, a Logic Programs transition system $\LP(P) = (C, c_0, T)$ for program $P$ and initial goal $G_0$ has:
+\begin{itemize}
+    \item Configurations $C = \mathcal{G}(P) \times \Sigma$ (goal--substitution pairs)
+    \item Initial configuration $c_0 = (G_0, \emptyset)$
+    \item Transitions $(G, \sigma) \to (G', \sigma')$ where some atom $A \in G$ unifies with some clause head $H$ via mgu $\hat\sigma$
+\end{itemize}
+LP exhibits both \emph{and-nondeterminism} (choice of $A \in G$) and \emph{or-nondeterminism} (choice of clause $C \in P$).
+
+\subsection{GLP Transition System}
+
+A GLP transition system $\GLP(M) = (\mathcal{C}, c_0, \mathcal{T})$ for program $M$ and initial goal $G_0$ has:
+\begin{itemize}
+    \item Configurations $\mathcal{C}$: pairs $(G, \sigma)$ where $\sigma$ is a \emph{reader substitution} (pending reader assignments)
+    \item Initial configuration $c_0 = (G_0, \emptyset)$
+    \item Two transition types:
+    \begin{enumerate}
+        \item \textbf{Reduce}: atom $A$, \emph{first} clause $C$ where \emph{writer unification succeeds}
+        \item \textbf{Communicate}: apply pending reader assignment $\{X? := T\} \in \sigma$ to $G$
+    \end{enumerate}
+\end{itemize}
+
+\subsection{Writer Unification and Suspension}
+
+The critical distinction is \emph{writer unification}, which can:
+\begin{enumerate}
+    \item \textbf{Succeed} with a writer mgu $\sigma$ (only binds writers, not readers)
+    \item \textbf{Suspend} on readers $W_\sigma$ if a regular mgu exists but requires binding readers
+    \item \textbf{Fail} if no mgu exists
+\end{enumerate}
+
+\subsection{The Deadlock Scenario}
+
+A GLP configuration $(G, \sigma)$ \emph{deadlocks} when:
+\begin{enumerate}
+    \item Every atom $A \in G$ either fails writer unification with all clauses, or suspends
+    \item $\sigma$ contains no reader assignment applicable to $G$
+\end{enumerate}
+
+The pure logic variant $L(G)$ replaces each reader $X?$ with $X$.  In LP, $L(G)$ may have enabled transitions because LP unification can bind any variable and can choose any matching clause.
+
+\begin{remark}[The Core Problem]
+The mapping $L : \GLP \to \LP$ is \textbf{not} a correct implementation in the standard sense: there exist GLP runs that deadlock where the mapped LP state could proceed.  This violates liveness preservation.
+\end{remark}
+
+\section{I/O Automata: Forward Simulation}
+
+The I/O Automata framework~\cite{lynch1987hierarchical,lynch1995forward} provides compositional refinement via forward and backward simulations.
+
+\subsection{Forward Simulation}
+
+A \emph{forward simulation} from automaton $A$ to $B$ is a relation $R$ on states satisfying:
+\begin{enumerate}
+    \item Start states relate: $(s_0^A, s_0^B) \in R$
+    \item Step correspondence: if $(s, t) \in R$ and $s \xrightarrow{a} s'$ in $A$, then there exists $t \xrightarrow{a^*} t'$ in $B$ with $(s', t') \in R$ and identical external trace
+\end{enumerate}
+
+The fundamental \emph{substitutivity theorem} states: if $A_1$ implements $A_2$ via forward simulation and $B$ is compatible with both, then $A_1 \| B$ implements $A_2 \| B$.
+
+\subsection{Fair Trace Inclusion and Liveness}
+
+Standard simulation does not preserve liveness.  The I/O Automata framework handles liveness through \emph{task-based fairness}: actions are partitioned into tasks, and a run is fair if each task that remains enabled infinitely often executes infinitely often.
+
+The key result is that \emph{fair executions compose}: the fair executions of $A_1 \| A_2$ are exactly the compositions of fair executions of the components~\cite{lynch1995forward}.
+
+\subsection{The Enabled Action Correspondence Problem}
+
+Lynch and Vaandrager identify the \emph{enabled action correspondence problem}: if the specification has action $G$ with guard $g$, and the implementation refines it to $G'$ with guard $g'$ where $g' \Rightarrow g$ but not conversely, the implementation may fail to progress when the specification could.
+
+This is precisely the GLP situation: GLP's guard (writer unification succeeds) is strictly stronger than LP's guard (regular unification succeeds).
+
+\subsection{Proposed Solutions}
+
+The I/O Automata literature offers two approaches:
+\begin{enumerate}
+    \item \textbf{Relative deadlock freedom}: Prove the implementation is not deadlocked whenever the specification is not deadlocked.  This \emph{fails} for GLP$\to$LP because GLP \emph{can} deadlock when LP can proceed.
+    \item \textbf{Conditional convergence}: Prove new internal events cannot execute forever (via variant functions).  This addresses divergence, not blocking---inapplicable here.
+\end{enumerate}
+
+\begin{remark}[I/O Automata Verdict]
+Under I/O Automata, GLP does \textbf{not} implement LP via forward simulation with fair trace inclusion.  One would need to explicitly construct $\LPSRSW$ as a separate I/O automaton with strengthened guards.
+\end{remark}
+
+\section{TLA+: Refinement Mappings}
+
+TLA+~\cite{lamport1994temporal} defines refinement via logical implication: implementation $I$ refines specification $S$ if $I \Rightarrow S[\sigma]$ for some refinement mapping $\sigma$ substituting implementation variables for specification variables.
+
+\subsection{Machine Closure and the Abadi-Lamport Theorem}
+
+The Abadi-Lamport completeness theorem~\cite{abadi1991existence} guarantees refinement mappings exist when:
+\begin{enumerate}
+    \item Machine closure of the implementation
+    \item Finite invisible nondeterminism in the specification
+    \item Internal continuity
+\end{enumerate}
+
+When these conditions fail, auxiliary variables (history, prophecy, stuttering) restore completeness.
+
+\subsection{Liveness in TLA+}
+
+Liveness is specified via weak fairness $\mathit{WF}(A)$ and strong fairness $\mathit{SF}(A)$:
+\begin{align*}
+\mathit{WF}(A) &\equiv \Box\Diamond\neg\mathit{ENABLED}(A) \lor \Box\Diamond A \\
+\mathit{SF}(A) &\equiv \Diamond\Box\neg\mathit{ENABLED}(A) \lor \Box\Diamond A
+\end{align*}
+
+A specification $S = \mathit{Init} \land \Box[\mathit{Next}]_v \land \mathit{Fairness}$ combines safety ($\Box[\mathit{Next}]_v$) with liveness.
+
+\subsection{Application to GLP$\to$LP}
+
+For a refinement mapping $\sigma : \GLP \to \LP$:
+\[
+\GLP_{\mathit{Spec}} = \mathit{Init}_\GLP \land \Box[\mathit{Next}_\GLP]_v \land \mathit{Fair}_\GLP
+\]
+\[
+\LP_{\mathit{Spec}} = \mathit{Init}_\LP \land \Box[\mathit{Next}_\LP]_v \land \mathit{Fair}_\LP
+\]
+
+When GLP deadlocks at state $g$:
+\begin{itemize}
+    \item The safety part $\Box[\mathit{Next}_\GLP]_v$ holds (vacuously---no step occurs)
+    \item But $\mathit{Fair}_\GLP$ is violated if suspension reaches a state with enabled-but-blocked actions
+    \item The mapped state $\sigma(g)$ in LP has enabled $\mathit{Next}_\LP$ actions
+    \item $\mathit{Fair}_\LP$ requires those actions eventually execute
+    \item But the deadlocked GLP trace maps to an LP trace that stops, violating LP's fairness
+\end{itemize}
+
+\begin{remark}[TLA+ Verdict]
+TLA+ refinement mapping fails for GLP$\to$LP unless LP's fairness requirements are weakened or GLP is shown to implement only $\LPSRSW$.
+\end{remark}
+
+\section{Shapiro's Multiagent Transition Systems}
+
+The multiagent transition systems framework~\cite{shapiro2023multiagent} provides refinement notions tailored to distributed protocols, with built-in support for instances (subsets) and monotonicity.
+
+\subsection{Transition Systems and Implementation}
+
+A transition system $TS = (S, s_0, T, \lambda)$ includes a liveness condition $\lambda$---a set of sets of transitions.  A run is \emph{live} with respect to $L \in \lambda$ if either:
+\begin{enumerate}
+    \item $L$ becomes permanently disabled (no $L$-transition enabled in some suffix), or
+    \item $L$-transitions occur infinitely often
+\end{enumerate}
+
+An implementation $\sigma : S' \to S$ of $TS$ by $TS'$ is:
+\begin{itemize}
+    \item \textbf{Safe} if $\sigma$ maps safe $TS'$ runs to safe $TS$ runs
+    \item \textbf{Live} if $\sigma$ maps live $TS'$ runs to live $TS$ runs
+    \item \textbf{Correct} if safe and live
+    \item \textbf{Complete} if every correct $TS$ run has a correct $TS'$ preimage
+\end{itemize}
+
+\subsection{Instances and the ``Can Implement'' Relation}
+
+\begin{definition}[Instance~\cite{shapiro2023multiagent}]
+$TS' = (S', s_0, T', \lambda')$ is an \emph{instance} of $TS = (S, s_0, T, \lambda)$, written $TS' \subseteq TS$, if $S' \subseteq S$, $T' \subseteq T$, and $\lambda'$ is $\lambda$ restricted to $T'$.
+\end{definition}
+
+\begin{definition}[Can Implement~\cite{shapiro2023multiagent}]
+$TS'$ \emph{can implement} $TS$ if there exists an instance $TS'' \subseteq TS'$ and a correct and complete implementation $\sigma : TS'' \to TS$.
+\end{definition}
+
+This mechanism directly addresses the GLP$\to$LP situation.
+
+\subsection{Monotonically-Complete Transition Systems}
+
+\begin{definition}[Monotonically-Complete]
+A transition system $TS = (S, s_0, T, \lambda)$ is \emph{monotonically-complete} with respect to partial order $\prec$ on $S$ if:
+\begin{enumerate}
+    \item $TS$ is monotonic: $s \to s' \in T$ implies $s \preceq s'$
+    \item Completeness: $s_0 \stackrel{*}{\to} s \subseteq T$ and $s \preceq s'$ implies $s \stackrel{*}{\to} s' \subseteq T$
+\end{enumerate}
+\end{definition}
+
+\begin{theorem}[Correct \& Complete Implementation~\cite{shapiro2023multiagent}]
+If $TS$ and $TS'$ are monotonically-complete with respect to $\prec$ and $\prec'$, and $\sigma : S' \to S$ is order-preserving and productive, then $\sigma$ is correct and complete.
+\end{theorem}
+
+\subsection{Application to GLP$\to$LP}
+
+Define $\LPSRSW \subseteq \LP$ as the instance where:
+\begin{itemize}
+    \item States $S_{\mathit{SRSW}} \subseteq S_\LP$: configurations respecting SRSW on goals
+    \item Transitions $T_{\mathit{SRSW}} \subseteq T_\LP$: reductions that would also be valid GLP reductions (writer unification succeeds, first-clause selection)
+\end{itemize}
+
+\begin{proposition}
+GLP correctly and completely implements $\LPSRSW$.
+\end{proposition}
+
+\begin{proof}[Proof sketch]
+The pure logic variant $L : \GLP \to \LPSRSW$ is:
+\begin{itemize}
+    \item \textbf{Safe}: Every correct GLP run maps to a correct $\LPSRSW$ run (by construction of $\LPSRSW$).
+    \item \textbf{Live}: A live GLP run (where reducible goals are eventually reduced) maps to a live $\LPSRSW$ run.
+    \item \textbf{Complete}: Every correct $\LPSRSW$ run has a GLP preimage---the constraints defining $\LPSRSW$ ensure the corresponding GLP transitions are enabled.
+\end{itemize}
+\end{proof}
+
+\subsection{Monotonicity Alignment}
+
+GLP's Monotonicity Proposition states: if atom $A \in G_i$ can reduce with clause $C$, then for any $j > i$, either $A$ has been reduced, or $A' = A\tau \in G_j$ (for reader substitution $\tau$) can reduce with $C$.
+
+This aligns with the monotonically-complete property: GLP configurations ordered by reader instantiation form a partial order where reducibility is preserved upward.
+
+\subsection{Compositionality}
+
+Shapiro's Proposition 3 states that the composition of safe/live/correct/complete implementations is safe/live/correct/complete.  This enables modular reasoning about GLP programs as compositions of stream transformers.
+
+\begin{remark}[Shapiro Framework Verdict]
+Shapiro's framework naturally accommodates GLP$\to$LP via the instance mechanism.  GLP correctly and completely implements $\LPSRSW \subset \LP$, with:
+\begin{itemize}
+    \item No need to explicitly construct a modified specification
+    \item Monotonicity structure exploited for correctness proofs
+    \item Compositionality for reasoning about stream-based programs
+\end{itemize}
+\end{remark}
+
+\section{Comparison Summary}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Framework} & \textbf{GLP implements LP?} & \textbf{Mechanism} \\
+\midrule
+I/O Automata & No & Enabled action correspondence fails \\
+TLA+ & No & Machine closure / refinement mapping fails \\
+Shapiro & Yes, an instance & GLP implements $\LPSRSW \subseteq \LP$ \\
+\bottomrule
+\end{tabular}
+\caption{Framework comparison for the GLP$\to$LP relationship}
+\end{table}
+
+\section{Conclusion}
+
+The relationship between GLP and LP exemplifies a common refinement challenge: implementation guards may be strictly stronger than specification guards, causing implementation deadlock where the specification could proceed.
+
+I/O Automata and TLA+ handle this by requiring either explicit construction of a restricted specification or weakening of liveness requirements.  Shapiro's multiagent transition systems framework provides a more elegant treatment through the instance/subset mechanism, where GLP naturally implements the SRSW-respecting instance of LP.
+
+For the GLP paper, we recommend:
+\begin{enumerate}
+    \item Defining $\LPSRSW$ as the LP instance respecting SRSW constraints
+    \item Stating that GLP correctly and completely implements $\LPSRSW$
+    \item Exploiting GLP's monotonicity property to establish the order-preserving condition
+    \item Using compositionality for reasoning about stream transformer compositions
+\end{enumerate}
+
+
