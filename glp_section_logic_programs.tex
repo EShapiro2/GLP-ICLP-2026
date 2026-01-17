@@ -1,93 +1,107 @@
-\section{Logic Programs}\label{section:lp}
+%==============================================================================
+\section{Logic Programs}
+\label{sec:lp}
+%==============================================================================
 
-Here we introduce transition systems, providing the formal framework for the operational semantics of both Logic Programs and GLP.
-We recall standard Logic Programs (LP): syntax, most-general unifier (mgu), operational semantics via nondeterministic goal/clause reduction, compositional semantics, and a proof that LP computations are deductions. 
+We introduce transition systems, providing the formal framework for the operational semantics of both Logic Programs and GLP.
+We recall standard Logic Programs (LP): syntax, most-general unifier (mgu), operational semantics via nondeterministic goal/clause reduction, and a proof that LP computations are deductions.
 
 
+%------------------------------------------------------------------------------
 \subsection{Transition Systems}
-
+\label{sec:transition-systems}
+%------------------------------------------------------------------------------
 
 We use $\subset$ to denote the strict subset relation, $\subseteq$ when equality is also possible, and $a\ne b \in S$ as a shorthand for $a\ne b\wedge a\in S \wedge b\in S$.
-%
-The following definition uses `configuration' rather than the more standard `state'  to avoid confusion with the `local state' of agents in a multiagent transition system, Definition~\ref{definition:mts}.
+The following definition uses `configuration' rather than the more standard `state' to avoid confusion with the `local state' of agents in a multiagent transition system (Definition~\ref{definition:mts}).
 
-\begin{definition}[Transition System]\label{definition:ts}
-A \temph{transition system} is a tuple $TS = (C, c0, T)$ where:
+\begin{definition}[Transition System]
+\label{def:transition-system}
+A \temph{transition system} is a tuple $TS = (C, c_0, T)$ where:
 \begin{itemize}
     \item $C$ is an arbitrary set of \temph{configurations}
-    \item $c0 \in C$ is a designated \temph{initial configuration}
+    \item $c_0 \in C$ is a designated \temph{initial configuration}
     \item $T \subseteq C \times C$ is a \temph{transition relation}. A transition $(c,c') \in T$ is also written as $c \rightarrow c' \in T$.
 \end{itemize}
-A transition $c \rightarrow c' \in T$ is \temph{enabled} from configuration $c$. A configuration $c$ is \temph{terminal} if no transitions are enabled from $c$. A \temph{computation} is a (finite or infinite) sequence of configurations where for each two consecutive configurations $(c,c')$ in the sequence, $c \rightarrow c' \in T$. A \temph{run} is a computation starting from $c0$, which is \temph{complete} if it is infinite or ends in a terminal configuration.
+A transition $c \rightarrow c' \in T$ is \temph{enabled} from configuration $c$. A configuration $c$ is \temph{terminal} if no transitions are enabled from $c$. A \temph{computation} is a (finite or infinite) sequence of configurations where for each two consecutive configurations $(c,c')$ in the sequence, $c \rightarrow c' \in T$. A \temph{run} is a computation starting from $c_0$, which is \temph{complete} if it is infinite or ends in a terminal configuration.
 \end{definition}
 
 
-\subsection{Logic Programs Syntax}
+%------------------------------------------------------------------------------
+\subsection{Syntax}
 \label{sec:lp-syntax}
+%------------------------------------------------------------------------------
 
-We employ standard LP notions. Let $\calV$ denote the set of \temph{variables} (identifiers beginning with uppercase). A \temph{term} is a variable, a constant (numbers, strings, or the empty list \verb|[]|), or a compound term $f(T_1,\ldots,T_n)$ with functor $f$ and subterms $T_i$. Let $\calT$ denote the set of all terms. We use standard list notation: \verb=[X|Xs]= for a list cell, \verb|[X1,...,Xn]| for finite lists. A term is \temph{ground} if it contains no variables.
+We employ the standard LP notions of variables, constants, terms, clauses, procedures, and programs.
 
-A \temph{goal} is a multiset of atoms; the empty goal is written \verb|true|. A \temph{clause} $A$~\verb|:-|~$B$ has head atom $A$ and body goal $B$; a \temph{unit clause} has empty body. A \temph{logic program} is a finite set of clauses; clauses for the same predicate form a \temph{procedure}. Let $\calG(P)$ denote the set of goals over program $P$.
+\begin{definition}[Logic Programs Syntax]
+We employ standard LP notions.  Let $\calV$ denote the set of \temph{variables} (identifiers beginning with uppercase).  A \temph{term} is a variable, a constant (numbers, strings, or the empty list \verb|[]|), or a compound term $f(T_1,\ldots,T_n)$ with functor $f$ and subterms $T_i$.  Let $\calT$ denote the set of all terms.  We use standard list notation: \verb=[X|Xs]= for a list cell, \verb|[X1,...,Xn]| for finite lists.  A term is \temph{ground} if it contains no variables.
+
+A \temph{goal} is a multiset of atoms; the empty goal is written \verb|true|.  A \temph{clause} $A$~\verb|:-|~$B$ has head atom $A$ and body goal $B$; a \temph{unit clause} has empty body.  A \temph{logic program} is a finite set of clauses; clauses for the same predicate form a \temph{procedure}.  Let $\calG(P)$ denote the set of goals over program $P$.
+\end{definition}
+
+
 
 \begin{example}[Append]
-The quintessential logic program for list concatenation:
+The quintessential logic program for list concatenation is the following procedure, which has two clauses:
 \begin{verbatim}
 append([X|Xs], Ys, [X|Zs]) :- append(Xs, Ys, Zs).
 append([], Ys, Ys).
 \end{verbatim}
-Logically, a clause $A$\verb|:-| $B$ is a universally-quantified implication in which $B$ implies $A$, and a program is a conjunction of its clauses.
+Logically, a clause $A$ \verb|:-| $B$ is a universally-quantified implication in which $B$ implies $A$, and a program is a conjunction of its clauses.
 By convention, we use plural variable names like \verb|Xs| to denote a list of \verb|X|'s.
 \end{example}
 
-\subsection{Logic Programs Operational Semantics}
-
-\begin{definition}[Substitution, Instance, Unifier, Most-General Unifier]\label{definition:substitution}
-A \temph{substitution} $\sigma$ is an idempotent function $\sigma: \calV \xrightarrow{} \calT$, namely a mapping from variables to terms applied to a fixed point. By convention, $\sigma(x)=x\sigma$. Let $\Sigma$ denote the set of all substitutions.
-\begin{itemize}
-    \item Given a substitution $\sigma$, $\calV_\sigma := \{ X \in \calV ~|~ X\sigma \ne X\}$.
-    \item Given a term $T \in \calT$ and a substitution $\sigma$,  $T\sigma$ is the term obtained from $T$ by replacing every variable $X \in T$ by the term $X\sigma$.
-    \item The partial order on terms $\preceq \subset \calT \times \calT$ is defined by $T \preceq T'$, or $T'$ is an \temph{instance} of $T$, if there is a substitution $\sigma$ for which $T\sigma = T'$.
-    If $T \ne T\sigma$ we say that $\sigma$ \temph{instantiates} $T$. 
-   
-    \item For substitutions $\sigma$ and $\sigma'$, $\sigma \preceq \sigma'$ if for every $T \in \calT$, $T\sigma \preceq T\sigma'$, $\sigma$ is \temph{as general as}  $\sigma'$ if $\sigma \preceq \sigma'$.
-    \item A substitution $\sigma$ is a \temph{unifier} of two terms $T, T' \in \calT$ if $T\sigma = T'\sigma$; it is a \temph{most-general unifier (mgu)} of $T, T'$ if in addition it is as general as any other unifier of $T$ and $T'$.
-\end{itemize}
-\end{definition}
-
-Namely, a most general unifier is frugal in not instantiating variables more than necessary.
+%------------------------------------------------------------------------------
+\subsection{Operational Semantics}
+\label{sec:lp-operational}
+%------------------------------------------------------------------------------
+A \emph{substitution} $\sigma$ is an idempotent function $\sigma: \calV \to \calT$, namely a mapping from variables to terms applied to a fixed point. By convention, $\sigma(x)=x\sigma$. Let $\Sigma$ denote the set of all substitutions. We assume the standard notions of instance, ground, renaming, renaming apart, unifier, and most-general unifier (mgu). We assume a fixed renaming-apart function, so that the result of renaming $T'$ apart from $T$ is well defined.
 
 \begin{remark}[Substitution as Assignment Set]
-We  view a substitution $\sigma$ equivalently as a set of assignments $\{X_1:=T_1, \ldots, X_n:=T_n\}$ where $X_i\sigma = T_i$ and $T_i=T_i\sigma=T$. Thus the singleton substitution mapping $X$ to $T$ is $\{X:=T\}$, its application $T\sigma$ may be written $T\{X:=T\}$, the empty substitution is $\emptyset$, and composition of commutative substitutions corresponds to set union.
+We view a substitution $\sigma$ equivalently as a set of assignments $\{X_1:=T_1, \ldots, X_n:=T_n\}$ where $X_i\sigma = T_i$ and $T_i=T_i\sigma$. Thus the singleton substitution mapping $X$ to $T$ is $\{X:=T\}$, its application $T\sigma$ may be written $T\{X:=T\}$, the empty substitution is $\emptyset$, and composition of commutative substitutions corresponds to set union.
 \end{remark}
 
-\begin{definition}[Renaming, Rename apart]\label{definition:renaming}
-A \temph{renaming} is a substitution $\sigma: \calV \mapsto \calV$ that maps variables to variables.
-A renaming $\sigma$ renames $T'$ \temph{apart from} $T$ if $T'\sigma$ and $T$  have no variable in common.
-\end{definition}
-We assume a fixed renaming-apart function, so that the result of renaming $T'$ apart from $T$ is well defined.
-Next we define the operational semantics of Logic Programs via a transition system.
-
-\begin{definition}[LP Goal/Clause Reduction]\label{definition:logic-goal-clause-reduction}
-Given LP goal $A$ and clause $C$,  with $H \verb|:-| B$ being the result of renaming $C$ apart from $A$, the \temph{LP reduction} of $A$ with $C$ \temph{succeeds with result} $(B,\sigma)$ if $A$ and $H$ have an mgu $\sigma$,  else \temph{fails}.
+\begin{definition}[LP Goal/Clause Reduction]
+\label{def:lp-reduction}
+Given an LP goal $A$ and clause $C$, with $H$ \verb|:-| $B$ being the result of renaming $C$ apart from $A$, the \temph{LP reduction} of $A$ with $C$ \temph{succeeds with} $(B,\sigma)$ if $A$ and $H$ have an mgu $\sigma$.
 \end{definition}
 
-\begin{definition}[Logic Programs Transition System]\label{definition:lp-ts}
-A transition system $LP(P) = (C,c_0, T)$ is a \temph{Logic Programs transition system} for a logic program $P$ and initial goal $G_0 \in \mathcal{G}(P)$ if
-$C=\mathcal{G}(P) \times \Sigma$, $c_0=(G_0, \emptyset)$, and $T$
-is the set of all transitions $(G,\sigma) \rightarrow (G',\sigma') \in (\mathcal{G}(P) \times \Sigma)^2$ such that for some atom $A \in G$ and clause $C \in P$ the LP reduction of $A$ with $C$ succeeds with result $(B,\hat\sigma)$, $G' = (G \setminus \{A\} \cup B)\hat\sigma$, and $\sigma' = \sigma \circ \hat\sigma$.
-\end{definition}
-We write $(G,\sigma) \xrightarrow{\hat\sigma} (G',\sigma')$ when we want to make the reduction substitution explicit.
-As a tribute to resolution theorem proving~\cite{robinson1965machine}—the intellectual ancestor of logic programming—a configuration of $LP$ is also referred to as a \emph{resolvent}.
+We define the operational semantics of LP and of GLP via transition systems; in both, set relations and operations refer to multisets.
 
-Logic Programs have two forms of nondeterminism: the choice of $A\in G$, called \emph{and-nondeterminism}, and then choice of $C\in P$, called \emph{or-nondeterminism}. Thus, as an abstract model of computation, LP are closely-related to \emph{Alternating Turing Machines}, a generalization of Nondeterministic Turing Machines~\cite{shapiro1984alternation}.
-
-\begin{definition}[Proper Run and Outcome]\label{definition:proper-run}
-A run $\rho: (G_0,\sigma_0) \rightarrow (G_1,\sigma_1) \rightarrow \cdots \rightarrow (G_n, \sigma_n)$ of $LP(P)$ is \temph{proper} if for any $1\le i< n$, a variable that occurs in $G_{i+1}$ but not in $G_i$ also does not occur in any $G_j$, $j<i$. If proper, the \temph{outcome} of $\rho$ is $(G_0 \verb|:-| G_n)\sigma_n$. Such a run is \temph{successful} if $G_n = \emptyset$.
+\begin{definition}[Logic Programs Transition System]
+\label{def:lp-ts}
+A transition system $LP(P) = (C, c_0, T)$ is a \temph{Logic Programs transition system} for a logic program $P$ and initial goal $G_0 \in \mathcal{G}(P)$, if $C=\mathcal{G}(P)\times \Sigma$, $c_0=(G_0,\emptyset)$, and $T$ is the set of all transitions $(G,\sigma) \rightarrow (G',\sigma') \in (\mathcal{G}(P)\times \Sigma)^2$ such that for some atom $A \in G$ and clause $C \in P$ the LP reduction of $A$ with $C$ succeeds with $(B,\hat\sigma)$,  $G' = (G \setminus \{A\} \cup B)\hat\sigma$, and $\sigma'=\sigma\circ\hat\sigma$
 \end{definition}
+
+As a tribute to resolution theorem proving~\cite{robinson1965machine}---the intellectual ancestor of logic programming---a configuration of $LP$ is also referred to as a \emph{resolvent}.
+Logic Programs have two forms of nondeterminism: the choice of $A\in G$, called \emph{and-nondeterminism}, and the choice of $C\in P$, called \emph{or-nondeterminism}. Thus, as an abstract model of computation, LP are closely-related to \emph{Alternating Turing Machines}, a generalization of Nondeterministic Turing Machines~\cite{shapiro1984alternation}.
+
+The following notion of a proper run ensures that variable names are not re-used; in implementation terms this is an assumption on the integrity of the memory-management/garbage-collection system.
+\begin{definition}[Proper and Successful Run, Outcome]
+\label{def:proper-run}
+A run $\rho: (G_0,\sigma_0) \rightarrow  \cdots \rightarrow (G_n, \sigma_n)$ of $LP(P)$ is \temph{proper} if for any $1\le i< n$, a variable that occurs in $G_{i+1}$ but not in $G_i$ also does not occur in any $G_j$, $j<i$. If proper, the \temph{outcome} of $\rho$ is $(G_0$ \verb|:-| $G_n)\sigma_n$. Such a run is \temph{successful} if $G_n=\emptyset$.
+\end{definition}
+
 It so happens that the set of all outcomes of all proper runs of a logic program constitutes its fully-abstract compositional semantics~\cite{gaifman1989fully}.
-Next we prove the key safety property of LP:
 
-\begin{restatable}[LP Computation is Deduction]{proposition}{LPComputationisDeduction}\label{proposition:LP-computation-deduction}
-The outcome $(G_0$ \texttt{:-} $G_n)\sigma$ of a proper run $\rho: (G_0,\emptyset) \rightarrow \cdots \rightarrow (G_n, \sigma)$ of $LP(P)$ is a logical consequence of $P$.
-\end{restatable}
+The following proposition justifies calling a proper LP run a \emph{derivation}, and a complete proper run ending in the empty goal a \emph{successful derivation}.
 
+\begin{proposition}[LP Computation is Deduction]
+\label{prop:lp-deduction}
+The outcome $(G_0$ \verb|:-| $G_n)\sigma$ of a proper run $\rho: (G_0,\sigma_0) \rightarrow  \cdots \rightarrow (G_n, \sigma_n)$ of $LP(P)$  is a logical consequence of $P$.
+\end{proposition}
+
+\begin{proof}
+By induction on the length $n$ of the run.
+
+\emph{Base case} ($n=0$): The outcome is $(G_0 \mathrel{\mbox{\texttt{:-}}} G_0)\emptyset = (G_0 \mathrel{\mbox{\texttt{:-}}} G_0)$, which is the tautology $G_0 \Leftarrow G_0$.
+
+\emph{Inductive step}: Suppose the proposition holds for runs of length $n-1$.  Consider a run of length $n$ with final transition $(G_{n-1}, \sigma_{n-1}) \rightarrow (G_n, \sigma_n)$.  By definition, there exist atom $A \in G_{n-1}$ and clause $C = (H \mathrel{\mbox{\texttt{:-}}} B) \in P$ (renamed apart) such that $A$ and $H$ have mgu $\hat\sigma$, $G_n = (G_{n-1} \setminus \{A\} \cup B)\hat\sigma$, and $\sigma_n = \sigma_{n-1} \circ \hat\sigma$.
+
+The clause $C$, being universally quantified, entails the instance $(H \mathrel{\mbox{\texttt{:-}}} B)\hat\sigma$, i.e., $H\hat\sigma \Leftarrow B\hat\sigma$.  Since $A\hat\sigma = H\hat\sigma$ (by unification), we have $A\hat\sigma \Leftarrow B\hat\sigma$.
+
+By the inductive hypothesis, the prefix run has outcome $(G_0 \mathrel{\mbox{\texttt{:-}}} G_{n-1})\sigma_{n-1}$, a logical consequence of $P$.  Applying $\hat\sigma$ and substituting $A\hat\sigma$ with $B\hat\sigma$ (justified by the clause instance), we obtain $(G_0 \mathrel{\mbox{\texttt{:-}}} G_n)\sigma_n$, also a logical consequence of $P$.
+\end{proof}
+
+Note that the LP transition system does not require the initial goal $G_0$ to be atomic.
