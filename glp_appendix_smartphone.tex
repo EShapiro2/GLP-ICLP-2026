@@ -2,9 +2,25 @@
 
 This appendix specifies irmaGLP, an implementation-ready transition system for multiagent (smartphone) GLP execution. It combines the implementation-ready structure of irGLP (Appendix~\ref{appendix:irGLP}) with the multiagent framework of maGLP (Section~\ref{section:maGLP}). While irGLP provides deterministic scheduling and suspension management for single agents, and maGLP defines cross-agent communication through shared variables, irmaGLP specifies the concrete data structures and message-passing mechanisms suitable for smartphone implementation.
 
-A variable $X$ is \emph{local} to agent $p$ if $X$ occurs in $p$'s resolvent. Non-local variables require coordination through variable tables and explicit message passing, replacing maGLP's abstract shared-variable communication with concrete routing mechanisms.
+A variable $X$ is \emph{fully local} to agent $p$ if $(X, \cdot, \cdot) \notin V_p$, meaning both $X$ and its dual counterpart are in $p$'s resolvent. Non-local variables require coordination through variable tables and explicit message passing, replacing maGLP's abstract shared-variable communication with concrete routing mechanisms.
 
 The fundamental invariant: assignments produced by Reduce transactions are immediately applied if the reader is local, otherwise they become messages routed through the variable tables.
+
+\subsection{Global Variable Identity}
+
+Variables crossing agent boundaries require globally unique identifiers.
+
+\begin{definition}[Global Variable Identity]\label{def:global-var-id}
+A \temph{global variable identifier} has format $\textrm{creator}:\textrm{localId}$ where:
+\begin{itemize}
+\item $\textrm{creator} \in \Pi$: agent who allocated this variable
+\item $\textrm{localId}$: unique integer within creator's heap
+\end{itemize}
+\end{definition}
+
+For example, $\textrm{alice}:1042$ identifies the variable with local ID 1042 created by agent alice. When serializing terms for inter-agent transport, local variable IDs are replaced with global IDs to enable routing through variable tables.
+
+\subsection{Transition System}
 
 \begin{definition}[irmaGLP Transition System]\label{def:irmaglp-ts}
 The implementation-ready maGLP transition system over agents $P \subset \Pi$ and GLP program $M$ is the multiagent transition system $\textrm{irmaGLP} = (\calC, c_0, \calT)$ where:
@@ -12,7 +28,7 @@ The implementation-ready maGLP transition system over agents $P \subset \Pi$ and
 \item $\calC$ is the set of all configurations where for each $p \in P$, the local state $c_p$ is an implementation-ready resolvent (Definition~\ref{def:irmaglp-local-state})
 \item $c_0$ is the initial configuration where for each $p \in P$:
   \begin{itemize}
-  \item $R_p = ([\texttt{agent}(p, \texttt{ch}(\_?, \_), \texttt{ch}(\_?, \_))], \emptyset, \emptyset)$
+  \item $R_p = ([\textrm{agent}(p, \textrm{ch}(\_, \_), \textrm{ch}(\_, \_))], \emptyset, \emptyset)$
   \item $V_p = \emptyset$  
   \item $M_p = \emptyset$
   \end{itemize}
@@ -37,11 +53,11 @@ The local state of agent $p \in \Pi$ is an \temph{implementation-ready resolvent
     \item \textbf{Failed:} $F_p \subseteq \calA_?$
     \end{itemize}
     
-   \item $V_p \subseteq \calV \times \Pi \times (\calT \cup \Pi \cup \{\bot\})$ maintains shared variable state as a set of triples where each $(Y, q, s) \in V_p$:
+   \item $V_p \subseteq (\calV \cup \calV?) \times \Pi \times (\calT \cup \Pi \cup \{\bot\})$ maintains shared variable state as a set of triples $(Y, q, s)$:
         \begin{itemize}
-        \item \textbf{Writer:} $Y \in \calV$, $s \in \calT$ is the value of $Y$, else $s=\bot$
-        \item \textbf{Created Reader:} $Y \in \calV?$, $q = p$, $s \in \Pi$ is the read-requesting agent, else $s=\bot$
-        \item \textbf{Imported Reader:} $Y \in \calV?$, $q \neq p$, $s = q$ indicates a read request has been sent from $p$ to $q$, else $s=\bot$ 
+        \item \textbf{Writer:} $Y \in \calV$, $q = p$ (invariant: writers are always created locally, never imported), $s \in \calT$ is the value of $Y$, else $s=\bot$. The dual reader $Y?$ is non-local.
+        \item \textbf{Created Reader:} $Y \in \calV?$, $q = p$, $s \in \Pi$ is the read-requesting agent, else $s=\bot$. The dual writer is non-local.
+        \item \textbf{Imported Reader:} $Y \in \calV?$, $q \neq p$ (creator), $s = q$ indicates a read request has been sent from $p$ to $q$, else $s=\bot$. Both $Y$ and its dual writer are non-local to $p$.
         \end{itemize}
         
 \item $M_p$ is a set of pending messages as pairs (content, destination) where destination $q \in \Pi$:
@@ -55,22 +71,22 @@ The local state of agent $p \in \Pi$ is an \temph{implementation-ready resolvent
 
 The resolvent $R_p$ partitions goals into three categories. Active goals $A_p$ contains a queue of goals to be reduced in FIFO order. Suspended goals $S_p$ pairs each atom with the set of readers preventing its reduction—for $(A, W) \in S_p$, the set $W$ contains all readers from the suspension sets across all clause attempts. When any reader $X? \in W$ receives a value or is abandoned, $A$ moves to the tail of $A_p$. Failed goals $F_p$ contains atoms for which every reduction attempt either failed outright or suspended only on abandoned variables.
 
-The variable table $V_p$ maintains shared variables where one element of each variable pair is local to $p$ while its dual is non-local. For writers, the table stores the creator and any assignment to enable response to read requests. For created readers, it records which agent has requested the value. For imported readers, it tracks whether a read request has been sent to the creator. This unified structure ensures variables referenced by non-local duals are not prematurely garbage collected and provides routing information for cross-agent communication.
+The variable table $V_p$ maintains shared variables where one element of each variable pair is local to $p$ while its dual is non-local. For writers, the table stores the creator (always $p$) and any assignment to enable response to read requests. For created readers, it records which agent has requested the value. For imported readers, it tracks whether a read request has been sent to the creator. This unified structure ensures variables referenced by non-local duals are not prematurely garbage collected and provides routing information for cross-agent communication.
 
-The variable table $V_p$ maintains an invariant: it contains exactly those variables whose dual counterparts are non-local. When $p$ receives a term containing a variable from $V_p$, that variable becomes local and must be removed from $V_p$. When $p$ exports a term, the export helper function updates $V_p$ accordingly: variables created by $p$ are added when first exported, while variables created by others are removed (except for requested readers which require relay variables).
+The variable table $V_p$ maintains an invariant: it contains exactly those variables whose dual counterparts are non-local. When $p$ receives a term containing a variable from $V_p$, that variable becomes fully local and must be removed from $V_p$. When $p$ exports a term, the export helper function updates $V_p$ accordingly: variables created by $p$ are added when first exported, while variables created by others are removed (except for requested readers which require relay variables).
 
 \subsection{Helper Routines}
 
 The following helper routines are used by the transactions. All routines operate on agent $p$'s state and may modify $V'_p$ and $M'_p$.
 
-\begin{definition}[Routine: abandon$(Y)$]\label{def:routine-abandon}
-The \textrm{abandon} routine notifies other agents when variable $Y$ becomes unreachable. For imported variables, it notifies the creator $q$. For created readers with a requester $s$, it notifies that requester. The dual variable $Y'$ is sent in the message to indicate which part of the pair was abandoned.
+\begin{definition}[Routine: abandon$(Y?)$]\label{def:routine-abandon}
+The \textrm{abandon} routine notifies other agents when reader $Y?$ becomes unreachable. An agent can only abandon a \textbf{reader}, which causes the remote agent holding the dual writer to be notified.
 \begin{itemize}
-\item If $(Y, q, s) \in V_p$ where $q \neq p$: remove from $V'_p$ and add $(\textrm{abandon}(Y'), q)$ to $M'_p$
-\item If $(Y, p, s) \in V_p$ and $s \neq \bot$: remove from $V'_p$ and add $(\textrm{abandon}(Y'), s)$ to $M'_p$
-\item Otherwise: just remove $(Y, \cdot, \cdot)$ from $V'_p$ if present
+\item If $(Y?, q, s) \in V_p$ where $q \neq p$: remove from $V'_p$ and add $(\textrm{abandon}(Y), q)$ to $M'_p$
+\item If $(Y?, p, s) \in V_p$ and $s \neq \bot$: remove from $V'_p$ and add $(\textrm{abandon}(Y), s)$ to $M'_p$
+\item Otherwise: just remove $(Y?, \cdot, \cdot)$ from $V'_p$ if present
 \end{itemize}
-where $Y' = Y?$ if $Y \in \calV$, else $Y' = Y$ if $Y \in \calV?$ (the dual variable).
+where $Y$ is the dual writer of $Y?$ (the message contains the writer so the receiver knows which variable was abandoned).
 \end{definition}
 
 \begin{definition}[Routine: request$(X?)$]\label{def:routine-request}
@@ -98,6 +114,12 @@ Set $T' := T$. For each variable $Y$ occurring in $T$:
 Return $T'$ (the result of applying variable replacements, if any, to $T$).
 \end{definition}
 
+The forwarding goal $\textrm{relay}(Y, Z)$ is defined as:
+\begin{verbatim}
+relay(Y, Z) :- known(Z?) | Y = Z?.
+\end{verbatim}
+This ensures that when relay reader $Z?$ receives a value $V$, the original writer $Y$ is bound to $V$, maintaining the request relationship across export boundaries.
+
 \begin{definition}[Routine: reactivate$(X?)$ returns $R$]\label{def:routine-reactivate}
 The \textrm{reactivate} routine finds and removes goals suspended on reader $X?$:
 \begin{itemize}
@@ -110,10 +132,16 @@ The \textrm{reactivate} routine finds and removes goals suspended on reader $X?$
 \subsection{Transactions}
 
 \mypara{Variable Abandonment}
-During goal reduction, variables may become abandoned when their dual counterparts disappear from the computation without being instantiated. This happens when a variable that occurs in the reduced atom is neither instantiated by the reduction nor occurring in the resulting body. The implementation detects such abandonment to prevent indefinite suspension and enable garbage collection of shared-variable entries for variables that can never receive values.
+During goal reduction, readers may become abandoned when they disappear from the computation without being instantiated. This happens when a reader that occurs in the reduced atom is neither instantiated by the reduction nor occurring in the resulting body.
 
-\begin{definition}[Variable Abandonment in Reduction]\label{def:variable-abandonment}
-When reducing atom $A$ with clause $C$ yielding body $B$ and substitution $\hat\sigma$, a variable $Y$ is \temph{abandoned} if its dual variable $Y'$ satisfies all three conditions: $Y'$ occurs in $A$, $Y'$ is not instantiated by $\hat\sigma$ or $\hat\sigma?$, and $Y'$ does not occur in $B$.
+\begin{definition}[Reader Abandonment in Reduction]\label{def:reader-abandonment}
+When reducing atom $A$ with clause $C$ yielding body $B$ and substitution $\hat\sigma$, a reader $Y?$ is \temph{abandoned} if all three conditions hold:
+\begin{enumerate}
+\item $Y?$ occurs in $A$
+\item $Y?$ is not instantiated by $\hat\sigma?$
+\item $Y?$ does not occur in $B$
+\end{enumerate}
+For each abandoned reader $Y?$, call $\textrm{abandon}(Y?)$ to notify the creator holding the dual writer $Y$.
 \end{definition}
 
 \begin{definition}[irmaGLP Reduce Transaction]\label{def:irmaglp-reduce}
@@ -122,11 +150,11 @@ The unary Reduce transaction for agent $p$ transitions $(R_p, V_p, M_p) \rightar
 \begin{enumerate}
 \item \textbf{Reduce:} If GLP reduction of $A$ with first applicable clause $C \in M$ succeeds with $(B, \hat\sigma)$:
 \begin{itemize}
-    \item Let $R = \bigcup_{X? \in \calV_{\hat\sigma?}} \textrm{reactivate}(X?)$ (modifies $S'_p$)
+    \item Let $W = \{X? : \{X?:=T\} \in \hat\sigma?\}$ be the readers assigned by this reduction
+    \item Let $R = \bigcup_{X? \in W} \textrm{reactivate}(X?)$ (modifies $S'_p$)
     \item $A'_p := (A_r \cdot B \cdot R)\hat\sigma\hat\sigma?$
-    \item Update $V'_p$: for each $X? \in W$ where $(X?, q, \bot) \in V'_p$, update to $(X?, q, q)$
     \item Update $M'_p$: add $(X?:=T, r)$ for each $\{X?:=T\} \in \hat\sigma?$ where $(X?, p, r) \in V'_p, r \neq \bot$
-    \item Call abandon$(Y)$ for each abandoned variable $Y$
+    \item Call abandon$(Y?)$ for each abandoned reader $Y?$ (Definition~\ref{def:reader-abandonment})
 \end{itemize}
 
 \item \textbf{Suspend:} Else if $W = \bigcup_{C \in M} W_C \neq \emptyset$:
@@ -140,7 +168,7 @@ The unary Reduce transaction for agent $p$ transitions $(R_p, V_p, M_p) \rightar
 \begin{itemize}
     \item $A'_p := A_r$
     \item $F'_p := F'_p \cup \{A\}$
-    \item Call abandon$(Y)$ for each variable $Y$ in $A$ (modifies $V'_p$ and $M'_p$)
+    \item Call abandon$(Y?)$ for each reader $Y?$ in $A$ (modifies $V'_p$ and $M'_p$)
 \end{itemize}
 \end{enumerate}
 Then $R'_p := (A'_p, S'_p, F'_p)$.
@@ -155,7 +183,7 @@ The binary Communicate transaction $(c_p, c_q) \rightarrow (c'_p, c'_q)$ where $
     \item If $T \neq \bot$: $A'_q := (A_q \cdot R)\{X?:=T\}$, and apply $\{X?:=T\}$ to $S'_q$ and $F_q$
     \item Else: $A'_q := A_q \cdot R$
     \item Remove $(X?, \cdot, \cdot)$ from $V'_q$
-    \item For each variable $Y$ in $T$ not already local to $q$ and created by $r$: add $(Y, r, \bot)$ to $V'_q$
+    \item For each variable $Y$ in $T$ where $(Y, \cdot, \cdot) \notin V'_q$: if $Y$ created by agent $r$, add $(Y, r, \bot)$ to $V'_q$
 \end{itemize}
  
 \item \textbf{Read Request} $m = \textrm{request}(X?, p)$:
@@ -172,7 +200,7 @@ The binary Network transaction $(c_p, c_q) \rightarrow (c'_p, c'_q)$ where $p \n
 \begin{itemize}
 \item Let $X' := \textrm{export}(X)$ for agent $p$ (modifies $V'_p$ and $M'_p$)
 \item Add $X'$ to $q$'s network input stream
-\item For each variable $Y$ in $X'$ not already local to $q$ and created by $r$: add $(Y, r, \bot)$ to $V'_q$
+\item For each variable $Y$ in $X'$ where $(Y, \cdot, \cdot) \notin V'_q$: if $Y$ created by agent $r$, add $(Y, r, \bot)$ to $V'_q$
 \end{itemize}
 \end{definition}
 
