@@ -1,102 +1,55 @@
-\section{Proofs}\label{appendix:proofs}
+\section{Deferred Proofs}\label{appendix:proofs}
 
-\LPComputationisDeduction*
+This appendix contains proofs of propositions from Section~\ref{sec:glp}.
+
+\begin{proposition*}[\ref{prop:glp-deduction}, GLP Computation is Deduction]
+Let $/?$ replace every reader by its paired writer. If $(G_0$ \verb|:-| $G_n)\sigma$ is the outcome of a proper GLP run, then $(G_0$ \verb|:-| $G_n)\sigma/?$ is a logical consequence of $P/?$.
+\end{proposition*}
+
 \begin{proof}
-We prove by induction on the length of the run that each step preserves logical consequence.
+The $/\!?$ operator replaces every reader $X?$ by its paired writer $X$, transforming GLP terms into LP terms. We show that the GLP run $\rho$ corresponds to an LP run $\rho/?$ of $LP(P/?)$.
 
-\mypara{Base case} For $n=0$, we have $G_0 = G_0$ with empty substitution $\epsilon$. The outcome $(G_0 \texttt{:-} G_0)$ is a tautology, hence a logical consequence of any program.
-
-\mypara{Inductive step} Assume the proposition holds for runs of length $k$. Consider a proper run of length $k+1$:
-$$\rho: G_0 \xrightarrow{\sigma_1} \cdots \xrightarrow{\sigma_k} G_k \xrightarrow{\sigma_{k+1}} G_{k+1}$$
-
-By the inductive hypothesis, $(G_0 \texttt{:-} G_k)\sigma'$ is a logical consequence of $M$, where $\sigma' = \sigma_1 \circ \cdots \circ \sigma_k$.
-
-For the transition $G_k \xrightarrow{\sigma_{k+1}} G_{k+1}$:
+Consider a GLP transition $(G, \sigma) \rightarrow (G', \sigma')$:
 \begin{itemize}
-   \item There exists atom $A \in G_k$ and clause $(H \texttt{:-} B) \in M$ renamed apart
-   \item $\sigma_{k+1}$ is the mgu of $A$ and $H$
-   \item $G_{k+1} = (G_k \setminus \{A\} \cup B)\sigma_{k+1}$
+    \item \emph{Reduce transition}: Goal $A$ reduces with clause $C$ via writer mgu $\hat\sigma$. Applying $/\!?$, the clause $C/?$ is an LP clause, and $A/?$ unifies with the head $H/?$ via the mgu $\hat\sigma/?$ (since writers map to writers). This is a valid LP reduction.
+    \item \emph{Communicate transition}: A reader $X? \in G$ is replaced by the value $T$ assigned to its paired writer. Under $/\!?$, both $X?$ and $X$ map to $X$, so this transition becomes the identity---the variable $X$ is already bound to $T$ in the LP view.
 \end{itemize}
 
-Since $(H \texttt{:-} B)$ is a clause in $M$ and $\sigma_{k+1}$ unifies $A$ with $H$, we know that:
+Thus each GLP transition corresponds to zero or one LP transitions, and the GLP run $\rho$ projects to an LP run $\rho/?$ of $LP(P/?)$. By standard LP soundness, the outcome of $\rho/?$ is a logical consequence of $P/?$.
+\end{proof}
+
+\begin{proposition*}[\ref{prop:so-preservation}, SO Preservation]
+If the initial goal $G_0$ satisfies SO, then every goal in the GLP run satisfies SO.
+\end{proposition*}
+
+\begin{proof}
+By induction on the length of the run. The base case is immediate: $G_0$ satisfies SO by assumption.
+
+For the inductive step, assume $G$ satisfies SO and consider a transition $(G, \sigma) \rightarrow (G', \sigma')$:
 \begin{itemize}
-   \item The instance $(H \texttt{:-} B)\sigma_{k+1}$ is a logical consequence of $M$ (by instantiation of a program clause)
-   \item Since $A\sigma_{k+1} = H\sigma_{k+1}$ (by the mgu property), we can replace $A$ with $B$ under substitution $\sigma_{k+1}$
-   \item Therefore, the implication $(G_k \texttt{:-} G_{k+1})$ is a logical consequence of $M$ when we consider that $G_{k+1}$ was obtained by replacing $A$ in $G_k$ with $B$ and applying $\sigma_{k+1}$
+    \item \emph{Reduce transition}: Goal $A \in G$ reduces with clause $C = (H \mathrel{\mbox{\texttt{:-}}} B)$ via writer mgu $\hat\sigma$, yielding $G' = (G \setminus \{A\} \cup B)\hat\sigma$. Since $C$ satisfies SRSW, it satisfies SO. Since $C$ is renamed apart from $G$, the variables in $B$ are fresh. The writer mgu $\hat\sigma$ maps writers in $A$ to subterms of $H$ and vice versa; by SO of both $G$ and $C$, each variable is assigned at most once. Applying $\hat\sigma$ to $(G \setminus \{A\} \cup B)$ replaces each variable by a term containing fresh variables (from $B$) or ground subterms. Since no variable in $G \setminus \{A\}$ occurs in $A$ (by SO of $G$), and no variable in $B$ occurs in $G$ (by renaming apart), $G'$ satisfies SO.
+    
+    \item \emph{Communicate transition}: $G' = G\hat\sigma?$ where $\hat\sigma? = \{X? := T\}$. Since $G$ satisfies SO, $X?$ occurs at most once in $G$. Replacing this single occurrence by $T$ (which satisfies SO by Definition~\ref{def:assignments}) preserves SO, provided $T$ shares no variables with the rest of $G$. By the proper run condition, variables in $T$ are fresh, so $G'$ satisfies SO.
+\end{itemize}
+\end{proof}
+
+\begin{proposition*}[\ref{prop:glp-monotonicity}, Monotonicity]
+If unit goal $A$ can reduce with clause $C$ at step $i$, then either $A$ has been reduced by step $j > i$, or an instance of $A$ can still reduce with $C$ at step $j$.
+\end{proposition*}
+
+\begin{proof}
+Suppose goal $A$ can reduce with clause $C$ at step $i$, meaning the writer mgu of $A$ and the head $H$ of (a renaming of) $C$ succeeds. Consider what can change between steps $i$ and $j > i$:
+\begin{itemize}
+    \item \emph{Reduce transitions on other goals}: These do not affect $A$ directly. By SO, no other goal shares a writer with $A$, so no other reduction can bind a writer in $A$.
+    
+    \item \emph{Communicate transitions}: These bind readers, not writers. A communicate transition $X? := T$ may instantiate a reader $X? \in A$, yielding $A' = A\{X? := T\}$. We show $A'$ can still reduce with $C$:
+    
+    The original writer mgu succeeded, meaning at position $p$ where $X?$ occurred in $A$, either (a) $H$ had a writer $Y$ at position $p$, yielding assignment $Y := X?$, or (b) $H$ had a reader $Y?$ at position $p$, which would have caused failure (reader-reader), contradiction.
+    
+    In case (a), after the communicate transition, $A'$ has $T$ at position $p$. The clause $C$ (renamed apart for $A'$) has a fresh writer $Y'$ at position $p$. The writer mgu now yields $Y' := T$, which succeeds.
+    
+    \item \emph{Reduce transition on $A$}: If $A$ itself is reduced at some step $k$ with $i < k \le j$, then an instance of $A$ has been reduced, satisfying the proposition.
 \end{itemize}
 
-By the transitivity of logical consequence, if $(G_0 \texttt{:-} G_k)\sigma'$ is a logical consequence of $M$ and $(G_k \texttt{:-} G_{k+1})$ follows from $M$ under the additional substitution $\sigma_{k+1}$, then $(G_0 \texttt{:-} G_{k+1})(\sigma' \circ \sigma_{k+1})$ is a logical consequence of $M$.
-
-Since $\sigma = \sigma' \circ \sigma_{k+1} = \sigma_1 \circ \cdots \circ \sigma_{k+1}$, we conclude that the outcome $(G_0 \texttt{:-} G_{k+1})\sigma$ is a logical consequence of $M$.
-\qed\end{proof}
-
-\ReaderOnlyInstantiation*
-\begin{proof}
-Consider the transition $G_i \rightarrow G_{i+1}$ via reduction of some atom $A' \in G_i$ with clause $C$. Let $(H \texttt{:-} B)$ be the renaming of $C$ apart from $A'$, with writer mgu $\sigma$ and reader counterpart $\sigma?$.
-
-By Definition~\ref{definition:GLP-ts}, the Reduce transition specifies that $G_{i+1} = (G_i \setminus \{A'\} \cup B)\sigma$, and the configuration's reader substitution is updated with $\sigma?$.
-
-For any atom $A \in G_{i+1}$ that also appeared in $G_i$, we have:
-
-\begin{enumerate}
-\item $A \neq A'$ (A was not the reduced atom). Then $A \in G_i \setminus \{A'\}$. The reduction applies $\sigma$ to all atoms in the resolvent. Since $A$ was in $G_i$ and the clause was renamed apart from the entire goal (including $A$), any writers in $A$ are distinct from $V_\sigma$. Therefore $\sigma$ does not instantiate variables in $A$. Only the reader counterpart $\sigma?$ can affect $A$. Since $\sigma?$ is a reader substitution with $V_{\sigma?} \subset V?$, we have $A$ in $G_{i+1}$ equals $A'\tau$ where $A' \in G_i$ and $\tau = \sigma?$ instantiates only readers.
-
-\item $A = A'$ (A was the reduced atom). This case cannot occur since $A'$ is removed from the resolvent during reduction and thus cannot appear in $G_{i+1}$.
-\end{enumerate}
-
-Therefore, any atom persisting from $G_i$ to $G_{i+1}$ is instantiated only by the reader substitution $\sigma?$.
-\qed
+Thus, if $A$ has not been reduced by step $j$, the (possibly instantiated) goal $A'$ at step $j$ can still reduce with a fresh renaming of $C$.
 \end{proof}
-
-\GLPComputationsareDeductions*
-\begin{proof}
-Follows from the correspondence between GLP reductions and LP reductions on pure logic variants, combined with Proposition~\ref{proposition:LP-computation-deduction}.
-\qed
-\end{proof}
-
-\SOPreservation*
-\begin{proof}
-By induction on run length. The base case holds by assumption: $G_0$ satisfies SO.
-
-For the inductive step, assume $G_i$ satisfies SO and consider $G_i \rightarrow G_{i+1}$ via reduction of atom $A \in G_i$ with clause $C$ satisfying the SRSW syntactic restriction. Let $(H \texttt{:-} B)$ be the renaming of $C$ apart from $G_i$, with writer mgu $\sigma$.
-
-Since the clause satisfies SRSW, it satisfies SO: every variable in $C$ occurs exactly once. After renaming apart, $(H \texttt{:-} B)$ also satisfies SO with fresh variables.
-
-Since $G_i$ satisfies SO and $A \in G_i$, every variable in $A$ occurs exactly once in $G_i$. The writer mgu $\sigma$ maps variables in $A$ to subterms of $H$ (and vice versa). By SO of both $A$ and $H$, each such variable occurs exactly once on each side.
-
-The new goal $G_{i+1} = (G_i \setminus \{A\} \cup B)\sigma$ is formed by:
-\begin{enumerate}
-    \item Removing $A$ from $G_i$ (eliminating all variable occurrences in $A$)
-    \item Adding $B$ (introducing fresh variables, each occurring once by SO of $B$)
-    \item Applying $\sigma$ (substituting variables with terms, not duplicating occurrences)
-\end{enumerate}
-
-Since removal and substitution do not duplicate variable occurrences, and $B$'s fresh variables each occur once, $G_{i+1}$ satisfies SO.
-\qed\end{proof}
-
-\Acyclicity* 
-\begin{proof}
-By induction on run length. For the base case, $G_0$ contains no circular terms by assumption. For the inductive step, assume $G_i$ contains no circular terms and consider the transition $G_i \rightarrow G_{i+1}$ via reduction of atom $A$ with clause $C$. Let $(H \texttt{:-} B)$ be the renaming of $C$ apart from $A$, with writer mgu $\sigma$ and reader counterpart $\sigma?$. The reader counterpart exists only if for all $X \in V_\sigma$, $X? \notin X\sigma$ (occurs check). This ensures no writer is bound to a term containing its paired reader. Since $G_{i+1} = (G_i \setminus \{A\} \cup B)\sigma?$, and the occurs check prevents circular assignments, $G_{i+1}$ contains no circular terms.
-\qed\end{proof}
-
-\Monotonicity*
-\begin{proof}
-By induction on $j - i$. For the base case ($j = i$), the atom $A \in G_i$ can reduce with $C$ by assumption. For the inductive step, assume the property holds for $j = k$ and consider $j = k + 1$. 
-
-If $A$ was reduced at some step between $i$ and $k$, then case (1) holds. Otherwise, by the inductive hypothesis, there exists $A' \in G_k$ where $A' = A\tau$ for some reader substitution $\tau$, and $A'$ can reduce with $C$.
-
-Consider the transition $G_k \rightarrow G_{k+1}$. If the reduction involves $A'$, then case (1) holds for $j = k + 1$. If the reduction involves a different atom $B \in G_k$, then $A'$ persists in $G_{k+1}$, possibly further instantiated. Specifically, the reduction applies substitution $\sigma?$ where $\sigma?$ instantiates only readers (by definition of reader counterpart). Thus there exists $A'' \in G_{k+1}$ where $A'' = A'\sigma? = A(\tau \circ \sigma?)$, and $\tau \circ \sigma?$ is a reader substitution.
-
-Since $A'$ could reduce with $C$ (renamed apart) via some writer mgu at step $k$, and $\sigma?$ only instantiates readers, the unification of $A''$ with the head of $C$ (appropriately renamed) still succeeds: reader instantiation preserves unifiability and cannot introduce new writer instantiation requirements. Therefore $A''$ can reduce with $C$ at step $k + 1$.
-\qed\end{proof}
-
-\maGLPisgrassroots*    
-\begin{proof}
-We prove that maGLP is oblivious and interactive.
-\begin{enumerate}
-    \item \textbf{maGLP is Oblivious:}  Follows directly from Proposition~\ref{proposition:oblivious}.
-    \item \textbf{maGLP is Interactive:}  We have to show that in any configuration $c$ of a run of maGLP over $P$, if this configuration is in fact  configuration over $P'\supset P$, then members of $P$ have a behaviour not available to them if this was a run over $P$. The answer, of course, is that in such a case any agent $q\in P'\setminus P$ can send a network message to some agent $p\in P$, resulting in the local state of $p$ having an `alien trace'—a variable produced by an agent not in $P$—a behaviour not available to $P$ on their own.
-\end{enumerate}
-We conclude that maGLP is grassroots.
-\qed\end{proof}
-

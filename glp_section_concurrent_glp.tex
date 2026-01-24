@@ -211,8 +211,9 @@ The agent merges user and network input streams, then enters the main event loop
 
 \subsubsection{Cold-Call Befriending Protocol}
 
-The cold-call protocol enables agents to establish friendship without prior shared variables:
+The cold-call protocol enables agents to establish friendship without prior shared variables. Figure~\ref{fig:cold-call} shows the protocol clauses.
 
+\begin{figure*}[t]
 \begin{verbatim}
 %% User requests connection
 social_graph(Id, [msg(user, Id?, connect(Target))|In], Fs) :-
@@ -239,11 +240,15 @@ social_graph(Id, [msg(From, Id?, response(Resp))|In], Fs) :-
     handle_response(Resp?, From?, Fs?, Fs1, In?, In1),
     social_graph(Id?, In1?, Fs1?).
 \end{verbatim}
+\caption{Cold-call befriending protocol}
+\label{fig:cold-call}
+\end{figure*}
 
 \subsubsection{Channel Establishment}
 
-When an offer is accepted, both agents establish symmetric channels:
+When an offer is accepted, both agents establish symmetric channels (Figure~\ref{fig:channel-establish}).
 
+\begin{figure*}[t]
 \begin{verbatim}
 bind_response(yes, From, accept(ch(FOut?, FIn)), Fs, Fs1?, In, In1?) :-
     handle_response(accept(ch(FIn?, FOut)), From?, Fs?, Fs1, In?, In1).
@@ -255,13 +260,17 @@ handle_response(accept(ch(FIn, FOut)), From, Fs, [(From?, FOut?)|Fs?], In, In1?)
     merge(In?, Tagged?, In1).
 handle_response(no, _, Fs, Fs?, In, In?).
 \end{verbatim}
+\caption{Channel establishment}
+\label{fig:channel-establish}
+\end{figure*}
 
 The channel pair \verb|ch(FOut?, FIn)| and \verb|ch(FIn?, FOut)| are complementary: each agent's input is the other's output.
 
 \subsubsection{Friend-Mediated Introduction}
 
-Once agents are friends, they can introduce each other to third parties. The introducer creates a fresh channel pair and sends each half to the respective parties:
+Once agents are friends, they can introduce each other to third parties. The introducer creates a fresh channel pair and sends each half to the respective parties (Figure~\ref{fig:friend-intro}).
 
+\begin{figure*}[t]
 \begin{verbatim}
 %% User requests introduction: introduce(P, Q)
 social_graph(Id, [introduce(P, Q)|In], Fs) :-
@@ -283,85 +292,70 @@ social_graph(Id, [accept_intro(Other, ch(FIn, FOut))|In], Fs) :-
     merge(In?, Tagged?, In1),
     social_graph(Id?, In1?, [(Other?, FOut?)|Fs?]).
 \end{verbatim}
+\caption{Friend-mediated introduction protocol}
+\label{fig:friend-intro}
+\end{figure*}
 
 When Bob types \verb|introduce(alice, charlie)|, he creates a channel pair with writers \verb|PtoQ| and \verb|QtoP|. Alice receives \verb|ch(QtoP?, PtoQ)|---she reads from Charlie via \verb|QtoP?| and writes to Charlie via \verb|PtoQ|. Charlie receives the complementary \verb|ch(PtoQ?, QtoP)|. When both accept, they become direct friends without Bob's further involvement.
 
 \subsubsection{Network Switch Simulation}
 
-In deployment, agents communicate through a physical network. In simulation, a \verb|network| process routes messages between agents. For two agents:
+In deployment, agents communicate through a physical network. In simulation, a \verb|network| process routes messages between agents. Figure~\ref{fig:network-switch} shows switches for two and three agents.
 
+\begin{figure*}[t]
 \begin{verbatim}
-%% Alice sends to Bob
+%% Two-agent network switch
 network2((alice, ch([msg(alice, bob, X)|AliceIn], AliceOut?)),
          (bob, ch(BobIn, [msg(alice, bob, X?)|BobOut?]))) :-
-    network2((alice, ch(AliceIn?, AliceOut)),
-             (bob, ch(BobIn?, BobOut))).
-
-%% Bob sends to Alice
+    network2((alice, ch(AliceIn?, AliceOut)), (bob, ch(BobIn?, BobOut))).
 network2((alice, ch(AliceIn, [msg(bob, alice, X?)|AliceOut?])),
          (bob, ch([msg(bob, alice, X)|BobIn], BobOut?))) :-
-    network2((alice, ch(AliceIn?, AliceOut)),
-             (bob, ch(BobIn?, BobOut))).
-\end{verbatim}
+    network2((alice, ch(AliceIn?, AliceOut)), (bob, ch(BobIn?, BobOut))).
 
-For three agents, the switch routes between all pairs. We show two representative clauses:
-
-\begin{verbatim}
-%% Alice to Bob
+%% Three-agent network switch (two representative clauses; four more follow the same structure)
 network3((alice, ChA), (bob, ChB), (charlie, ChC)) :-
-    ChA? = ch([msg(alice, bob, X)|InA], OutA),
-    ChB? = ch(InB, [msg(alice, bob, X?)|OutB]) |
+    ChA? = ch([msg(alice, bob, X)|InA], OutA), ChB? = ch(InB, [msg(alice, bob, X?)|OutB]) |
     network3((alice, ch(InA?, OutA?)), (bob, ch(InB?, OutB)), (charlie, ChC?)).
-
-%% Bob to Charlie
 network3((alice, ChA), (bob, ChB), (charlie, ChC)) :-
-    ChB? = ch([msg(bob, charlie, X)|InB], OutB),
-    ChC? = ch(InC, [msg(bob, charlie, X?)|OutC]) |
+    ChB? = ch([msg(bob, charlie, X)|InB], OutB), ChC? = ch(InC, [msg(bob, charlie, X?)|OutC]) |
     network3((alice, ChA?), (bob, ch(InB?, OutB?)), (charlie, ch(InC?, OutC))).
 \end{verbatim}
+\caption{Network switch simulation for two and three agents}
+\label{fig:network-switch}
+\end{figure*}
 
-The remaining four clauses (Alice to Charlie, Bob to Alice, Charlie to Alice, Charlie to Bob) follow the same structure. The network switch simulates the Network transaction introduced in Section~\ref{sec:maglp}.
+The network switch simulates the Network transaction introduced in Section~\ref{sec:maglp}.
 
 \subsubsection{Complete Plays}
 
-A \emph{play} simulates a scenario by spawning agents and driving them with scripted \emph{actors}.
+A \emph{play} simulates a scenario by spawning agents and driving them with scripted \emph{actors}. Figure~\ref{fig:plays} shows two plays: a cold-call where Alice initiates contact with Bob, and a friend-mediated introduction where Bob introduces Alice to Charlie.
 
-\mypara{Cold-Call Play} Alice initiates contact with Bob through the network:
-
+\begin{figure*}[t]
 \begin{verbatim}
+%% Cold-call play: Alice initiates contact with Bob
 play_cold_call :-
-    network2((alice, ch(AliceNetOut?, AliceNetIn)),
-             (bob, ch(BobNetOut?, BobNetIn))),
+    network2((alice, ch(AliceNetOut?, AliceNetIn)), (bob, ch(BobNetOut?, BobNetIn))),
     agent(alice, ch(AliceUserIn?, AliceUserOut), ch(AliceNetIn?, AliceNetOut)),
     agent(bob, ch(BobUserIn?, BobUserOut), ch(BobNetIn?, BobNetOut)),
-    alice_actor(AliceUserOut?, AliceUserIn),
-    bob_actor(BobUserOut?, BobUserIn).
-
+    alice_actor(AliceUserOut?, AliceUserIn), bob_actor(BobUserOut?, BobUserIn).
 alice_actor(_, [msg(user, alice, connect(bob))]).
-bob_actor([msg(agent, user, befriend(From, Resp))|_],
-          [msg(user, bob, decision(yes, From?, Resp?))|_]).
-\end{verbatim}
+bob_actor([msg(agent, user, befriend(From, Resp))|_], [msg(user, bob, decision(yes, From?, Resp?))|_]).
 
-Alice's actor initiates connection; Bob's actor waits for the befriend request and accepts. The play terminates with both agents as friends.
-
-\mypara{Friend-Mediated Introduction Play} Bob, who knows both Alice and Charlie, introduces them:
-
-\begin{verbatim}
+%% Friend-mediated introduction play: Bob introduces Alice to Charlie
 play_introduction :-
-    network3((alice, ch(AliceNetOut?, AliceNetIn)),
-             (bob, ch(BobNetOut?, BobNetIn)),
+    network3((alice, ch(AliceNetOut?, AliceNetIn)), (bob, ch(BobNetOut?, BobNetIn)),
              (charlie, ch(CharlieNetOut?, CharlieNetIn))),
     agent(alice, ch(AliceUserIn?, AliceUserOut), ch(AliceNetIn?, AliceNetOut)),
     agent(bob, ch(BobUserIn?, BobUserOut), ch(BobNetIn?, BobNetOut)),
-    agent(charlie, ch(CharlieUserIn?, CharlieUserOut), 
-          ch(CharlieNetIn?, CharlieNetOut)),
-    alice_intro_actor(AliceUserOut?, AliceUserIn),
-    bob_intro_actor(BobUserOut?, BobUserIn),
+    agent(charlie, ch(CharlieUserIn?, CharlieUserOut), ch(CharlieNetIn?, CharlieNetOut)),
+    alice_intro_actor(AliceUserOut?, AliceUserIn), bob_intro_actor(BobUserOut?, BobUserIn),
     charlie_intro_actor(CharlieUserOut?, CharlieUserIn).
-
 bob_intro_actor(_, [introduce(alice, charlie)]).
 alice_intro_actor([intro_offer(bob, charlie, Ch)|_], [accept_intro(charlie, Ch?)]).
 charlie_intro_actor([intro_offer(bob, alice, Ch)|_], [accept_intro(alice, Ch?)]).
 \end{verbatim}
+\caption{Complete plays for cold-call and friend-mediated introduction}
+\label{fig:plays}
+\end{figure*}
 
-Bob's actor initiates the introduction; Alice and Charlie's actors wait for the offer and accept. The play terminates with Alice and Charlie as direct friends, able to communicate without Bob's mediation.
+In the cold-call play, Alice's actor initiates connection; Bob's actor waits for the befriend request and accepts. In the introduction play, Bob's actor initiates the introduction; Alice and Charlie's actors wait for the offer and accept. Both plays terminate with the respective agents as friends.
