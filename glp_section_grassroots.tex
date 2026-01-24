@@ -1,0 +1,136 @@
+%==============================================================================
+\section{maGLP is Grassroots}\label{sec:grassroots}
+%==============================================================================
+
+This section establishes that maGLP is grassroots. We first define protocols and the grassroots property, then prove that maGLP satisfies it, and finally show that any GLP application using cold calls inherits the grassroots property.
+
+%------------------------------------------------------------------------------
+\subsection{Protocols and the Grassroots Property}
+\label{sec:protocols}
+%------------------------------------------------------------------------------
+
+A protocol is a family of multiagent transition systems, one for each set of agents $P\subset \Pi$, which share an underlying set of local states $\calS$ with a designated initial state $s0$.
+
+\begin{definition}[Local-States Function]\label{definition:local-states-function}
+A \temph{local-states function} $S: 2^\Pi \mapsto 2^\calS$ maps every set of agents $P \subset \Pi$ to a set of local states $S(P) \subset \calS$ that includes $s0$ and satisfies $P \subset P' \subset \Pi \implies S(P) \subset S(P')$.
+\end{definition}
+
+Given a local-states function $S$, we use $C$ to denote configurations over $S$, with $C(P) := S(P)^P$ and $c0(P):= \{s0\}^P$.
+
+\begin{definition}[Protocol]\label{definition:protocol}
+A \temph{protocol} $\calF$ over a local-states function $S$ is a family of multiagent transition systems that has exactly one transition system $\calF(P) = (C(P),c0(P),T(P))$ for every $P \subset \Pi$.
+\end{definition}
+
+\begin{definition}[Projection]\label{definition:projection}
+Let $\emptyset \subset P \subset P' \subset \Pi$.
+If $c'$ is a configuration over $P'$ then $c'/P$, the \temph{projection of $c'$ over $P$}, is the configuration $c$ over $P$ defined by $c_p := c'_p$ for every $p\in P$.
+\end{definition}
+
+Note that in the definition above, $c_p$, the state of $p$ in $c$, is in $S(P')$, not in $S(P)$, and hence may include elements ``alien'' to $P$, e.g., logic variables shared with $q\in P'\setminus P$.
+
+\begin{definition}[Oblivious, Interactive, Grassroots]\label{definition:grassroots}
+A protocol $\calF$ is:
+\begin{enumerate}
+    \item \temph{oblivious} if for every $\emptyset \subset P \subset P' \subseteq \Pi$, 
+    $T(P){\uparrow}P'\subseteq T(P')$
+    \item \temph{interactive} if for every $\emptyset \subset P \subset P' \subseteq \Pi$ and every configuration $c\in C(P')$ such that $c{/}P\in C(P)$, there is a computation $c\xrightarrow{*} c'$ of $\calF(P')$ for which $c'{/}P\notin C(P)$.
+    \item \temph{grassroots} if it is oblivious and interactive.
+\end{enumerate}
+\end{definition}
+
+Being oblivious implies that if a run of $\calF(P')$ reaches some configuration $c'$, then anything $P$ could do on their own in the configuration $c'/P$ (with a transition from $T(P)$), they can still do in the larger configuration $c'$ (with a transition from $T(P')$), effectively being oblivious to members of $P'\setminus P$.
+
+Being interactive is a weak liveness requirement: no matter what members of $P$ do, if they run within a larger set of agents it is always the case that they can eventually interact with non-$P$'s in a way that leaves ``alien traces'' in the local states of $P$, so that the resulting configuration $c'/P$ could not have been produced by $P$ running on their own.
+
+%------------------------------------------------------------------------------
+\subsection{Transactions-Based Protocols are Oblivious}
+\label{sec:tb-oblivious}
+%------------------------------------------------------------------------------
+
+\begin{definition}[Transactions Over a Local-States Function]\label{definition:transactions-lsf}
+Let $S$ be a local-states function. A set of transactions $R$ is \temph{over $S$} if every transaction $t\in R$ is a multiagent transition over $Q$ and $S(Q')$ for some $Q \subseteq Q'\subset \Pi$. Given such a set $R$ and $P\subset \Pi$,
+$R(P) := \{ t\in R : t \text{ is over } Q \text{ and } S(Q'), Q \subseteq Q'\subseteq P\}$.
+\end{definition}
+
+\begin{definition}[Transactions-Based Protocol]\label{definition:tb-protocol}
+Let $S$ be a local-states function and $R$ a set of transactions over $S$.
+Then a \temph{protocol $\calF$ over $R$ and $S$} includes for each set of agents $P\subset \Pi$ the transactions-based multiagent transition system $\calF(P)$ over $P$, $S(P)$, and $R(P)$: $\calF(P) := (S(P)^P,\{s0\}^P,R(P){\uparrow}P)$.
+\end{definition}
+
+\begin{proposition}[Transactions-Based Protocols are Oblivious]\label{proposition:oblivious}
+A transactions-based protocol is oblivious.
+\end{proposition}
+
+\begin{definition}[Interactive Transactions]\label{definition:interactive-transactions}
+A set of transactions $R$ over a local-states function $S$ is \temph{interactive} if for every $\emptyset \subset P \subset P' \subset \Pi$ and every configuration $c\in C(P')$ such that $c/P\in C(P)$, there is a computation $(c\xrightarrow{*} c')\subseteq R(P'){\uparrow}P'$ for which $c'/P\notin C(P)$.
+\end{definition}
+
+\begin{theorem}[Interactive Transactions Induce Grassroots Protocols]\label{theorem:interactive-grassroots}
+A protocol over an interactive set of transactions is grassroots.
+\end{theorem}
+
+\begin{proof}
+Let $\calF$ be a protocol over a set of transactions $R$, where $R$ is interactive.
+Since $\calF$ is a transactions-based protocol then, according to Proposition~\ref{proposition:oblivious}, $\calF$ is oblivious. And since $\calF$ is over an interactive set of transactions, $\calF$ is interactive.
+Therefore, by Definition~\ref{definition:grassroots}, $\calF$ is grassroots.
+\end{proof}
+
+%------------------------------------------------------------------------------
+\subsection{maGLP is Grassroots}
+\label{sec:maglp-grassroots}
+%------------------------------------------------------------------------------
+
+We now prove that maGLP is grassroots.
+
+\begin{theorem}[maGLP is Grassroots]\label{theorem:maGLP-grassroots}
+The maGLP protocol is grassroots.
+\end{theorem}
+
+\begin{proof}
+By Theorem~\ref{theorem:interactive-grassroots}, it suffices to show that maGLP is a transactions-based protocol with interactive transactions.
+
+\emph{maGLP is transactions-based}: By Definition~\ref{definition:maGLP}, maGLP is defined via a set of transactions (Reduce, Communicate, Network) over a local-states function (asynchronous resolvents) with a common initial state. Hence maGLP is a transactions-based protocol (Definition~\ref{definition:tb-protocol}).
+
+\emph{maGLP transactions are interactive}: Let $\emptyset \subset P \subset P' \subseteq \Pi$ and let $c \in C(P')$ be a configuration such that $c/P \in C(P)$. We must show there exists a computation $c \xrightarrow{*} c'$ of maGLP$(P')$ such that $c'/P \notin C(P)$.
+
+Since $c/P \in C(P)$, the local states of agents in $P$ contain no variables shared with agents in $P' \setminus P$---all their reader/writer pairs are ``internal'' to $P$.
+
+Consider any agent $p \in P$ and any agent $q \in P' \setminus P$. Agent $p$ can execute a Reduce transaction that sends a message \verb|msg|$(q,X)$ on its network output stream, where $X$ is a fresh writer. Then the Network transaction from $p$ to $q$ adds $X?$ to agent $q$'s network input stream. Agent $q$ can then execute Reduce transactions that bind $X?$ to some term $T$, creating a reader assignment $X? := T$. Finally, the Communicate transaction from $q$ to $p$ applies this assignment to $p$'s resolvent.
+
+The result is that agent $p$'s local state now contains a term $T$ that originated from agent $q \in P' \setminus P$. This constitutes an ``alien trace''---the configuration $c'/P$ contains references to variables or terms that could not have been produced by agents in $P$ running alone. Hence $c'/P \notin C(P)$.
+
+Since such a computation exists for any valid configuration $c$, the maGLP transactions are interactive (Definition~\ref{definition:interactive-transactions}).
+
+By Theorem~\ref{theorem:interactive-grassroots}, maGLP is grassroots.
+\end{proof}
+
+%------------------------------------------------------------------------------
+\subsection{GLP Applications Using Cold Calls are Grassroots}
+\label{sec:apps-grassroots}
+%------------------------------------------------------------------------------
+
+The grassroots property of maGLP extends to applications built on top of it, provided they use the cold-call mechanism.
+
+\begin{definition}[GLP Application, Cold Call]
+A \temph{GLP application} is a GLP program $M$ together with the maGLP infrastructure. An application \temph{uses cold calls} if agents can execute the Network transaction to establish communication with previously-disconnected agents.
+\end{definition}
+
+\begin{proposition}[GLP Applications Using Cold Calls are Grassroots]\label{prop:app-grassroots}
+Any GLP application that uses cold calls is grassroots.
+\end{proposition}
+
+\begin{proof}
+A GLP application using cold calls is a restriction of maGLP to a specific program $M$. The Network transaction remains available, as cold calls are used. The proof of Theorem~\ref{theorem:maGLP-grassroots} relies only on the availability of the Network transaction to establish interactivity. Since cold calls provide this mechanism, the application inherits the interactive property.
+
+The application is transactions-based by construction (being a restriction of maGLP). By Proposition~\ref{proposition:oblivious}, it is oblivious. By the interactivity argument above, it is interactive. Therefore, by Definition~\ref{definition:grassroots}, it is grassroots.
+\end{proof}
+
+This proposition provides a simple criterion for verifying that a GLP application is grassroots: if it uses cold calls for initial contact between disconnected agents, it inherits the grassroots property from maGLP.
+
+\begin{corollary}[The Grassroots Social Graph is Grassroots]\label{corollary:social-graph-grassroots}
+The GLP implementation of the grassroots social graph (Section~\ref{sec:social-graph}) is grassroots.
+\end{corollary}
+
+\begin{proof}
+The social graph uses cold calls for initial contact between disconnected agents. By Proposition~\ref{prop:app-grassroots}, it is grassroots.
+\end{proof}
