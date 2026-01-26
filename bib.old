@@ -1,355 +1,11 @@
-@misc{dart2024,
-     author       = {{Google}},
-     title        = {Dart Programming Language},
-     howpublished = {\url{https://dart.dev}},
-     year         = {2024}
-   }
-%------------------------------------------------------------------------------
-% BibTeX entries for Type-First AI Programming Related Work
-% Version: 2025-07-18-v1
-%------------------------------------------------------------------------------
-
-% === Classical Foundations ===
-
-@book{meyer1997object,
-  author    = {Meyer, Bertrand},
-  title     = {Object-Oriented Software Construction},
-  edition   = {2nd},
-  publisher = {Prentice Hall},
-  year      = {1997},
-  isbn      = {0-13-629155-4},
-  note      = {Introduces Design by Contract}
+@article{levi1985readonly,
+  title={The declarative semantics of read-only annotations in logic programming},
+  author={Levi, Giorgio and Palamidessi, Catuscia},
+  journal={Proceedings of the 1985 Symposium on Logic Programming},
+  pages={212--220},
+  year={1985},
+  publisher={IEEE}
 }
-
-@article{knuth1984literate,
-  author    = {Knuth, Donald E.},
-  title     = {Literate Programming},
-  journal   = {The Computer Journal},
-  volume    = {27},
-  number    = {2},
-  pages     = {97--111},
-  year      = {1984},
-  publisher = {Oxford University Press},
-  doi       = {10.1093/comjnl/27.2.97}
-}
-
-@book{brady2017type,
-  author    = {Brady, Edwin},
-  title     = {Type-Driven Development with {I}dris},
-  publisher = {Manning Publications},
-  year      = {2017},
-  isbn      = {978-1617293023}
-}
-
-% === Constrained Decoding for LLMs ===
-
-@inproceedings{scholak2021picard,
-  author    = {Scholak, Torsten and Schucher, Nathan and Bahdanau, Dzmitry},
-  title     = {{PICARD}: Parsing Incrementally for Constrained Auto-Regressive Decoding from Language Models},
-  booktitle = {Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing (EMNLP)},
-  pages     = {9895--9901},
-  publisher = {Association for Computational Linguistics},
-  year      = {2021},
-  doi       = {10.18653/v1/2021.emnlp-main.779}
-}
-
-@inproceedings{poesia2022synchromesh,
-  author    = {Poesia, Gabriel and Polozov, Alex and Le, Vu and Tiwari, Ashish and Soares, Gustavo and Meek, Christopher and Gulwani, Sumit},
-  title     = {Synchromesh: Reliable Code Generation from Pre-trained Language Models},
-  booktitle = {Proceedings of the 10th International Conference on Learning Representations (ICLR)},
-  year      = {2022},
-  note      = {Available at \url{https://openreview.net/forum?id=KmtVD97J43e}}
-}
-
-@inproceedings{beurer2023lmql,
-  author    = {Beurer-Kellner, Luca and Fischer, Marc and Vechev, Martin},
-  title     = {Prompting Is Programming: A Query Language for Large Language Models},
-  booktitle = {Proceedings of the 44th ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI)},
-  pages     = {1946--1969},
-  publisher = {ACM},
-  year      = {2023},
-  doi       = {10.1145/3591300}
-}
-
-% === Type-Constrained Code Generation ===
-
-@inproceedings{mundler2025type,
-  author    = {M\"{u}ndler, Niels and Guerraoui, Rachid and Vechev, Martin},
-  title     = {Type-Constrained Code Generation with Language Models},
-  booktitle = {Proceedings of the 46th ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI)},
-  publisher = {ACM},
-  year      = {2025},
-  note      = {Available at \url{https://arxiv.org/abs/2504.09246}}
-}
-
-@inproceedings{blinn2024typed,
-  author    = {Blinn, Andrew and Li, Xiang and Kim, June Hyung and Omar, Cyrus},
-  title     = {Statically Contextualizing Large Language Models with Typed Holes},
-  booktitle = {Proceedings of the ACM on Programming Languages (OOPSLA)},
-  volume    = {8},
-  number    = {OOPSLA2},
-  pages     = {1--29},
-  publisher = {ACM},
-  year      = {2024},
-  doi       = {10.1145/3689746}
-}
-
-% === Industry Tools and Platforms ===
-
-@misc{microsoft2023typechat,
-  author       = {{Microsoft Research}},
-  title        = {{TypeChat}: Replace Prompt Engineering with Schema Engineering},
-  howpublished = {GitHub repository},
-  year         = {2023},
-  note         = {Available at \url{https://github.com/microsoft/TypeChat}}
-}
-
-@misc{microsoft2023guidance,
-  author       = {{Microsoft Research}},
-  title        = {Guidance: A Guidance Language for Controlling Large Language Models},
-  howpublished = {GitHub repository},
-  year         = {2023},
-  note         = {Available at \url{https://github.com/guidance-ai/guidance}}
-}
-
-@misc{github2025speckit,
-  author       = {{GitHub}},
-  title        = {Spec Kit: Toolkit for Spec-Driven Development},
-  howpublished = {GitHub repository},
-  year         = {2025},
-  note         = {Available at \url{https://github.com/github/spec-kit}}
-}
-
-@misc{openai2024structured,
-  author       = {{OpenAI}},
-  title        = {Introducing Structured Outputs in the {API}},
-  howpublished = {OpenAI Blog},
-  year         = {2024},
-  month        = aug,
-  note         = {Available at \url{https://openai.com/index/introducing-structured-outputs-in-the-api/}}
-}
-
-@misc{anthropic2025structured,
-  author       = {{Anthropic}},
-  title        = {Structured Outputs},
-  howpublished = {Claude Documentation},
-  year         = {2025},
-  note         = {Available at \url{https://docs.claude.com/en/docs/build-with-claude/structured-outputs}}
-}
-
-% === Formal Verification + LLMs ===
-
-@misc{councilman2025astrogator,
-  author    = {Councilman, Cameron and others},
-  title     = {Astrogator: A Formal Query Language for User Intent Verification in {LLM}-Generated Code},
-  journal   = {arXiv preprint arXiv:2507.13290},
-  year      = {2025},
-  note      = {Available at \url{https://arxiv.org/abs/2507.13290}}
-}
-
-@misc{luo2024vecogen,
-  author    = {Luo, Yutao and others},
-  title     = {{VeCoGen}: Towards Verified Code Generation for {LLMs}},
-  journal   = {arXiv preprint arXiv:2411.19275},
-  year      = {2024},
-  note      = {Available at \url{https://arxiv.org/abs/2411.19275}}
-}
-
-% === Typed Holes (Pre-LLM Foundations) ===
-
-@inproceedings{omar2017hazel,
-  author    = {Omar, Cyrus and Voysey, Ian and Hilton, Michael and Aldrich, Jonathan and Hammer, Matthew A.},
-  title     = {Hazelnut: A Bidirectionally Typed Structure Editor Calculus},
-  booktitle = {Proceedings of the 44th ACM SIGPLAN Symposium on Principles of Programming Languages (POPL)},
-  pages     = {86--99},
-  publisher = {ACM},
-  year      = {2017},
-  doi       = {10.1145/3009837.3009900}
-}
-
-
-@article{fowler2025sdd,
-  title   = {Understanding Spec-Driven-Development: Kiro, spec-kit, and Tessl},
-  author  = {Fowler, Martin},
-  journal = {MartinFowler.com},
-  year    = {2025},
-  month   = {October},
-  day     = {15},
-  url     = {https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html},
-  note    = {Analyzes the shift toward using formal specifications and types as the primary interface for AI code generation}
-}
-
-@software{hejlsberg2023typechat,
-  author    = {Hejlsberg, Anders and Rosenwasser, Daniel and {The TypeChat Team}},
-  title     = {TypeChat: Get Strongly Typed Responses from Large Language Models},
-  year      = {2023},
-  publisher = {Microsoft Research},
-  url       = {https://github.com/microsoft/TypeChat},
-  note      = {Open source library enforcing strict type constraints on LLM outputs to prevent hallucination}
-}
-
-@software{liu2023instructor,
-  author    = {Liu, Jason},
-  title     = {Instructor: Structured Data Extraction and Validation for LLMs},
-  year      = {2023},
-  publisher = {GitHub},
-  url       = {https://github.com/jxnl/instructor},
-  note      = {Python library leveraging Pydantic models to define the 'Types' and 'Procedures' for AI interaction}
-}
-
-@inproceedings{piya2024llm4tdd,
-  author    = {Piya, Sanyogita and Sullivan, Allison},
-  title     = {LLM4TDD: Best Practices for Test Driven Development Using Large Language Models},
-  booktitle = {Proceedings of the 2024 International Workshop on Large Language Models for Code (LLM4Code '24)},
-  year      = {2024},
-  publisher = {ACM},
-  address   = {Lisbon, Portugal},
-  doi       = {10.1145/3643795.3648382},
-  note      = {Empirical evaluation of guiding LLMs using test-driven and type-driven methodologies}
-}
-
-@manual{anthropic2024context,
-  title        = {Effective Context Engineering for AI Agents},
-  author       = {{Anthropic Engineering Team}},
-  organization = {Anthropic},
-  year         = {2024},
-  url          = {https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents},
-  note         = {Guidelines on structuring informal descriptions and context for reliable agentic behavior}
-}
-
-@inproceedings{reppy1991cml,
-  author    = {Reppy, John H.},
-  title     = {{CML}: A Higher-Order Concurrent Language},
-  booktitle = {PLDI},
-  year      = {1991},
-  pages     = {293--305},
-  publisher = {ACM}
-}
-
-@book{reppy1999cml,
-  author    = {Reppy, John H.},
-  title     = {Concurrent Programming in {ML}},
-  publisher = {Cambridge University Press},
-  year      = {1999}
-}
-
-@article{chen2025colf,
-  title={CoLF Logic Programming as Infinitary Proof Exploration},
-  author={Chen, Zhibo and Pfenning, Frank},
-  journal={arXiv preprint arXiv:2510.12302},
-  year={2025}
-}
-
-% ============================================
-% BIBLIOGRAPHY ADDITIONS FOR REFINEMENT ANALYSIS
-% Add to bib.bib
-% ============================================
-
-% I/O Automata - Core references
-@inproceedings{lynch1987hierarchical,
-  author    = {Lynch, Nancy A. and Tuttle, Mark R.},
-  title     = {Hierarchical Correctness Proofs for Distributed Algorithms},
-  booktitle = {Proceedings of the 6th Annual ACM Symposium on Principles of Distributed Computing (PODC)},
-  pages     = {137--151},
-  year      = {1987},
-  publisher = {ACM},
-  doi       = {10.1145/41840.41852}
-}
-
-@techreport{lynch1988introduction,
-  author      = {Lynch, Nancy A. and Tuttle, Mark R.},
-  title       = {An Introduction to Input/Output Automata},
-  institution = {Laboratory for Computer Science, Massachusetts Institute of Technology},
-  number      = {MIT/LCS/TM-373},
-  year        = {1988}
-}
-
-@article{lynch1995forward,
-  author    = {Lynch, Nancy A. and Vaandrager, Frits W.},
-  title     = {Forward and Backward Simulations: {I}. {U}ntimed Systems},
-  journal   = {Information and Computation},
-  volume    = {121},
-  number    = {2},
-  pages     = {214--233},
-  year      = {1995},
-  publisher = {Elsevier},
-  doi       = {10.1006/inco.1995.1134}
-}
-
-@article{lynch1996forward,
-  author    = {Lynch, Nancy A. and Vaandrager, Frits W.},
-  title     = {Forward and Backward Simulations: {II}. {T}iming-Based Systems},
-  journal   = {Information and Computation},
-  volume    = {128},
-  number    = {1},
-  pages     = {1--25},
-  year      = {1996},
-  publisher = {Elsevier},
-  doi       = {10.1006/inco.1996.0060}
-}
-
-% TLA+ and Refinement Mappings
-@article{lamport1994temporal,
-  author    = {Lamport, Leslie},
-  title     = {The Temporal Logic of Actions},
-  journal   = {ACM Transactions on Programming Languages and Systems},
-  volume    = {16},
-  number    = {3},
-  pages     = {872--923},
-  year      = {1994},
-  publisher = {ACM},
-  doi       = {10.1145/177492.177726}
-}
-
-@article{abadi1991existence,
-  author    = {Abadi, Mart\'{\i}n and Lamport, Leslie},
-  title     = {The Existence of Refinement Mappings},
-  journal   = {Theoretical Computer Science},
-  volume    = {82},
-  number    = {2},
-  pages     = {253--284},
-  year      = {1991},
-  publisher = {Elsevier},
-  doi       = {10.1016/0304-3975(91)90224-P}
-}
-
-% Fair Simulation
-@inproceedings{henzinger1997fair,
-  author    = {Henzinger, Thomas A. and Kupferman, Orna and Rajamani, Sriram K.},
-  title     = {Fair Simulation},
-  booktitle = {Proceedings of the 8th International Conference on Concurrency Theory (CONCUR)},
-  series    = {Lecture Notes in Computer Science},
-  volume    = {1243},
-  pages     = {273--287},
-  year      = {1997},
-  publisher = {Springer},
-  doi       = {10.1007/3-540-63141-0_19}
-}
-
-% Alternating Refinement (for multiagent systems)
-@inproceedings{alur1998alternating,
-  author    = {Alur, Rajeev and Henzinger, Thomas A. and Kupferman, Orna and Vardi, Moshe Y.},
-  title     = {Alternating Refinement Relations},
-  booktitle = {Proceedings of the 9th International Conference on Concurrency Theory (CONCUR)},
-  series    = {Lecture Notes in Computer Science},
-  volume    = {1466},
-  pages     = {163--178},
-  year      = {1998},
-  publisher = {Springer},
-  doi       = {10.1007/BFb0055622}
-}
-
-
-% Prophecy Variables - Recent Work
-@article{lamport2022prophecy,
-  author    = {Lamport, Leslie and Merz, Stephan},
-  title     = {Prophecy Made Simple},
-  journal   = {arXiv preprint arXiv:2202.10914},
-  year      = {2022},
-  note      = {Available at \url{https://arxiv.org/abs/2202.10914}}
-}
-
-
 
 @article{mierowsky1985fcp,
   title={On the implementation of Flat Concurrent Prolog},
@@ -397,7 +53,13 @@
 }
 
 
-
+@techreport{mierowsky1985fcp,
+  author = {Mierowsky, C. and Taylor, S. and Shapiro, E. and Levy, J. and Safra, M.},
+  title = {The Design and Implementation of Flat Concurrent Prolog},
+  institution = {Weizmann Institute},
+  number = {CS85-09},
+  year = {1985}
+}
 
 @inproceedings{levi1985readonly,
   author = {Levi, Giorgio and Palamidessi, Catuscia},
@@ -408,7 +70,37 @@
   year = {1985}
 }
 
+@article{ueda1994moded,
+  author = {Ueda, Kazunori and Morita, Masao},
+  title = {Moded Flat {GHC} and Its Message-Oriented Implementation Technique},
+  journal = {New Generation Computing},
+  volume = {13},
+  number = {1},
+  pages = {3--43},
+  year = {1994}
+}
 
+@inproceedings{ueda1995io,
+  author = {Ueda, Kazunori},
+  title = {{I/O} Mode Analysis in Concurrent Logic Programming},
+  booktitle = {Theory and Practice of Parallel Programming},
+  series = {LNCS},
+  volume = {907},
+  publisher = {Springer},
+  pages = {356--368},
+  year = {1995}
+}
+
+@inproceedings{ueda2001resource,
+  author = {Ueda, Kazunori},
+  title = {Resource-Passing Concurrent Programming},
+  booktitle = {Proc. TACS 2001},
+  series = {LNCS},
+  volume = {2215},
+  publisher = {Springer},
+  pages = {95--126},
+  year = {2001}
+}
 
 @inproceedings{yardeni1991polymorphically,
   title={Polymorphically Typed Logic Programs},
@@ -1450,6 +1142,15 @@
   doi       = {10.1109/LICS.1991.151654}
 }
 
+@inproceedings{mycroft1984polymorphic,
+  author    = {Mycroft, Alan and O'Keefe, Richard A.},
+  title     = {A Polymorphic Type System for Prolog},
+  booktitle = {Proceedings of the 1983 Logic Programming Workshop},
+  pages     = {107--122},
+  year      = {1984},
+  publisher = {Universidade Nova de Lisboa}
+}
+
 @article{milner1978type,
   author    = {Milner, Robin},
   title     = {A Theory of Type Polymorphism in Programming},
@@ -1601,6 +1302,15 @@
   publisher = {Springer}
 }
 
+@inproceedings{wadler2012propositions,
+  author    = {Wadler, Philip},
+  title     = {Propositions as Sessions},
+  booktitle = {Proceedings of the 17th ACM SIGPLAN International Conference on Functional Programming (ICFP)},
+  pages     = {273--286},
+  year      = {2012},
+  publisher = {ACM},
+  doi       = {10.1145/2364527.2364568}
+}
 
 % ============================================
 % Futures and Promises
@@ -1624,6 +1334,18 @@
 % Add to bib_LL.tex
 % ============================================
 
+% Linear Logic - Core
+@article{girard1987linear,
+  author    = {Girard, Jean-Yves},
+  title     = {Linear Logic},
+  journal   = {Theoretical Computer Science},
+  volume    = {50},
+  number    = {1},
+  pages     = {1--101},
+  year      = {1987},
+  publisher = {Elsevier},
+  doi       = {10.1016/0304-3975(87)90045-4}
+}
 
 @incollection{girard1995linear,
   author    = {Girard, Jean-Yves},
@@ -1723,6 +1445,15 @@
   doi       = {10.1007/978-3-642-15375-4_16}
 }
 
+@inproceedings{wadler2012propositions,
+  author    = {Wadler, Philip},
+  title     = {Propositions as Sessions},
+  booktitle = {Proceedings of the 17th ACM SIGPLAN International Conference on Functional Programming (ICFP '12)},
+  pages     = {273--286},
+  publisher = {ACM},
+  year      = {2012},
+  doi       = {10.1145/2364527.2364568}
+}
 
 % Mercury and Moded Types
 @article{somogyi1996execution,
@@ -1782,6 +1513,14 @@
   doi       = {10.1007/978-3-642-83189-8}
 }
 
+% Process Calculi
+@book{milner1999communicating,
+  author    = {Milner, Robin},
+  title     = {Communicating and Mobile Systems: The $\pi$-Calculus},
+  publisher = {Cambridge University Press},
+  year      = {1999},
+  isbn      = {0521658691}
+}
 
 
 @misc{driverscoop2024,
@@ -2878,7 +2617,14 @@
   publisher={Springer}
 }
 
-
+@inproceedings{honda1993types,
+  title={Types for dyadic interaction},
+  author={Honda, Kohei},
+  booktitle={CONCUR'93},
+  pages={509--523},
+  year={1993},
+  publisher={Springer}
+}
 
 @inproceedings{jespersen2015session,
   title={Session types for Rust},
@@ -3705,7 +3451,6 @@ keywords = {voting, three-phase commit, state machines}
   author={Shapiro, Ehud},
   booktitle={Proceedings of the 27th International Conference on Distributed Computing and Networking},
   pages={71--81,  arXiv preprint arXiv:2502.11299},
-  doi = {10.1145.3772309},
   year={2026}
 }
 
@@ -7207,7 +6952,12 @@ title={Ubique. Wikipedia, The Free Encyclopedia},
   howpublished = {\MYhref{https://www.ibm.com/supply-chain/hcl-divestiture}{https://www.ibm.com/supply-chain/hcl-divestiture}}
 }
 
-
+@book{milner1999communicating,
+  title={Communicating and mobile systems: the pi calculus},
+  author={Milner, Robin},
+  year={1999},
+  publisher={Cambridge university press}
+}
 @article{baird2016swirlds,
   title={The swirlds hashgraph consensus algorithm: Fair, fast, byzantine fault tolerance},
   author={Baird, Leemon},
@@ -7534,5 +7284,77 @@ title={Ubique. Wikipedia, The Free Encyclopedia},
   title={Schickele, P. D. Q. Bach, Wikipedia The Free Encyclopedia},
   year={1742},
   howpublished = {\MYhref{https://en.wikipedia.org/wiki/P.\_D.\_Q.\_Bach}{https://en.wikipedia.org/wiki/P.\_D.\_Q.\_Bach}}
+}
+
+%------------------------------------------------------------------------------
+% Core References for GLP Paper
+%------------------------------------------------------------------------------
+
+@article{kowalski1974predicate,
+  author = {Kowalski, Robert},
+  title = {Predicate Logic as Programming Language},
+  journal = {Information Processing 74, Proceedings of IFIP Congress 74},
+  pages = {569--574},
+  year = {1974},
+  publisher = {North-Holland}
+}
+
+@book{lloyd1987foundations,
+  author = {Lloyd, John W.},
+  title = {Foundations of Logic Programming},
+  edition = {2nd},
+  publisher = {Springer-Verlag},
+  year = {1987},
+  isbn = {3-540-18199-7}
+}
+
+@article{shapiro2023grassrootsBA,
+  author = {Shapiro, Ehud},
+  title = {Grassroots Distributed Systems: Concept, Examples, Implementation},
+  journal = {arXiv preprint arXiv:2301.04391},
+  year = {2023}
+}
+
+@article{shapiro2025atomic,
+  author = {Shapiro, Ehud},
+  title = {Atomic Transactions for Grassroots Protocols},
+  journal = {arXiv preprint arXiv:2501.xxxxx},
+  year = {2025},
+  note = {To appear}
+}
+
+%------------------------------------------------------------------------------
+% References for Linear Logic and Futures/Promises
+%------------------------------------------------------------------------------
+
+@article{girard1987linear,
+  author = {Girard, Jean-Yves},
+  title = {Linear Logic},
+  journal = {Theoretical Computer Science},
+  volume = {50},
+  number = {1},
+  pages = {1--101},
+  year = {1987},
+  publisher = {Elsevier},
+  doi = {10.1016/0304-3975(87)90045-4}
+}
+
+@inproceedings{friedman1976impact,
+  author = {Friedman, Daniel P. and Wise, David S.},
+  title = {The Impact of Applicative Programming on Multiprocessing},
+  booktitle = {Proceedings of the 1976 International Conference on Parallel Processing},
+  pages = {263--272},
+  year = {1976},
+  publisher = {IEEE}
+}
+
+@article{gaifman1989fully,
+  author = {Gaifman, Haim and Shapiro, Ehud},
+  title = {Fully Abstract Compositional Semantics for Logic Programs},
+  journal = {Proceedings of the 16th ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages (POPL)},
+  pages = {134--142},
+  year = {1989},
+  publisher = {ACM},
+  doi = {10.1145/75277.75289}
 }
 
