@@ -115,32 +115,6 @@ network((P,ChP),(Q,ChQ),(R,ChR)) :-
     network((P,ChP?),(Q,ChQ1?),(R,ChR1?)).
 \end{verbatim}
 
-\subsection{Implementation Correctness Properties}
-
-\begin{proposition}[Goal State Integrity]\label{proposition:goal-integrity}
-For any configuration $(R_p, V_p, M_p)$ where $R_p = (A_p, S_p, F_p)$ in an IRmaGLP run, every goal of agent $p$ appears in exactly one of $A_p$, $S_p$, or $F_p$. Furthermore, $F_p$ is monotonically increasing: once a goal enters $F_p$, it remains there.
-\end{proposition}
-
-\begin{proof}
-By induction on transition steps. Initially all goals are in $A_p$. The Reduce transaction (Definition~\ref{definition:IRmaGLP-reduce}) moves goals between sets atomically: from $A_p$ to $S_p$ on suspension, from $S_p$ to $A_p$ on reactivation, and to $F_p$ on failure. No transition removes goals from $F_p$.
-\end{proof}
-
-\begin{proposition}[SRSW Preservation in Implementation]\label{proposition:impl-srsw}
-If the initial configuration of IRmaGLP satisfies SRSW, then for any reachable configuration and any variable $Y$, at most one agent holds $Y$ locally (in their resolvent) and at most one agent holds $Y'$ locally.
-\end{proposition}
-
-\begin{proof}
-The variable table $V_p$ tracks all non-local variable references. When agent $p$ exports a variable $Y$ through the export helper (Definition~\ref{definition:IRmaGLP-local-state}), $Y$ is added to $V_p$ marking it as created by $p$ but referenced externally. The Communicate and Network transactions maintain exclusivity by transferring variables between agents rather than duplicating them. The export helper's relay mechanism for requested readers preserves the single-reader property through fresh variable pairs.
-\end{proof}
-
-\begin{proposition}[Suspension Correctness]\label{proposition:suspension-correct}
-If goal $G$ is suspended on reader set $W$ at agent $p$, then $G$ transitions to active exactly when either: (1) some $X? \in W$ receives a value through a Communicate transaction, or (2) some $X? \in W$ is abandoned.
-\end{proposition}
-
-\begin{proof}
-The reactivate helper (Definition~\ref{definition:IRmaGLP-local-state}) is called precisely when assignments arrive or abandonment occurs. It removes $(G, W)$ from $S_p$ if $X? \in W$, adding $G$ to the tail of $A_p$. No other operation modifies suspended goals.
-\end{proof}
-
 \subsection{Replication of Non-Ground Terms}
 
 While the main text demonstrated distribution of ground terms to multiple consumers, many applications require replicating incrementally-constructed terms that may contain uninstantiated readers. The following replicator procedure handles nested lists and other structured terms, provided the input contains no writers. This technique suspends when encountering readers and resumes as values become available, enabling incremental replication of partially instantiated data structures.

@@ -61,8 +61,10 @@ merge([], Ys, Ys?).
 merge(Xs, [], Xs?).
 
 procedure tag_stream(_?, Stream?, Stream).
-tag_stream(Name, [M|In], [msg(Name?, Name?, M?)|Out?]) :-
-    ground(Name?) | tag_stream(Name?, In?, Out).
+tag_stream(Name, [M|In],
+    [msg(Name?, Name?, M?)|Out?]) :-
+        ground(Name?) |
+        tag_stream(Name?, In?, Out).
 tag_stream(_, [], []).
 \end{verbatim}
 
@@ -78,18 +80,24 @@ lookup_send(Key, Msg, Fs, Fs1?) :-
     lookup_send_step(Key?, Msg?, Fs?, Fs1).
 
 procedure lookup_send_step(String?, _?, FriendsList?, FriendsList).
-lookup_send_step(Key, Msg, [friend(K, [Msg?|Out1?])|Rest], [friend(K?, Out1)|Rest?]) :-
-    Key? =?= K? | true.
-lookup_send_step(Key, Msg, [friend(K, Out?)|Rest], [friend(K?, Out)|Rest1?]) :-
-    otherwise |
-    lookup_send_step(Key?, Msg?, Rest?, Rest1).
+lookup_send_step(Key, Msg,
+    [friend(K, [Msg?|Out1?])|Rest],
+    [friend(K?, Out1)|Rest?]) :-
+        Key? =?= K? | true.
+lookup_send_step(Key, Msg,
+    [friend(K, Out?)|Rest],
+    [friend(K?, Out)|Rest1?]) :-
+        otherwise |
+        lookup_send_step(Key?, Msg?, Rest?, Rest1).
 lookup_send_step(_, _, [], []).
 
 procedure inject_msg(Response?, _?, _?, Stream?, Stream).
-inject_msg(Resp, Target, Id, Ys, [msg(Target?, Id?, response(Resp?))|Ys?]) :-
-    known(Resp?) | true.
+inject_msg(Resp, Target, Id, Ys,
+    [msg(Target?, Id?, response(Resp?))|Ys?]) :-
+        known(Resp?) | true.
 inject_msg(Resp, Target, Id, [Y|Ys], [Y?|Ys1?]) :-
-    otherwise | inject_msg(Resp?, Target?, Id?, Ys?, Ys1).
+    otherwise |
+    inject_msg(Resp?, Target?, Id?, Ys?, Ys1).
 
 procedure add_friend(_?, Stream, FriendsList?, FriendsList).
 add_friend(Name, Out?, Fs, [friend(Name?, Out)|Fs?]).
@@ -101,25 +109,34 @@ add_friend(Name, Out?, Fs, [friend(Name?, Out)|Fs?]).
 %------------------------------------------------------------------------------
 
 \begin{verbatim}
-procedure bind_response(_?, _?, Response, FriendsList?, FriendsList, Stream?, Stream).
-bind_response(yes, From, accept(RetCh?), Fs, Fs1?, In, In1?) :-
-    new_channel(RetCh, LocalCh) |
-    handle_response(accept(LocalCh?), From?, Fs?, Fs1, In?, In1).
+procedure bind_response(_?, _?, Response,
+    FriendsList?, FriendsList, Stream?, Stream).
+bind_response(yes, From, accept(RetCh?),
+    Fs, Fs1?, In, In1?) :-
+        new_channel(RetCh, LocalCh) |
+        handle_response(accept(LocalCh?), From?,
+            Fs?, Fs1, In?, In1).
 bind_response(no, _, no, Fs, Fs?, In, In?).
 
-procedure handle_response(Response?, _?, FriendsList?, FriendsList, Stream?, Stream).
-handle_response(accept(ch(FIn, FOut?)), From, Fs, Fs1?, In, In1?) :-
-    ground(From?) |
-    merge(In?, FIn?, In1),
-    add_friend_and_notify(From?, FOut, Fs?, Fs1).
+procedure handle_response(Response?, _?,
+    FriendsList?, FriendsList, Stream?, Stream).
+handle_response(accept(ch(FIn, FOut?)), From,
+    Fs, Fs1?, In, In1?) :-
+        ground(From?) |
+        merge(In?, FIn?, In1),
+        add_friend_and_notify(From?, FOut, Fs?, Fs1).
 handle_response(no, From, Fs, Fs1?, In, In?) :-
     ground(From?) |
-    lookup_send(user, msg(agent, user, rejected(From?)), Fs?, Fs1).
+    lookup_send(user,
+        msg(agent, user, rejected(From?)), Fs?, Fs1).
 
-procedure add_friend_and_notify(_?, Stream, FriendsList?, FriendsList).
-add_friend_and_notify(From, FOut?, Fs, [friend(From?, FOut)|Fs1?]) :-
-    ground(From?) |
-    lookup_send(user, msg(agent, user, connected(From?)), Fs?, Fs1).
+procedure add_friend_and_notify(_?, Stream,
+    FriendsList?, FriendsList).
+add_friend_and_notify(From, FOut?, Fs,
+    [friend(From?, FOut)|Fs1?]) :-
+        ground(From?) |
+        lookup_send(user,
+            msg(agent, user, connected(From?)), Fs?, Fs1).
 \end{verbatim}
 
 %------------------------------------------------------------------------------
@@ -137,26 +154,35 @@ procedure agent(_?, Stream?, FriendsList?).
 %% User initiates cold call
 agent(Id, [msg(user, Id1, connect(Target))|In], Fs) :-
     ground(Id?), ground(Target?), Id? =?= Id1? |
-    lookup_send(net, msg(Id?, Target?, intro(Id?, Id?, Resp)), Fs?, Fs1),
+    lookup_send(net,
+        msg(Id?, Target?, intro(Id?, Id?, Resp)),
+        Fs?, Fs1),
     inject_msg(Resp?, Target?, Id?, In?, In1),
     agent(Id?, In1?, Fs1?).
 
-%% Received self-introduction (cold-call: 3-arg intro) - forward to user
-agent(Id, [msg(From, Id1, intro(From1, From2, Resp))|In], Fs) :-
-    ground(Id?), ground(From?), Id? =?= Id1?, From? =?= From1?, From? =?= From2? |
-    lookup_send(user, msg(agent, user, befriend(From?, Resp?)), Fs?, Fs1),
-    agent(Id?, In?, Fs1?).
+%% Received self-introduction (cold-call) - forward to user
+agent(Id,
+    [msg(From, Id1, intro(From1, From2, Resp))|In], Fs) :-
+        ground(Id?), ground(From?), Id? =?= Id1?,
+        From? =?= From1?, From? =?= From2? |
+        lookup_send(user,
+            msg(agent, user, befriend(From?, Resp?)),
+            Fs?, Fs1),
+        agent(Id?, In?, Fs1?).
 
 %% User decision on cold-call introduction
-agent(Id, [msg(user, Id1, decision(Dec, From, Resp?))|In], Fs) :-
-    ground(Id?), Id? =?= Id1? |
-    bind_response(Dec?, From?, Resp, Fs?, Fs1, In?, In1),
-    agent(Id?, In1?, Fs1?).
+agent(Id,
+    [msg(user, Id1, decision(Dec, From, Resp?))|In], Fs) :-
+        ground(Id?), Id? =?= Id1? |
+        bind_response(Dec?, From?, Resp,
+            Fs?, Fs1, In?, In1),
+        agent(Id?, In1?, Fs1?).
 
 %% Response to sent cold-call introduction
 agent(Id, [msg(From, Id1, response(Resp))|In], Fs) :-
     ground(Id?), ground(From?), Id? =?= Id1? |
-    handle_response(Resp?, From?, Fs?, Fs1, In?, In1),
+    handle_response(Resp?, From?,
+        Fs?, Fs1, In?, In1),
     agent(Id?, In1?, Fs1?).
 
 %% --- Text messaging ---
@@ -164,28 +190,38 @@ agent(Id, [msg(From, Id1, response(Resp))|In], Fs) :-
 %% User sends text message to friend
 agent(Id, [msg(user, Id1, send(Target, Text))|In], Fs) :-
     ground(Id?), ground(Target?), Id? =?= Id1? |
-    lookup_send(Target?, msg(Id?, Target?, text(Text?)), Fs?, Fs1),
+    lookup_send(Target?,
+        msg(Id?, Target?, text(Text?)), Fs?, Fs1),
     agent(Id?, In?, Fs1?).
 
 %% Received text message from friend - forward to user
 agent(Id, [msg(From, Id1, text(Text))|In], Fs) :-
     ground(Id?), ground(From?), Id? =?= Id1? |
-    lookup_send(user, msg(agent, user, received(From?, Text?)), Fs?, Fs1),
+    lookup_send(user,
+        msg(agent, user, received(From?, Text?)),
+        Fs?, Fs1),
     agent(Id?, In?, Fs1?).
 
 %% --- Friend-mediated introduction protocol ---
 
-%% User commands: introduce P to Q (creates bidirectional channel)
+%% User commands: introduce P to Q
 agent(Id, [msg(user, Id1, introduce(P, Q))|In], Fs) :-
-    ground(Id?), ground(P?), ground(Q?), Id? =?= Id1?, new_channel(PQCh, QPCh) |
-    lookup_send(P?, msg(Id?, P?, intro(Q?, QPCh?)), Fs?, Fs1),
-    lookup_send(Q?, msg(Id?, Q?, intro(P?, PQCh?)), Fs1?, Fs2),
+    ground(Id?), ground(P?), ground(Q?),
+    Id? =?= Id1?, new_channel(PQCh, QPCh) |
+    lookup_send(P?,
+        msg(Id?, P?, intro(Q?, QPCh?)), Fs?, Fs1),
+    lookup_send(Q?,
+        msg(Id?, Q?, intro(P?, PQCh?)), Fs1?, Fs2),
     agent(Id?, In?, Fs2?).
 
-%% Received introduction from friend (2-arg intro) - forward to user
+%% Received introduction from friend - forward to user
 agent(Id, [msg(From, Id1, intro(Other, Ch))|In], Fs) :-
-    ground(Id?), ground(From?), ground(Other?), Id? =?= Id1? |
-    lookup_send(user, msg(agent, user, befriend_intro(From?, Other?, Ch?)), Fs?, Fs1),
+    ground(Id?), ground(From?), ground(Other?),
+    Id? =?= Id1? |
+    lookup_send(user,
+        msg(agent, user,
+            befriend_intro(From?, Other?, Ch?)),
+        Fs?, Fs1),
     agent(Id?, In?, Fs1?).
 
 %% User accepts friend introduction
@@ -214,11 +250,13 @@ agent(_, [], _).
 %------------------------------------------------------------------------------
 
 \begin{verbatim}
-procedure handle_intro_accept(Channel?, _?, FriendsList?, FriendsList, Stream?, Stream).
-handle_intro_accept(ch(FIn, FOut?), Other, Fs, Fs1?, In, In1?) :-
-    ground(Other?) |
-    add_friend(Other?, FOut, Fs?, Fs1),
-    merge(In?, FIn?, In1).
+procedure handle_intro_accept(Channel?, _?,
+    FriendsList?, FriendsList, Stream?, Stream).
+handle_intro_accept(ch(FIn, FOut?), Other,
+    Fs, Fs1?, In, In1?) :-
+        ground(Other?) |
+        add_friend(Other?, FOut, Fs?, Fs1),
+        merge(In?, FIn?, In1).
 \end{verbatim}
 
 %------------------------------------------------------------------------------
@@ -228,9 +266,12 @@ handle_intro_accept(ch(FIn, FOut?), Other, Fs, Fs1?, In, In1?) :-
 
 \begin{verbatim}
 procedure agent_init(_?, Channel?, Channel?).
-agent_init(Id, ch(UserIn, UserOut?), ch(NetIn, NetOut?)) :-
-    merge(UserIn?, NetIn?, In),
-    agent(Id?, In?, [friend(user, UserOut), friend(net, NetOut)]).
+agent_init(Id, ch(UserIn, UserOut?),
+    ch(NetIn, NetOut?)) :-
+        merge(UserIn?, NetIn?, In),
+        agent(Id?, In?,
+            [friend(user, UserOut),
+             friend(net, NetOut)]).
 \end{verbatim}
 
 %------------------------------------------------------------------------------
@@ -247,37 +288,54 @@ procedure network3(Channel?, Channel?, Channel?).
 network3(ch([msg(alice, bob, X)|AliceIn], AliceOut?),
          ch(BobIn, [msg(alice, bob, X?)|BobOut?]),
          ch(CharlieIn, CharlieOut?)) :-
-    network3(ch(AliceIn?, AliceOut), ch(BobIn?, BobOut), ch(CharlieIn?, CharlieOut)).
+    network3(ch(AliceIn?, AliceOut),
+        ch(BobIn?, BobOut),
+        ch(CharlieIn?, CharlieOut)).
 
 %% Alice -> Charlie
-network3(ch([msg(alice, charlie, X)|AliceIn], AliceOut?),
-         ch(BobIn, BobOut?),
-         ch(CharlieIn, [msg(alice, charlie, X?)|CharlieOut?])) :-
-    network3(ch(AliceIn?, AliceOut), ch(BobIn?, BobOut), ch(CharlieIn?, CharlieOut)).
+network3(
+    ch([msg(alice, charlie, X)|AliceIn], AliceOut?),
+    ch(BobIn, BobOut?),
+    ch(CharlieIn,
+        [msg(alice, charlie, X?)|CharlieOut?])) :-
+            network3(ch(AliceIn?, AliceOut),
+                ch(BobIn?, BobOut),
+                ch(CharlieIn?, CharlieOut)).
 
 %% Bob -> Alice
-network3(ch(AliceIn, [msg(bob, alice, X?)|AliceOut?]),
-         ch([msg(bob, alice, X)|BobIn], BobOut?),
-         ch(CharlieIn, CharlieOut?)) :-
-    network3(ch(AliceIn?, AliceOut), ch(BobIn?, BobOut), ch(CharlieIn?, CharlieOut)).
+network3(
+    ch(AliceIn, [msg(bob, alice, X?)|AliceOut?]),
+    ch([msg(bob, alice, X)|BobIn], BobOut?),
+    ch(CharlieIn, CharlieOut?)) :-
+        network3(ch(AliceIn?, AliceOut),
+            ch(BobIn?, BobOut),
+            ch(CharlieIn?, CharlieOut)).
 
 %% Bob -> Charlie
 network3(ch(AliceIn, AliceOut?),
-         ch([msg(bob, charlie, X)|BobIn], BobOut?),
-         ch(CharlieIn, [msg(bob, charlie, X?)|CharlieOut?])) :-
-    network3(ch(AliceIn?, AliceOut), ch(BobIn?, BobOut), ch(CharlieIn?, CharlieOut)).
+    ch([msg(bob, charlie, X)|BobIn], BobOut?),
+    ch(CharlieIn,
+        [msg(bob, charlie, X?)|CharlieOut?])) :-
+            network3(ch(AliceIn?, AliceOut),
+                ch(BobIn?, BobOut),
+                ch(CharlieIn?, CharlieOut)).
 
 %% Charlie -> Alice
-network3(ch(AliceIn, [msg(charlie, alice, X?)|AliceOut?]),
-         ch(BobIn, BobOut?),
-         ch([msg(charlie, alice, X)|CharlieIn], CharlieOut?)) :-
-    network3(ch(AliceIn?, AliceOut), ch(BobIn?, BobOut), ch(CharlieIn?, CharlieOut)).
+network3(
+    ch(AliceIn, [msg(charlie, alice, X?)|AliceOut?]),
+    ch(BobIn, BobOut?),
+    ch([msg(charlie, alice, X)|CharlieIn], CharlieOut?)) :-
+        network3(ch(AliceIn?, AliceOut),
+            ch(BobIn?, BobOut),
+            ch(CharlieIn?, CharlieOut)).
 
 %% Charlie -> Bob
 network3(ch(AliceIn, AliceOut?),
-         ch(BobIn, [msg(charlie, bob, X?)|BobOut?]),
-         ch([msg(charlie, bob, X)|CharlieIn], CharlieOut?)) :-
-    network3(ch(AliceIn?, AliceOut), ch(BobIn?, BobOut), ch(CharlieIn?, CharlieOut)).
+    ch(BobIn, [msg(charlie, bob, X?)|BobOut?]),
+    ch([msg(charlie, bob, X)|CharlieIn], CharlieOut?)) :-
+        network3(ch(AliceIn?, AliceOut),
+            ch(BobIn?, BobOut),
+            ch(CharlieIn?, CharlieOut)).
 
 %% Termination
 network3(ch([], []), ch([], []), ch([], [])).
@@ -296,35 +354,45 @@ Alice's script: (1) cold-call Bob, (2) wait for connection confirmation, (3) sen
 
 \begin{verbatim}
 procedure alice_actor(Channel?).
-alice_actor(ch(In, [msg(user, alice, connect(bob))|Out?])) :-
-    alice_wait_bob_connected(In?, Out).
+alice_actor(ch(In,
+    [msg(user, alice, connect(bob))|Out?])) :-
+        alice_wait_bob_connected(In?, Out).
 
 procedure alice_wait_bob_connected(Stream?, Stream).
-alice_wait_bob_connected([msg(agent, user, connected(bob))|In],
-                         [msg(user, alice, send(bob, 'Hi Bob, this is Alice'))|Out?]) :-
-    alice_wait_intro(In?, Out).
+alice_wait_bob_connected(
+    [msg(agent, user, connected(bob))|In],
+    [msg(user, alice,
+        send(bob, 'Hi Bob, this is Alice'))|Out?]) :-
+            alice_wait_intro(In?, Out).
 alice_wait_bob_connected([], []).
 
 procedure alice_wait_intro(Stream?, Stream).
-alice_wait_intro([msg(agent, user, connected(_))|In], Out?) :-
-    alice_wait_intro(In?, Out).
-alice_wait_intro([msg(agent, user, received(_, _))|In], Out?) :-
-    alice_wait_intro(In?, Out).
-alice_wait_intro([msg(agent, user, befriend_intro(_, Other, Ch))|In],
-                 [msg(user, alice, accept_intro(Other?, Ch?))|Out?]) :-
-    ground(Other?) |
-    alice_send_to_charlie(In?, Out).
+alice_wait_intro(
+    [msg(agent, user, connected(_))|In], Out?) :-
+        alice_wait_intro(In?, Out).
+alice_wait_intro(
+    [msg(agent, user, received(_, _))|In], Out?) :-
+        alice_wait_intro(In?, Out).
+alice_wait_intro(
+    [msg(agent, user, befriend_intro(_, Other, Ch))|In],
+    [msg(user, alice, accept_intro(Other?, Ch?))|Out?]) :-
+        ground(Other?) |
+        alice_send_to_charlie(In?, Out).
 alice_wait_intro([], []).
 
 procedure alice_send_to_charlie(Stream?, Stream).
-alice_send_to_charlie(In, [msg(user, alice, send(charlie, 'Hi Charlie, this is Alice'))|Out?]) :-
-    alice_wait_charlie_reply(In?, Out).
+alice_send_to_charlie(In,
+    [msg(user, alice,
+        send(charlie, 'Hi Charlie, this is Alice'))|Out?]) :-
+            alice_wait_charlie_reply(In?, Out).
 
 procedure alice_wait_charlie_reply(Stream?, Stream).
-alice_wait_charlie_reply([msg(agent, user, received(charlie, _))|In], Out?) :-
-    alice_drain(In?, Out).
-alice_wait_charlie_reply([msg(agent, user, connected(_))|In], Out?) :-
-    alice_wait_charlie_reply(In?, Out).
+alice_wait_charlie_reply(
+    [msg(agent, user, received(charlie, _))|In], Out?) :-
+        alice_drain(In?, Out).
+alice_wait_charlie_reply(
+    [msg(agent, user, connected(_))|In], Out?) :-
+        alice_wait_charlie_reply(In?, Out).
 alice_wait_charlie_reply([], []).
 
 procedure alice_drain(Stream?, Stream).
@@ -338,32 +406,39 @@ Bob's script: (1) accept Alice's cold-call, (2) receive Alice's message, (3) col
 
 \begin{verbatim}
 procedure bob_actor(Channel?).
-bob_actor(ch([msg(agent, user, befriend(From, Resp))|In],
-             [msg(user, bob, decision(yes, From?, Resp?))|Out?])) :-
-    ground(From?) |
-    bob_wait_alice_msg(In?, Out).
+bob_actor(ch(
+    [msg(agent, user, befriend(From, Resp))|In],
+    [msg(user, bob, decision(yes, From?, Resp?))|Out?])) :-
+        ground(From?) |
+        bob_wait_alice_msg(In?, Out).
 
 procedure bob_wait_alice_msg(Stream?, Stream).
-bob_wait_alice_msg([msg(agent, user, connected(_))|In], Out?) :-
-    bob_wait_alice_msg(In?, Out).
-bob_wait_alice_msg([msg(agent, user, received(alice, _))|In],
-                   [msg(user, bob, connect(charlie))|Out?]) :-
-    bob_wait_charlie_connected(In?, Out).
+bob_wait_alice_msg(
+    [msg(agent, user, connected(_))|In], Out?) :-
+        bob_wait_alice_msg(In?, Out).
+bob_wait_alice_msg(
+    [msg(agent, user, received(alice, _))|In],
+    [msg(user, bob, connect(charlie))|Out?]) :-
+        bob_wait_charlie_connected(In?, Out).
 bob_wait_alice_msg([], []).
 
 procedure bob_wait_charlie_connected(Stream?, Stream).
-bob_wait_charlie_connected([msg(agent, user, connected(charlie))|In], Out?) :-
-    bob_wait_charlie_msg(In?, Out).
-bob_wait_charlie_connected([msg(agent, user, connected(_))|In], Out?) :-
-    bob_wait_charlie_connected(In?, Out).
+bob_wait_charlie_connected(
+    [msg(agent, user, connected(charlie))|In], Out?) :-
+        bob_wait_charlie_msg(In?, Out).
+bob_wait_charlie_connected(
+    [msg(agent, user, connected(_))|In], Out?) :-
+        bob_wait_charlie_connected(In?, Out).
 bob_wait_charlie_connected([], []).
 
 procedure bob_wait_charlie_msg(Stream?, Stream).
-bob_wait_charlie_msg([msg(agent, user, received(charlie, _))|In],
-                     [msg(user, bob, introduce(alice, charlie))|Out?]) :-
-    bob_drain(In?, Out).
-bob_wait_charlie_msg([msg(agent, user, connected(_))|In], Out?) :-
-    bob_wait_charlie_msg(In?, Out).
+bob_wait_charlie_msg(
+    [msg(agent, user, received(charlie, _))|In],
+    [msg(user, bob, introduce(alice, charlie))|Out?]) :-
+        bob_drain(In?, Out).
+bob_wait_charlie_msg(
+    [msg(agent, user, connected(_))|In], Out?) :-
+        bob_wait_charlie_msg(In?, Out).
 bob_wait_charlie_msg([], []).
 
 procedure bob_drain(Stream?, Stream).
@@ -377,27 +452,34 @@ Charlie's script: (1) accept Bob's cold-call, (2) send greeting to Bob, (3) wait
 
 \begin{verbatim}
 procedure charlie_actor(Channel?).
-charlie_actor(ch([msg(agent, user, befriend(From, Resp))|In],
-                 [msg(user, charlie, decision(yes, From?, Resp?)),
-                  msg(user, charlie, send(bob, 'Hi Bob, this is Charlie'))|Out?])) :-
-    ground(From?) |
-    charlie_wait_intro(In?, Out).
+charlie_actor(ch(
+    [msg(agent, user, befriend(From, Resp))|In],
+    [msg(user, charlie, decision(yes, From?, Resp?)),
+     msg(user, charlie,
+        send(bob, 'Hi Bob, this is Charlie'))|Out?])) :-
+            ground(From?) |
+            charlie_wait_intro(In?, Out).
 
 procedure charlie_wait_intro(Stream?, Stream).
-charlie_wait_intro([msg(agent, user, connected(_))|In], Out?) :-
-    charlie_wait_intro(In?, Out).
-charlie_wait_intro([msg(agent, user, befriend_intro(_, Other, Ch))|In],
-                   [msg(user, charlie, accept_intro(Other?, Ch?))|Out?]) :-
-    ground(Other?) |
-    charlie_wait_alice_msg(In?, Out).
+charlie_wait_intro(
+    [msg(agent, user, connected(_))|In], Out?) :-
+        charlie_wait_intro(In?, Out).
+charlie_wait_intro(
+    [msg(agent, user, befriend_intro(_, Other, Ch))|In],
+    [msg(user, charlie, accept_intro(Other?, Ch?))|Out?]) :-
+        ground(Other?) |
+        charlie_wait_alice_msg(In?, Out).
 charlie_wait_intro([], []).
 
 procedure charlie_wait_alice_msg(Stream?, Stream).
-charlie_wait_alice_msg([msg(agent, user, received(alice, _))|In],
-                       [msg(user, charlie, send(alice, 'Hi Alice, this is Charlie'))|Out?]) :-
-    charlie_drain(In?, Out).
-charlie_wait_alice_msg([msg(agent, user, connected(_))|In], Out?) :-
-    charlie_wait_alice_msg(In?, Out).
+charlie_wait_alice_msg(
+    [msg(agent, user, received(alice, _))|In],
+    [msg(user, charlie,
+        send(alice, 'Hi Alice, this is Charlie'))|Out?]) :-
+            charlie_drain(In?, Out).
+charlie_wait_alice_msg(
+    [msg(agent, user, connected(_))|In], Out?) :-
+        charlie_wait_alice_msg(In?, Out).
 charlie_wait_alice_msg([], []).
 
 procedure charlie_drain(Stream?, Stream).
