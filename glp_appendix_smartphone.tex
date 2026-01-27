@@ -1,6 +1,6 @@
 \section{Smartphone Implementation-ready Multiagent Transition System for GLP}\label{appendix:irmaGLP}
 
-This section combines the implementation-ready structure of irGLP (Section~\ref{appendix:irGLP}) with the multiagent framework of maGLP (Section~\ref{section:maGLP}). While irGLP provides deterministic scheduling and suspension management for single agents, and maGLP defines cross-agent communication through shared variables, irmaGLP specifies the concrete data structures and message-passing mechanisms suitable for multiagent smartphone implementation.
+This section combines the implementation-ready structure of irGLP (Section~\ref{appendix:irGLP}) with the multiagent framework of maGLP (Section~\ref{sec:maglp}). While irGLP provides deterministic scheduling and suspension management for single agents, and maGLP defines cross-agent communication through shared variables, irmaGLP specifies the concrete data structures and message-passing mechanisms suitable for multiagent smartphone implementation.
 
 A variable $X$ is \emph{local} to agent $p$ if $X$ occurs in $p$'s resolvent. Non-local variables require coordination through variable tables and explicit message passing, replacing maGLP's abstract shared-variable communication with concrete routing mechanisms.
 
@@ -8,7 +8,7 @@ The fundamental invariant: assignments produced by Reduce transactions are immed
 
 \subsection{maGLP: The Specification}
 
-For completeness, we recall the definition of multiagent GLP from Section~\ref{section:maGLP}, which irmaGLP implements.
+For completeness, we recall the definition of multiagent GLP from Section~\ref{sec:maglp}, which irmaGLP implements.
 
 \begin{definition}[Multiagent GLP]\label{definition:maGLP-appendix}
 The \temph{maGLP transition system} over agents $P\subset \Pi$ and GLP module $M$ is the multiagent transition system over multiagent asynchronous resolvents over $M$ induced by the following transactions $c\rightarrow c'$:
