@@ -68,6 +68,10 @@
 
 ## Core Rules
 
+### CRITICAL: Do Not Edit Bibliography
+- **NEVER edit bib.bib** - The bibliography file is managed by the user only
+- If there are bib-related errors, report them but do not attempt to fix
+
 ### CRITICAL: Filesystem Access
 - **Bash/shell commands DO NOT WORK** on the user's local filesystem
 - Use ONLY the Filesystem tools (read_text_file, edit_file, write_file, search_files, list_directory)
