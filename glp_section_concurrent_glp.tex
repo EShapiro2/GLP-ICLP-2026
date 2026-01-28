@@ -3,7 +3,7 @@
 \label{sec:glp}
 %==============================================================================
 
-This section presents Grassroots Logic Programs (GLP), a concurrent logic programming language. We begin with transition systems, recall logic programs (LP) as transition systems, and then extend LP to GLP. We illustrate GLP with programming examples and conclude with the grassroots social graph---the foundational platform that all other grassroots platforms build upon.
+This section presents Grassroots Logic Programs (GLP), a concurrent logic programming language. We begin with transition systems, recall logic programs (LP) and define their operational semantics via transition systems, and then extend LP to GLP. We illustrate GLP with programming examples and conclude with the grassroots social graph---the foundational platform that all other grassroots platforms build upon.
 
 %------------------------------------------------------------------------------
 \subsection{Transition Systems}
@@ -27,7 +27,7 @@ We recall standard Logic Programs (LP) notions of syntax, most-general unifier (
 \label{def:lp-syntax}
 We employ standard LP notions. Let $\calV$ denote the set of \temph{variables} (identifiers beginning with uppercase). A \temph{term} is a variable, a constant (numbers, strings, or the empty list \verb|[]|), or a compound term $f(T_1,\ldots,T_n)$ with functor $f$ and subterms $T_i$. Let $\calT$ denote the set of all terms. We use standard list notation: \verb=[X|Xs]= for a list cell, \verb|[X1,...,Xn]| for finite lists. A term is \temph{ground} if it contains no variables.
 
-A \temph{unit goal} is a compound term, also commonly referred to as an \temph{atom}. A \temph{goal} is a multiset of unit goals; the empty goal is written \verb|true|. A \temph{clause} $A$~\verb|:-|~$B$ has head $A$ (a unit goal) and body $B$ (a goal); a \temph{unit clause} has empty body. A \temph{logic program} is a finite set of clauses; clauses for the same predicate form a \temph{procedure}. Let $\calG(P)$ denote the set of goals over program $P$.
+A \temph{unit goal} is a compound term, also commonly referred to as an \temph{atom}. A \temph{goal} is a multiset of unit goals; the empty goal is written \verb|true|. A \temph{clause} $A$~\verb|:-|~$B$ has head $A$ (a unit goal) and body $B$ (a goal); a \temph{unit clause} has empty body. A \temph{logic program} is a finite set of clauses; clauses for the same predicate form a \temph{procedure}. Let $\calG(P)$ denote the set of goals over the vocabulary of the program $P$.
 \end{definition}
 
 A \emph{substitution} $\sigma$ is an idempotent function $\sigma: \calV \to \calT$, a mapping from variables to terms applied to a fixed point. By convention, $\sigma(x)=x\sigma$. Let $\Sigma$ denote the set of all substitutions. We assume standard notions of instance, ground, renaming, renaming apart, unifier, and most-general unifier (mgu).
@@ -42,14 +42,14 @@ Given an LP unit goal $A$ and clause $C$, with $H$ \verb|:-| $B$ being the resul
 A transition system $LP(P) = (C, c_0, T)$ is a \temph{Logic Programs transition system} for a logic program $P$ and initial goal $G_0 \in \mathcal{G}(P)$, if $C=\mathcal{G}(P)\times \Sigma$, $c_0=(G_0,\emptyset)$, and $T$ is the set of all transitions $(G,\sigma) \rightarrow (G',\sigma')$ such that for some unit goal $A \in G$ and clause $C \in P$ the LP reduction of $A$ with $C$ succeeds with $(B,\hat\sigma)$, $G' = (G \setminus \{A\} \cup B)\hat\sigma$, and $\sigma'=\sigma\circ\hat\sigma$.
 \end{definition}
 
-LP has two forms of nondeterminism: the choice of $A \in G$, called \emph{and-nondeterminism}, and the choice of $C \in P$, called \emph{or-nondeterminism}.
+LP has two forms of nondeterminism: the choice of $A \in G$, called \emph{and-nondeterminism}, and the choice of $C \in P$, called \emph{or-nondeterminism}, and as such are closely-related to Alternating Turing Machines~\cite{shapiro1984alternation}.
 
 \begin{definition}[Proper and Successful Run, Outcome]
 \label{def:proper-run}
 A run $\rho: (G_0,\sigma_0) \rightarrow \cdots \rightarrow (G_n, \sigma_n)$ of $LP(P)$ is \temph{proper} if for any $1\le i< n$, a variable that occurs in $G_{i+1}$ but not in $G_i$ also does not occur in any $G_j$, $j<i$. If proper, the \temph{outcome} of $\rho$ is $(G_0$ \verb|:-| $G_n)\sigma_n$. Such a run is \temph{successful} if $G_n=\emptyset$.
 \end{definition}
-
-The following proposition justifies calling a proper LP run a \emph{derivation}, and a complete proper run ending in the empty goal a \emph{successful derivation}.
+The following proposition justifies the computation-as-deduction view of LP~\cite{kowalski1974predicate},
+calling a proper LP run a \emph{derivation} and a complete proper run ending in the empty goal a \emph{successful derivation}.
 
 \begin{proposition}[LP Computation is Deduction]
 \label{prop:lp-deduction}
@@ -57,14 +57,14 @@ The outcome $(G_0$ \verb|:-| $G_n)\sigma$ of a proper run of $LP(P)$ is a logica
 \end{proposition}
 
 \mypara{Denotational Semantics}
-The $LP(P)$ transition system allows defining several denotational semantic notions for a program $P$: the \emph{clause semantics} is the set of all outcomes of all proper runs with an initial most-general unit goal (arguments are distinct variables), closely related to the fully-abstract compositional semantics of LP~\cite{gaifman1989fully}; the \emph{atom semantics} is the set of all outcomes of all successful derivations with an initial most-general unit goal; the \emph{ground atom semantics} is the standard model-theoretic semantics, the set of ground instances of the atom semantics over the Herbrand universe of $P$.
+The $LP(P)$ transition system allows defining several denotational semantic notions for a program $P$: (1) the \emph{clause semantics} is the set of all outcomes of all proper runs with an initial most-general unit goal (arguments are distinct variables), closely related to the fully-abstract compositional semantics of LP~\cite{gaifman1989fully}; (2) the \emph{atom semantics} is the set of all outcomes of all successful derivations with an initial most-general unit goal; (3) the \emph{ground atom semantics} is the standard model-theoretic semantics, the set of ground instances of the atom semantics over the Herbrand universe of $P$~\cite{lloyd1987foundations}.
 
 %------------------------------------------------------------------------------
 \subsection{GLP: Extending LP with Readers}
 \label{sec:glp-ext}
 %------------------------------------------------------------------------------
 
-Grassroots Logic Programs (GLP) extend LP by (1) adding a paired \emph{reader} $X?$ to every ``ordinary'' logic variable $X$, now called a \emph{writer}, (2) restricting variables in goals and clauses to have at most a single occurrence (SO), (3) requiring that a variable occurs in a clause iff its paired variable also occurs in it (single-reader single-writer, SRSW). The result eschews unification in favour of simple term matching, is linear-logic-like~\cite{girard1987linear}, and is futures/promises-like~\cite{friedman1976impact}: each assignment $X := T$ is produced at most once via the sole writer (promise) $X$, and consumed at most once via its sole paired reader (future) $X?$.
+Grassroots Logic Programs (GLP) extend LP by (1) adding a paired \emph{reader} $X?$ to every ``ordinary'' logic variable $X$, now called a \emph{writer}; (2) restricting variables in goals and clauses to have at most a single occurrence (SO); and (3) requiring that a variable occurs in a clause iff its paired variable also occurs in it (single-reader single-writer, SRSW). The result eschews unification in favour of simple term matching, is linear-logic-like~\cite{girard1987linear}, and is futures/promises-like~\cite{friedman1976impact}: each assignment $X := T$ is produced at most once via the sole occurrence of a writer (promise) $X$, and consumed at most once via the sole occurrence of its paired reader (future) $X?$.
 
 \begin{definition}[GLP Variables]
 \label{def:glp-variables}
@@ -82,7 +82,7 @@ A term, goal, or clause satisfies the \temph{single-occurrence (SO) invariant} i
 \label{def:glp-program}
 A clause $C$ satisfies the \temph{single-reader/single-writer (SRSW) restriction} if it satisfies SO and a variable occurs in $C$ iff its paired variable also occurs in $C$.
 A \temph{GLP program} is a finite set of clauses satisfying SRSW; clauses for the same predicate form a \temph{procedure}.
-Let $\calG_?(P)$ denote the set of goals over $\hat\calV$ restricted to the vocabulary of $P$.
+Let $\hat\calG(P)$ denote the set of goals over $\hat\calV$ and the vocabulary of $P$.
 \end{definition}
 
 \begin{example}[Fair Merge]
@@ -121,7 +121,7 @@ Given GLP unit goal $A$ and clause $C$, with $H$ \verb|:-| $B$ being the result 
 
 \begin{definition}[GLP Transition System]
 \label{def:glp-ts}
-Given a GLP program $P$, an \temph{asynchronous resolvent} over $P$ is a pair $(G, \sigma)$ where $G \in \calG_?(P)$ and $\sigma$ is a readers substitution.
+Given a GLP program $P$, an \temph{asynchronous resolvent} over $P$ is a pair $(G, \sigma)$ where $G \in \hat\calG(P)$ and $\sigma$ is a readers substitution.
 
 A transition system $GLP(P) = (\calC, c_0, \calT)$ is a \temph{GLP transition system} over $P$ and initial goal $G_0$ satisfying SO if:
 \begin{enumerate}
@@ -130,25 +130,26 @@ A transition system $GLP(P) = (\calC, c_0, \calT)$ is a \temph{GLP transition sy
     \item $\calT$ is the set of all transitions $(G, \sigma) \rightarrow (G', \sigma')$ satisfying either:
     \begin{enumerate}
         \item \textbf{Reduce:} there exists unit goal $A \in G$ such that $C \in P$ is the first clause for which the GLP reduction of $A$ with $C$ succeeds with result $(B, \hat\sigma)$, $G' = (G \setminus \{A\} \cup B)\hat\sigma$, and $\sigma' = \sigma \circ \hat\sigma?$
-        \item \textbf{Communicate:} $\{X := T\} \in \sigma$, $X?\in G$, $G' = G\{X? := T\}$, and $\sigma' = \sigma$
+        \item \textbf{Communicate:} $\{X? := T\} \in \sigma$, $X?\in G$, $G' = G\{X? := T\}$, and $\sigma' = \sigma$
     \end{enumerate}
 \end{enumerate}
 \end{definition}
 
 GLP Reduce differs from LP in (1) the use of a writer mgu instead of a regular mgu and (2) the choice of the first applicable clause instead of any clause. The first is the fundamental use of GLP readers for synchronization. The second compromises on the or-nondeterminism of LP to allow writing fair concurrent programs, such as fair merge above. Note that or-nondeterminism is not completely eliminated, as different scheduling of arrival of bindings on the two input streams of \verb|merge| may result in different orders in its output stream.
 
-The GLP Communicate rule realizes the use of reader/writer pairs for asynchronous communication: it applies an assignment to a reader after it has been applied to its paired writer.
+The GLP Communicate rule realizes the use of reader/writer pairs for asynchronous communication: it communicates an assignment from its writer to its paired reader.
+
 
 \mypara{Monotonicity}
-The key differences between LP and GLP relate to monotonicity. In LP, if a goal cannot be reduced, it will never be reduced. In GLP, a goal that cannot be reduced now may be reduced in the future, due to GLP's use of paired logic variables for communication and synchronization: if $A$ and $H$ have an mgu that writes on a reader $X? \in A$, and therefore have no writer mgu at present, it may be possible that another goal that has $X$ will reduce, assigning $X$, and later $X?$, to a value that will allow $A$ and $H$ to have a writer mgu. Conversely, in LP, if a goal $A$ can be reduced now with some clause $H$\verb|:-|$B$, with a regular mgu of $A$ and $H$, it may not be reducible in the future due to variables that $A$ shares with other goals being assigned values by other goal reductions, preventing unification between the instantiated $A$ and $H$. In GLP, if a goal $A$ can be reduced now (with a writers mgu), it can always be reduced in the future, as the SO invariant ensures that no other goal can assign any writer in $A$.
+Key differences between LP and GLP relate to monotonicity. In LP, if a goal cannot be reduced, it will never be reduced. In GLP, a goal that cannot be reduced now may be reduced in the future: if $A$ and $H$ have an mgu that writes on a reader $X? \in A$, and therefore have no writer mgu at present,  another goal that has $X$ may reduce, assigning $X$, and later $X?$, to a value that will allow $A$ and $H$ to have a writer mgu. Conversely, in LP, if a goal $A$ can be reduced now with some clause $H$\verb|:-|$B$, with a regular mgu of $A$ and $H$, it may not be reducible in the future due to variables that $A$ shares with other goals being assigned values by reductions of other goals, preventing unification between the instantiated $A$ and $H$. In GLP, if a goal $A$ can be reduced now (with a writers mgu), it can always be reduced in the future, as the SO invariant ensures that no other goal can assign any writer in $A$.
 
-Implementation-wise, if a GLP goal $A$ cannot be reduced now, but there is a readers substitution $\sigma$ such that $A\sigma$ can be reduced, such readers are identified, the goal $A$ \emph{suspends} on these readers, and is rescheduled for reduction once any of them is assigned.
+Implementation-wise, if a GLP goal $A$ cannot be reduced now, but there is a readers substitution $\sigma$ such that $A\sigma$ can be reduced, such readers are identified, the goal $A$ \emph{suspends} on these readers, and is rescheduled for another reduction attempt once any of them is assigned.
 
-Despite these differences, GLP can adopt the same notion of successful run and outcome of LP (Definition~\ref{def:proper-run}), and have the same notion of logical consequence as LP. Let $/?$ be an operator that replaces every reader by its paired writer.
+Despite these differences, GLP adopts the same notions of successful run and outcome of LP (Definition~\ref{def:proper-run}), and has the same notion of logical consequence as LP. Let $/?$ be an operator that replaces every reader by its paired writer.
 
 \begin{proposition}[GLP Computation is Deduction]
 \label{prop:glp-deduction}
-Let $(G_0$ \verb|:-| $G_n)\sigma$ be the outcome of a proper run $\rho: (G_0,\sigma_0) \rightarrow \cdots \rightarrow (G_n, \sigma_n)$ of $GLP(P)$. Then $(G_0$ \verb|:-| $G_n)\sigma/?$ is a logical consequence of $P/?$.
+Let $(G_0$ \verb|:-| $G_n)\sigma$ be the outcome of a proper GLP run $\rho: (G_0,\sigma_0) \rightarrow \cdots \rightarrow (G_n, \sigma_n)$ of $GLP(P)$. Then $(G_0$ \verb|:-| $G_n)\sigma/?$ is a logical consequence of $P/?$.
 \end{proposition}
 
 We note two additional safety properties of GLP runs.
@@ -200,18 +201,18 @@ GLP clauses may include \emph{guards}---tests that determine clause applicabilit
 
 \begin{definition}[Guarded Clause]
 \label{def:guarded-clause}
-A \temph{guarded clause} has the form $H$ \verb|:-| $G$ \verb"|" $B$, where $H$ is the head, $G$ is a conjunction of guard predicates, and $B$ is the body. The guard separator ``\verb"|"'' distinguishes guards from the body. A clause without guards is written $H$ \verb|:-| $B$. Guard arguments are readers paired to head writers.
+A \temph{guarded clause} has the form $H$ \verb|:-| $G$ \verb"|" $B$, where $H$ is the head, $G$ is a conjunction of guard predicates, and $B$ is the body. The guard separator ``\verb"|"'' distinguishes guards from the body, and is interpreted logically as a conjunction.  Guard arguments are readers paired to head writers.
 \end{definition}
 
 Guards have three-valued semantics. Each guard predicate explicitly defines its \emph{success} condition. A guard \emph{suspends} if it does not succeed but some instance of it under a readers substitution would succeed. A guard \emph{fails} if no such instance exists. A guard conjunction succeeds if all members succeed; it suspends if any member suspends and none fail; it fails if any member fails.
 
-A clause is applicable only when all its guards succeed. If any guard fails, the clause is skipped and the next clause is tried. If a guard suspends, clause selection suspends pending further instantiation. This mechanism, combined with the first-applicable-clause rule of GLP reduction (Definition~\ref{def:glp-reduction}), provides committed-choice execution.
+Definition~\ref{def:glp-reduction} of a GLP goal/clause reduction is augmented to succeed if the guard also succeeds.
 
 \begin{remark}[Guards and SRSW]
 \label{rem:guards-srsw}
-Guard occurrences count toward SRSW satisfaction: if $X?$ occurs in a guard, its paired writer $X$ must occur elsewhere in the clause. However, if $X?$ occurs in a guard, it may additionally occur once in the body.
+Guard occurrences count toward SRSW satisfaction: if $X?$ occurs in a guard, its paired writer $X$ must occur in the head and $X?$ may additionally occur once in the body.
 
-Furthermore, if the success of a guard implies that $X?$ is bound to a ground term, then $X?$ may occur multiple times in the body. Groundness-implying guards include \verb|ground|, \verb|integer|, \verb|number|, \verb|string|, \verb|constant|, arithmetic comparisons (\verb|<|, \verb|>|, \verb|=<|, \verb|>=|, \verb|=:=|, \verb|=\=|), and ground equality (\verb|=?=|). Guards such as \verb|known| and \verb|compound| do not imply groundness: \verb|known(X?)| succeeds when $X?$ is bound to \verb|f(Y?)| with $Y?$ unbound.
+Furthermore, if the success of a guard implies that $X?$ is ground, then $X?$ as well as $X$ may occur multiple times in the clause. Groundness-implying guards include \verb|ground|, \verb|integer|, \verb|number|, \verb|string|, \verb|constant|, arithmetic comparisons (\verb|<|, \verb|>|, \verb|=<|, \verb|>=|, \verb|=:=|, \verb|=\=|), and ground equality (\verb|=?=|). However,  \verb|known| and \verb|compound| do not imply groundness.
 \end{remark}
 
 Guard predicates include type tests (\verb|integer|, \verb|number|, \verb|string|, \verb|constant|, \verb|compound|, \verb|ground|, \verb|known|), arithmetic comparisons (\verb|<|, \verb|>|, \verb|=<|, \verb|>=|, \verb|=:=|, \verb|=\=|), and ground equality (\verb|=?=|).
@@ -229,7 +230,7 @@ distribute([X|Xs], Ys1, Ys2) :- ground(X?) |
     Ys1 = [X?|Ys1a], Ys2 = [X?|Ys2a], distribute(Xs?, Ys1a?, Ys2a?).
 distribute([], [], []).
 \end{verbatim}
-When \verb|X?| is ground, multiple occurrences in the body do not violate SRSW.
+Since \verb|X?| is ground, its multiple occurrences in the body do not violate SRSW.
 \end{example}
 
 \begin{example}[Lookup in Association List]
@@ -239,17 +240,6 @@ lookup(Key, [(K, Value)|_], Value?) :- Key? =?= K? | true.
 lookup(Key, [_|Rest], Value?) :- otherwise | lookup(Key?, Rest?, Value).
 \end{verbatim}
 The \verb|=?=| guard tests ground equality; \verb|otherwise| succeeds when no prior clause applies.
-\end{example}
-
-\begin{example}[Deferred Message Injection]
-\label{ex:inject}
-The \verb|inject| predicate inserts a message into a stream when a trigger variable becomes bound:
-\begin{verbatim}
-inject(Trigger, Msg, Ys, [Msg?|Ys?]) :- known(Trigger?) | true.
-inject(Trigger, Msg, [Y|Ys], [Y?|Ys1?]) :- 
-    otherwise | inject(Trigger?, Msg?, Ys?, Ys1).
-\end{verbatim}
-Until \verb|Trigger| is bound, messages pass through unchanged; when bound, \verb|Msg| is inserted.
 \end{example}
 
 %------------------------------------------------------------------------------
@@ -274,7 +264,8 @@ A \verb|Channel| is a pair of streams for bidirectional communication. The \verb
 \begin{verbatim}
 new_channel(ch(Xs?, Ys), ch(Ys?, Xs)).
 \end{verbatim}
-The first endpoint reads from \verb|Xs?| and writes to \verb|Ys|; the second reads from \verb|Ys?| and writes to \verb|Xs|. This ensures that what one party writes, the other reads.
+Both endpoints read from their first stream and write to their second:
+The first  reads from \verb|Xs?| and writes to \verb|Ys|; the second reads from \verb|Ys?| and writes to \verb|Xs|.
 
 \subsubsection{Agent Structure}
 

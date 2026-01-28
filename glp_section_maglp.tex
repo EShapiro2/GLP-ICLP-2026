@@ -2,7 +2,7 @@
 \section{Multiagent GLP}\label{sec:maglp}
 %==============================================================================
 
-This section extends GLP to multiple agents. We first define multiagent transition systems, then define multiagent GLP (maGLP) as a transactions-based multiagent transition system, and finally show how the social graph operates in the multiagent setting.
+This section extends GLP to multiple agents. We first define multiagent transition systems vi multiagent atomic transactions, then define multiagent GLP (maGLP) as a transactions-based multiagent transition system, and finally show how the social graph operates in the multiagent setting.
 
 %------------------------------------------------------------------------------
 \subsection{Multiagent Transition Systems}
@@ -53,13 +53,13 @@ In other words, one can fully specify a multiagent transition system over $S$ an
 \label{sec:glp-to-maglp}
 %------------------------------------------------------------------------------
 
-In extending GLP to multiple agents, each agent maintains its own asynchronous resolvent as its local state. The key insight is that GLP's reader/writer pairs provide natural binary communication channels: when agent $p$ binds a writer $X$ shared with agent $q$, the corresponding reader assignment $X? := T$ must be communicated to $q$.
+In extending GLP to multiple agents, each agent maintains its own asynchronous resolvent as its local state. The key insight is that GLP's variable pairs provide natural binary communication channels: when agent $p$ binds a writer $X$ for which the paired reader $X?$ is help by agent $q$, the assignment $X := T$ must be communicated to $q$.
 
 A key difference between single-agent GLP and multiagent GLP is in the initial state. In a multiagent transition system all agents must have the same initial local state $s0$ (Definition~\ref{definition:mts}). This precludes setting up an initial configuration in which agents share logic variables, as this would imply different initial states for different agents.
 
 We resolve this in two steps. First, we employ only anonymous logic variables ``\verb|_|'' in the initial local states of agents: Anonymous variables are, on the one hand, syntactically identical, hence allow all initial states to be syntactically identical, and on the other hand represent unique variables, hence semantically all initial goals have unique, local, non-shared variables. The initial state of all agents is the atomic goal \verb|agent(ch(_?,_),ch(_?,_))|, with the first channel serving communication with the user and the second with the network.
 
-Second, the Network transaction enables agents to bootstrap communication by establishing shared variables through the network infrastructure, realizing the cold-call protocol for connecting previously-disconnected agents.
+Second, the Cold-call transaction enables agents to bootstrap communication by establishing shared variables through the network infrastructure, realizing the cold-call protocol for connecting previously-disconnected agents.
 
 %------------------------------------------------------------------------------
 \subsection{Multiagent GLP Definition}
@@ -71,26 +71,26 @@ Given agents $P\subset \Pi$ and GLP program $M$, the \temph{maGLP transition sys
 \begin{enumerate}
     \item \textbf{Reduce $p$:} A unary transaction with participant $p$ where $c_p\rightarrow c'_p$ is a GLP Reduce transition (Definition~\ref{def:glp-ts}).
     
-    \item \textbf{Communicate $p$ to $q$:} A binary transaction with participants $\{p,q\}\subseteq P$ where $c_p=(G_p,\sigma_p)$, $c_q=(G_q,\sigma_q)$, $\{X?:=T\} \in \sigma_p$, $X?$ occurs in $G_q$, $c'_p=(G_p,\sigma_p \setminus \{X?:=T\})$, and $c'_q=(G_q\{X?:=T\},\sigma_q)$. Note: this includes $p=q$.
+    \item \textbf{Communicate $p$ to $q$:} A transaction with participants $p,q\in P$ where $c_p=(G_p,\sigma_p)$, $c_q=(G_q,\sigma_q)$, $\{X?:=T\} \in \sigma_p$, $X?$ occurs in $G_q$, $c'_p=(G_p,\sigma_p \setminus \{X?:=T\})$, and $c'_q=(G_q\{X?:=T\},\sigma_q)$. 
     
-    \item \textbf{Network $p$ to $q$:} A binary transaction with participants $\{p,q\}\subseteq P$ where the network output stream in $c_p$ has a new message \verb|msg|$(q,X)$, $c'_p$ is the result of advancing the network output stream in $c_p$, and $c'_q$ is the result of adding $X?$ to the network input stream in $c_q$.
+    \item \textbf{Cold-call $p$ to $q$:} A binary transaction with participants $p\ne q \in P$ where the network output stream in $c_p$ has a new message \verb|msg|$(q,X)$, $c'_p$ is the result of advancing the network output stream in $c_p$, and $c'_q$ is the result of adding $X?$ to the network input stream in $c_q$.
 \end{enumerate}
 \end{definition}
 
-Note that Reduce is unary while Communicate and Network are binary. Both Communicate and Network transfer assignments from writers to readers: Communicate operates between agents sharing logic variables, while Network operates through the network input/output streams established in each agent's initial configuration, enabling the cold-call protocol for connecting previously-disconnected agents.
-
+Note that Communicate maybe unary or binary, depending on whether $p=q$.  Both Communicate and Cold-call transfer assignments from writers to readers: Communicate operates between agents sharing a paired reader and writer, while Cold-call operates through the network streams established in each agent's initial configuration, enabling the creation of paired variables among previously-disconnected agents.
+Naturally, Cold-call would be the exception, as once agents share a paired variable they to not need it communicate; moreover, an agent with two friends (which which it shares channels) may introduce them to each other, also saving the need for a Cold-call.
 %------------------------------------------------------------------------------
 \subsection{The Multiagent Social Graph}
 \label{sec:ma-social-graph}
 %------------------------------------------------------------------------------
 
-The social graph code presented in Section~\ref{sec:social-graph} runs unchanged in maGLP. The difference is in how inter-agent communication is realized: rather than a simulated network switch, the maGLP Network transaction directly transfers messages between agents' network streams.
+The social graph code presented in Section~\ref{sec:social-graph} runs unchanged in maGLP. The difference is in how inter-agent communication is realized: rather than a simulated network switch, the maGLP Cold-call transaction directly transfers messages between agents' network streams.
 
-When Alice executes the cold-call protocol to befriend Bob, her agent sends \verb|msg(bob, intro(alice, alice, Resp))| on the network output stream. The Network transaction (Definition~\ref{definition:maGLP}) transfers this message to Bob's network input stream, adding the reader \verb|Resp?| to Bob's resolvent. When Bob accepts, binding \verb|Resp| to \verb|accept(ch(FIn?, FOut))|, the Communicate transaction transfers this binding back to Alice.
+When Alice executes the cold-call protocol to befriend Bob, her agent sends \verb|msg(bob, intro(alice, alice, Resp))| on the network output stream. The Cold-call transaction (Definition~\ref{definition:maGLP}) transfers this message to Bob's network input stream, adding the reader \verb|Resp?| to Bob's resolvent. When Bob accepts, binding \verb|Resp| to \verb|accept(ch(FIn?, FOut))|, the Communicate transaction transfers this binding back to Alice.
 
 Similarly, friend-mediated introduction works through Communicate transactions: when Bob introduces Alice to Charlie, the channel pair he creates contains readers that are transferred to Alice and Charlie via Communicate, establishing their direct connection.
 
-The network switch simulation in Section~\ref{sec:social-graph} is thus a faithful model of maGLP's Network transaction, allowing single-process testing of multiagent protocols.
+The network switch simulation in Section~\ref{sec:social-graph} is thus a faithful model of maGLP's Cold-call transaction, allowing single-process testing of multiagent protocols.
 
 %------------------------------------------------------------------------------
 \subsection{Safety Properties of maGLP}
@@ -108,7 +108,7 @@ The safety properties established for GLP in Section~\ref{sec:glp} extend to maG
 \end{proposition}
 
 \begin{proof}
-The proofs are identical to those for single-agent GLP, substituting ``agent $p$'s resolvent'' for ``resolvent'' and noting that Reduce transitions operate locally within each agent whilst Communicate and Network transitions preserve the properties through reader assignment transfer.
+The proofs are identical to those for single-agent GLP, substituting ``agent $p$'s resolvent'' for ``resolvent'' and noting that Reduce transitions operate locally within each agent whilst Communicate and Cold-call transitions preserve the properties through reader assignment transfer.
 \end{proof}
 
 \begin{proposition}[maGLP Computation is Deduction]\label{prop:maglp-deduction}
