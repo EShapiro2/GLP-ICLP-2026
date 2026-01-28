@@ -114,3 +114,6 @@ The proofs are identical to those for single-agent GLP, substituting ``agent $p$
 \begin{proposition}[maGLP Computation is Deduction]\label{prop:maglp-deduction}
 Let $L$ be the transition system whose resolvent is the union of all local resolvents, the initial goal includes a \verb|network| goal with channels paired to each agent's network channels, and the program is $M$ augmented with the GLP definition of \verb|network|. Then maGLP runs correspond to GLP runs of $L$, and their outcomes are logical consequences of the augmented program.
 \end{proposition}
+
+\mypara{Implementation}
+The implementation-ready variants of GLP and maGLP, along with formal correctness proofs that they implement their respective specifications, are presented in a companion paper~\cite{shapiro2026implementing}.
