@@ -69,7 +69,8 @@
 ## Core Rules
 
 ### CRITICAL: Do Not Edit Bibliography
-- **NEVER edit bib.bib** - The bibliography file is managed by the user only
+- **NEVER edit bib.bib** - The bibliography file is imported from another project and managed by the user only
+- If citations are missing, tell the user what entries need to be added
 - If there are bib-related errors, report them but do not attempt to fix
 
 ### CRITICAL: Filesystem Access
