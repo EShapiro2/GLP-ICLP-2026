@@ -99,6 +99,8 @@
 - Brief, direct responses
 - No long explanations - get to the point
 - Mistakes: Just acknowledge - no apologies or promises
+- **Never use boxed questions** (AskUserQuestion tool) — only free text discussion
+- **Never leave a discussion unilaterally** — always wait for user to approve that the discussion has ended before moving on
 
 ## Working Modes
 
@@ -136,25 +138,16 @@
 
 ## Git Protocol (Claude Code only)
 
+### CRITICAL: Always Commit AND Push
+- At the end of every task, **commit and push** to the remote
+- Never leave work only committed locally — always push
+- Overleaf syncs directly from GitHub's `main` branch, so pushing makes changes visible there
+
 ### Standard Workflow
 ```bash
-# Check status
-git status
-
-# Stage and commit
-git add -A
+git add <specific files>
 git commit -m "Description of changes"
-
-# Push
 git push
-```
-
-### Overleaf Workflow
-Overleaf syncs directly from GitHub's `main` branch.
-
-**To push changes to Overleaf for PDF compilation:**
-```bash
-cd /Users/udi/Grassroots/GLP-ICLP-2026 && git add -A && git commit -m "<message>" && git push
 ```
 
 After pushing to GitHub, pull in Overleaf (Menu → GitHub → Pull) to see the compiled PDF.
