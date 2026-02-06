@@ -278,7 +278,7 @@ suspended_run(A,[resume|Cs]) :- run(A,Cs?).
 suspended_run(A,[abort|Cs]).
 \end{verbatim}
 \end{small}
-The metainterpreter suspends reductions as soon as the control stream is bound to \verb=[suspend|Cs?]=, upon which the run can be resumed or aborted by binding \verb|Cs| accordingly. 
+The metainterpreter suspends reductions as soon as the control stream is assigned \verb=[suspend|Cs?]=, upon which the run can be resumed or aborted by assigning \verb|Cs| accordingly. 
 Combining Programs \ref{program:meta-failsafe} and \ref{program:meta-control} would allow the programmer to abort the run as soon as a goal fails.
 But we wish to introduce additional capabilities before integrating them all.
 
@@ -296,7 +296,7 @@ run(A,L,R?) :- known(A) |        % reduce
 \end{verbatim}
 \end{small}
 
-When called with \verb|run(A,done,R)|, the reader \verb|R?| will be bound to \verb|done| iff the run terminates.  
+When called with \verb|run(A,done,R)|, the reader \verb|R?| will be assigned \verb|done| iff the run terminates.  
 
 
 \mypara{Collecting a snapshot of an aborted run}
@@ -313,7 +313,7 @@ suspended_run(A,[abort|_],L,[A?|L?]).
 \end{verbatim}
 \end{small}
 
-When called with \verb|run(A,Cs?,[],R)|, if \verb|Cs| is bound to \verb|[suspend,abort]|, the reader \verb|R?| will be bound to the current resolvent of the run (which could be empty if the run has already terminated before
+When called with \verb|run(A,Cs?,[],R)|, if \verb|Cs| is assigned \verb|[suspend,abort]|, the reader \verb|R?| will be assigned the current resolvent of the run (which could be empty if the run has already terminated before
 
 Note that taking a snapshot of a suspended run and then resuming it requires extra effort, as two copies of the goal are needed,  a `frozen' one for the snapshot, and a `live' one to continue the run.  Addressing this is necessary for interactive debugging, to allow a developer to watch a program under development as it runs.  We discuss it below.
 

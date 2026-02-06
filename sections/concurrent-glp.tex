@@ -102,7 +102,7 @@ and the goal \verb=merge([1,2,3|Xs?],[a,b|Ys?],Zs)=. Both the goal and each clau
 GLP programs in this paper include \verb|procedure| declarations that specify the moded types of each predicate's arguments. These declarations are part of the moded type system for GLP presented in the companion paper~\citep{shapiro2026types}. The type system itself is not introduced here; the \verb|procedure| declarations and type definitions (e.g., \verb|Stream ::= [] ; [_|Stream].|) should be self-explanatory.
 \end{remark}
 
-As we shall see (Proposition~\ref{prop:so-preservation}), the SO invariant is maintained by the SRSW restriction: reducing a goal satisfying SO with a clause satisfying SRSW results in a goal satisfying SO. The purpose of the SRSW restriction is to prevent multiple writer occurrences racing to bind a variable.
+As we shall see (Proposition~\ref{prop:so-preservation}), the SO invariant is maintained by the SRSW restriction: reducing a goal satisfying SO with a clause satisfying SRSW results in a goal satisfying SO. The purpose of the SRSW restriction is to prevent multiple writer occurrences racing to assign a variable.
 
 %------------------------------------------------------------------------------
 \subsection{GLP Operational Semantics}
@@ -121,7 +121,7 @@ A \temph{GLP renaming} is a substitution $\rho: \hat\calV \to \hat\calV$ such th
 
 \begin{definition}[Writer MGU]
 \label{def:writer-mgu}
-Given two GLP unit goals $A$ and $H$, a \temph{writer mgu} is a writers substitution $\sigma$ such that $A\sigma = H\sigma$ and $\sigma$ is most general among such substitutions. Unlike standard unification, writer mgu only binds writers, not readers.
+Given two GLP unit goals $A$ and $H$, a \temph{writer mgu} is a writers substitution $\sigma$ such that $A\sigma = H\sigma$ and $\sigma$ is most general among such substitutions. Unlike standard unification, writer mgu only assigns writers, not readers.
 \end{definition}
 
 \begin{definition}[GLP Goal/Clause Reduction]
@@ -145,7 +145,7 @@ A transition system $GLP(P) = (\calC, c_0, \calT)$ is a \temph{GLP transition sy
 \end{enumerate}
 \end{definition}
 
-GLP Reduce differs from LP in (1) the use of a writer mgu instead of a regular mgu and (2) the choice of the first applicable clause instead of any clause. The first is the fundamental use of GLP readers for synchronization. The second compromises on the or-nondeterminism of LP to allow writing fair concurrent programs, such as fair merge above. Note that or-nondeterminism is not completely eliminated, as different scheduling of arrival of bindings on the two input streams of \verb|merge| may result in different orders in its output stream.
+GLP Reduce differs from LP in (1) the use of a writer mgu instead of a regular mgu and (2) the choice of the first applicable clause instead of any clause. The first is the fundamental use of GLP readers for synchronization. The second compromises on the or-nondeterminism of LP to allow writing fair concurrent programs, such as fair merge above. Note that or-nondeterminism is not completely eliminated, as different scheduling of arrival of assignments on the two input streams of \verb|merge| may result in different orders in its output stream.
 
 The GLP Communicate rule realizes the use of reader/writer pairs for asynchronous communication: it communicates an assignment from its writer to its paired reader.
 

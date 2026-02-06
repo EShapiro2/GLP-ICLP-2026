@@ -16,7 +16,7 @@ We assume a potentially infinite set of \emph{agents} $\Pi$, considering only fi
 \label{sec:glp-to-maglp}
 %------------------------------------------------------------------------------
 
-In extending GLP to multiple agents, each agent maintains its own asynchronous resolvent as its local state. The key insight is that GLP's variable pairs provide natural binary communication channels: when agent $p$ binds a writer $X$ for which the paired reader $X?$ is held by agent $q$, the assignment $X := T$ must be communicated to $q$.
+In extending GLP to multiple agents, each agent maintains its own asynchronous resolvent as its local state. The key insight is that GLP's variable pairs provide natural binary communication channels: when agent $p$ assigns a writer $X$ for which the paired reader $X?$ is held by agent $q$, the assignment $X := T$ must be communicated to $q$.
 
 A key difference between single-agent GLP and multiagent GLP is in the initial state. In a multiagent transition system all agents must have the same initial local state $s0$ (Definition~\ref{definition:mts}). This precludes setting up an initial configuration in which agents share logic variables, as this would imply different initial states for different agents.
 
@@ -49,7 +49,7 @@ Naturally, Cold-call would be the exception, as once agents share a paired varia
 
 The social graph agent code presented in Section~\ref{sec:social-graph} runs unchanged in maGLP. The only difference is the boot code: the network switch is replaced by maGLP's Cold-call transaction, and each agent runs on a separate isolate. Two boot variants are presented in Appendix~\ref{appendix:social-graph-complete}: a headless boot with actors (Appendix~\ref{app:maglp-boot}) and an interactive UI boot (Appendix~\ref{app:maglp-ui-boot}).
 
-When Alice executes the cold-call protocol to befriend Bob, her agent sends \verb|msg(bob, intro(alice, Resp))| on the \verb|'_net'| output stream. The Cold-call transaction (Definition~\ref{definition:maGLP}) transfers this message to Bob's network input stream, adding the reader \verb|Resp?| to Bob's resolvent. When Bob accepts, binding \verb|Resp| to \verb|accept(ch(FIn?, FOut))|, the Communicate transaction transfers this binding back to Alice.
+When Alice executes the cold-call protocol to befriend Bob, her agent sends \verb|msg(bob, intro(alice, Resp))| on the \verb|'_net'| output stream. The Cold-call transaction (Definition~\ref{definition:maGLP}) transfers this message to Bob's network input stream, adding the reader \verb|Resp?| to Bob's resolvent. When Bob accepts, assigning \verb|Resp| to \verb|accept(ch(FIn?, FOut))|, the Communicate transaction transfers this assignment back to Alice.
 
 Similarly, friend-mediated introduction works through Communicate transactions: when Bob introduces Alice to Charlie, the channel pair he creates contains readers that are transferred to Alice and Charlie via Communicate, establishing their direct connection.
 

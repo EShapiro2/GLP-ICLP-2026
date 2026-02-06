@@ -15,7 +15,7 @@ The $/\!?$ operator replaces every reader $X?$ by its paired writer $X$, transfo
 Consider a GLP transition $(G, \sigma) \rightarrow (G', \sigma')$:
 \begin{itemize}
     \item \emph{Reduce transition}: Goal $A$ reduces with clause $C$ via writer mgu $\hat\sigma$. Applying $/\!?$, the clause $C/?$ is an LP clause, and $A/?$ unifies with the head $H/?$ via the mgu $\hat\sigma/?$ (since writers map to writers). This is a valid LP reduction.
-    \item \emph{Communicate transition}: A reader $X? \in G$ is replaced by the value $T$ assigned to its paired writer. Under $/\!?$, both $X?$ and $X$ map to $X$, so this transition becomes the identity---the variable $X$ is already bound to $T$ in the LP view.
+    \item \emph{Communicate transition}: A reader $X? \in G$ is replaced by the value $T$ assigned to its paired writer. Under $/\!?$, both $X?$ and $X$ map to $X$, so this transition becomes the identity---the variable $X$ is already assigned $T$ in the LP view.
 \end{itemize}
 
 Thus each GLP transition corresponds to zero or one LP transitions, and the GLP run $\rho$ projects to an LP run $\rho/?$ of $LP(P/?)$. By standard LP soundness, the outcome of $\rho/?$ is a logical consequence of $P/?$.
@@ -39,9 +39,9 @@ For the inductive step, assume $G$ satisfies SO and consider a transition $(G, \
 \begin{proof}
 Suppose goal $A$ can reduce with clause $C$ at step $i$, meaning the writer mgu of $A$ and the head $H$ of (a renaming of) $C$ succeeds. Consider what can change between steps $i$ and $j > i$:
 \begin{itemize}
-    \item \emph{Reduce transitions on other goals}: These do not affect $A$ directly. By SO, no other goal shares a writer with $A$, so no other reduction can bind a writer in $A$.
+    \item \emph{Reduce transitions on other goals}: These do not affect $A$ directly. By SO, no other goal shares a writer with $A$, so no other reduction can assign a writer in $A$.
 
-    \item \emph{Communicate transitions}: These bind readers, not writers. A communicate transition $X? := T$ may instantiate a reader $X? \in A$, yielding $A' = A\{X? := T\}$. We show $A'$ can still reduce with $C$:
+    \item \emph{Communicate transitions}: These assign readers, not writers. A communicate transition $X? := T$ may instantiate a reader $X? \in A$, yielding $A' = A\{X? := T\}$. We show $A'$ can still reduce with $C$:
 
     The original writer mgu succeeded, meaning at position $p$ where $X?$ occurred in $A$, either (a) $H$ had a writer $Y$ at position $p$, yielding assignment $Y := X?$, or (b) $H$ had a reader $Y?$ at position $p$, which would have caused failure (reader-reader), contradiction.
 
@@ -56,7 +56,7 @@ Thus, if $A$ has not been reduced by step $j$, the (possibly instantiated) goal 
 \lemPersistence*
 
 \begin{proof}
-For Reduce: if a Reduce transition is enabled for goal $A$ in configuration $(G, \sigma_r)$, it remains enabled in any configuration $(G, \sigma'_r)$ with $\sigma_r \subseteq \sigma'_r$, since other Reduce transitions bind disjoint writers (by SO) and Communicate transitions only instantiate readers. For Communicate: applying $\{X? := T\} \in \sigma$ to $X? \in G$ remains enabled since Reduce transitions do not remove assignments from $\sigma$ and other Communicate transitions apply different assignments.
+For Reduce: if a Reduce transition is enabled for goal $A$ in configuration $(G, \sigma_r)$, it remains enabled in any configuration $(G, \sigma'_r)$ with $\sigma_r \subseteq \sigma'_r$, since other Reduce transitions assign disjoint writers (by SO) and Communicate transitions only instantiate readers. For Communicate: applying $\{X? := T\} \in \sigma$ to $X? \in G$ remains enabled since Reduce transitions do not remove assignments from $\sigma$ and other Communicate transitions apply different assignments.
 \end{proof}
 
 %------------------------------------------------------------------------------
@@ -108,7 +108,7 @@ By Theorem~\ref{theorem:interactive-grassroots}, it suffices to show that maGLP 
 
 Since $c/P \in C(P)$, the local states of agents in $P$ contain no variables shared with agents in $P' \setminus P$---all their reader/writer pairs are ``internal'' to $P$.
 
-Consider any agent $p \in P$ and any agent $q \in P' \setminus P$. Agent $p$ can execute a Reduce transaction that sends a message \verb|msg|$(q,X)$ on its network output stream, where $X$ is a fresh writer. Then the Cold-call transaction from $p$ to $q$ adds $X?$ to agent $q$'s network input stream. Agent $q$ can then execute Reduce transactions that bind $X?$ to some term $T$, creating a reader assignment $X? := T$. Finally, the Communicate transaction from $q$ to $p$ applies this assignment to $p$'s resolvent.
+Consider any agent $p \in P$ and any agent $q \in P' \setminus P$. Agent $p$ can execute a Reduce transaction that sends a message \verb|msg|$(q,X)$ on its network output stream, where $X$ is a fresh writer. Then the Cold-call transaction from $p$ to $q$ adds $X?$ to agent $q$'s network input stream. Agent $q$ can then execute Reduce transactions that assign $X?$ some term $T$, creating a reader assignment $X? := T$. Finally, the Communicate transaction from $q$ to $p$ applies this assignment to $p$'s resolvent.
 
 The result is that agent $p$'s local state now contains a term $T$ that originated from agent $q \in P' \setminus P$. This constitutes an ``alien trace''---the configuration $c'/P$ contains references to variables or terms that could not have been produced by agents in $P$ running alone. Hence $c'/P \notin C(P)$.
 
