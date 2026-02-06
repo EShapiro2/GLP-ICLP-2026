@@ -1,0 +1,301 @@
+\section{Social Graph Walkthrough}\label{appendix:social-graph-walkthrough}
+
+This appendix presents the detailed walkthrough of the grassroots social graph program introduced in Section~\ref{sec:social-graph}.
+
+%------------------------------------------------------------------------------
+\subsection{Types and Channels}
+%------------------------------------------------------------------------------
+
+The social graph uses the following type definitions:
+\begin{verbatim}
+Response ::= accept(Channel) ; no.
+OutputEntry ::= output(String, Stream?).
+OutputsList ::= [] ; [OutputEntry|OutputsList].
+NetMsg ::= msg(Constant, _).
+NetStream ::= [] ; [NetMsg|NetStream].
+AgentId ::= Constant.
+Decision ::= yes ; no.
+\end{verbatim}
+
+A \verb|Channel| is a pair of streams for bidirectional communication. The \verb|new_channel| guard creates complementary channel endpoints:
+\begin{verbatim}
+new_channel(ch(Xs?, Ys), ch(Ys?, Xs)).
+\end{verbatim}
+Both endpoints read from their first stream and write to their second:
+The first  reads from \verb|Xs?| and writes to \verb|Ys|; the second reads from \verb|Ys?| and writes to \verb|Xs|.
+
+%------------------------------------------------------------------------------
+\subsection{Agent Structure}
+%------------------------------------------------------------------------------
+
+Each agent processes messages from two separate input streams---user and network---and maintains an outputs list mapping named destinations to output streams:
+\begin{verbatim}
+procedure agent(AgentId?, Stream?, Stream?, OutputsList?).
+\end{verbatim}
+The four arguments are: agent identity, user input stream, network input stream, and an outputs list. The outputs list initially contains two entries---\verb|output('_user', ...)|  and \verb|output('_net', ...)|---providing streams to the user interface and the network, respectively. As the agent befriends others, new entries are added.
+
+%------------------------------------------------------------------------------
+\subsection{Cold-Call Befriending Protocol}
+%------------------------------------------------------------------------------
+
+The cold-call protocol enables agents to establish friendship without prior shared variables. Figure~\ref{fig:cold-call} shows the protocol clauses.
+
+\begin{figure*}[t]
+\begin{verbatim}
+%% User initiates cold call
+agent(Id, [msg('_user', Id1, connect(Target))|UserIn], NetIn, Outs) :-
+    Id? =?= Id1?, ground(Target?) |
+    lookup_send('_net', msg(Target?, intro(Id?, Resp)), Outs?, Outs1),
+    inject_msg(Resp?, Target?, Id?, UserIn?, UserIn1),
+    agent(Id?, UserIn1?, NetIn?, Outs1?).
+
+%% Received cold-call introduction from net (2-arg msg)
+agent(Id, UserIn, [msg(Id1, intro(From, Resp))|NetIn], Outs) :-
+    Id? =?= Id1? |
+    lookup_send('_user', msg(agent, '_user', befriend(From?, Resp?)), Outs?, Outs1),
+    agent(Id?, UserIn?, NetIn?, Outs1?).
+
+%% User decision on cold-call
+agent(Id, [msg('_user', Id1, decision(Dec, From, Resp?))|UserIn], NetIn, Outs) :-
+    Id? =?= Id1? |
+    bind_response(Dec?, From?, Resp, Outs?, Outs1, NetIn?, NetIn1),
+    agent(Id?, UserIn?, NetIn1?, Outs1?).
+
+%% Response to sent cold-call (injected into UserIn by inject_msg)
+agent(Id, [msg(From, Id1, response(Resp))|UserIn], NetIn, Outs) :-
+    Id? =?= Id1? |
+    handle_response(Resp?, From?, Outs?, Outs1, NetIn?, NetIn1),
+    agent(Id?, UserIn?, NetIn1?, Outs1?).
+\end{verbatim}
+\caption{Cold-call befriending protocol}
+\label{fig:cold-call}
+\end{figure*}
+
+The protocol works as follows: (1) Alice sends \verb|connect(bob)| to her agent via the \verb|'_user'| stream; (2) her agent sends a 2-argument \verb|msg(bob, intro(alice, Resp))| via the \verb|'_net'| output, including a fresh response variable \verb|Resp|; (3) Bob receives \verb|msg(bob, intro(alice, Resp))| on his network input and forwards the request to his user interface; (4) Bob decides \verb|yes| or \verb|no|; (5) Bob's agent creates a channel pair and sends \verb|accept(Ch)| back via \verb|Resp|; (6) Alice's agent receives the response and both agents add each other to their outputs lists.
+
+%------------------------------------------------------------------------------
+\subsection{Channel Establishment}
+%------------------------------------------------------------------------------
+
+When a cold-call is accepted, both agents establish symmetric channels (Figure~\ref{fig:channel-establish}).
+
+\begin{figure*}[t]
+\begin{verbatim}
+procedure bind_response(Decision?, AgentId?, Response,
+    OutputsList?, OutputsList, Stream?, Stream).
+bind_response(yes, From, accept(RetCh?), Outs, Outs1?, In, In1?) :-
+    new_channel(RetCh, LocalCh) |
+    handle_response(accept(LocalCh?), From?, Outs?, Outs1, In?, In1).
+bind_response(no, _, no, Outs, Outs1?, In, In?) :-
+    lookup_send('_user', msg(agent, '_user', rejected), Outs?, Outs1).
+
+procedure handle_response(Response?, AgentId?,
+    OutputsList?, OutputsList, Stream?, Stream).
+handle_response(accept(ch(FIn, FOut?)), From, Outs, Outs2?, In, In1?) :-
+    ground(From?) |
+    add_output(From?, FOut, Outs?, Outs1),
+    lookup_send('_user', msg(agent, '_user', connected(From?)), Outs1?, Outs2),
+    merge(In?, FIn?, In1).
+handle_response(no, From, Outs, Outs1?, In, In?) :-
+    ground(From?) |
+    lookup_send('_user', msg(agent, '_user', rejected(From?)), Outs?, Outs1).
+\end{verbatim}
+\caption{Channel establishment}
+\label{fig:channel-establish}
+\end{figure*}
+
+The accepting agent creates a channel pair via \verb|new_channel(RetCh, LocalCh)|. It sends \verb|RetCh| back to the initiator and keeps \verb|LocalCh| for itself. Both channels are complementary: each agent's input is the other's output. Upon acceptance, \verb|add_output| adds the new friend's output stream to the outputs list, and the friend's input stream is merged into the agent's network input via \verb|merge|.
+
+%------------------------------------------------------------------------------
+\subsection{Text Messaging}
+%------------------------------------------------------------------------------
+
+Once agents are friends, they can exchange text messages (Figure~\ref{fig:messaging}).
+
+\begin{figure*}[t]
+\begin{multicols}{2}
+\begin{verbatim}
+%% User sends text to friend
+agent(Id,
+  [msg('_user', Id1,
+    send(Target, Text))|UserIn],
+  NetIn, Outs) :-
+    Id? =?= Id1?, ground(Target?) |
+    lookup_send(Target?,
+      msg(Id?, Target?, text(Text?)),
+      Outs?, Outs1),
+    agent(Id?, UserIn?, NetIn?,
+      Outs1?).
+\end{verbatim}
+\columnbreak
+\begin{verbatim}
+%% Received text from friend
+agent(Id, UserIn,
+  [msg(From, Id1, text(Text))|NetIn],
+  Outs) :-
+    Id? =?= Id1? |
+    lookup_send('_user',
+      msg(agent, '_user',
+        received(From?, Text?)),
+      Outs?, Outs1),
+    agent(Id?, UserIn?, NetIn?,
+      Outs1?).
+\end{verbatim}
+\end{multicols}
+\caption{Text messaging between friends}
+\label{fig:messaging}
+\end{figure*}
+
+%------------------------------------------------------------------------------
+\subsection{Friend-Mediated Introduction}
+%------------------------------------------------------------------------------
+
+Once agents are friends, they can introduce each other to third parties. The introducer creates a fresh channel pair and sends each half to the respective parties (Figure~\ref{fig:friend-intro}).
+
+\begin{figure*}[t]
+\begin{multicols}{2}
+\begin{verbatim}
+%% User commands: introduce P to Q
+agent(Id,
+  [msg('_user', Id1,
+    introduce(P, Q))|UserIn],
+  NetIn, Outs) :-
+    Id? =?= Id1?, ground(P?),
+    ground(Q?),
+    new_channel(PQCh, QPCh) |
+    lookup_send(P?,
+      msg(Id?, P?, intro(Q?, QPCh?)),
+      Outs?, Outs1),
+    lookup_send(Q?,
+      msg(Id?, Q?, intro(P?, PQCh?)),
+      Outs1?, Outs2),
+    agent(Id?, UserIn?, NetIn?,
+      Outs2?).
+\end{verbatim}
+\columnbreak
+\begin{verbatim}
+%% Received introduction from friend
+agent(Id, UserIn,
+  [msg(From, Id1,
+    intro(Other, Ch))|NetIn],
+  Outs) :-
+    Id? =?= Id1?, ground(Other?) |
+    lookup_send('_user',
+      msg(agent, '_user',
+        befriend_intro(
+          From?, Other?, Ch?)),
+      Outs?, Outs1),
+    agent(Id?, UserIn?, NetIn?,
+      Outs1?).
+
+%% User accepts friend introduction
+agent(Id,
+  [msg('_user', Id1,
+    accept_intro(Other, Ch))|UserIn],
+  NetIn, Outs) :-
+    Id? =?= Id1?, ground(Other?) |
+    handle_intro_accept(Ch?, Other?,
+      Outs?, Outs1, NetIn?, NetIn1),
+    agent(Id?, UserIn?, NetIn1?,
+      Outs1?).
+\end{verbatim}
+\end{multicols}
+\caption{Friend-mediated introduction protocol}
+\label{fig:friend-intro}
+\end{figure*}
+
+When Bob types \verb|introduce(alice, charlie)|, he creates a channel pair via \verb|new_channel(PQCh, QPCh)|. Alice receives \verb|ch(QtoP?, PtoQ)|---she reads from Charlie via \verb|QtoP?| and writes to Charlie via \verb|PtoQ|. Charlie receives the complementary \verb|ch(PtoQ?, QtoP)|. When both accept, they become direct friends without Bob's further involvement.
+
+Note the distinction between cold-call messages and friend-mediated messages: cold-call uses a 2-argument \verb|msg(Target, Content)| sent via the \verb|'_net'| output, while friend-mediated introduction uses a 3-argument \verb|msg(From, To, intro(Other, Ch))| sent directly to a friend via their named output.
+
+%------------------------------------------------------------------------------
+\subsection{Network Switch Simulation}
+%------------------------------------------------------------------------------
+
+In deployment, agents communicate through a physical network. In simulation, a \verb|network3| process routes messages between three agents (Figure~\ref{fig:network-switch}).
+
+\begin{figure*}[t]
+\begin{multicols}{2}
+\begin{verbatim}
+procedure network3(
+  Channel?, Channel?, Channel?).
+
+%% Cold-call routing (2-arg msg)
+
+%% Alice cold-calls Bob
+network3(
+  ch([msg(bob, X)|AliceIn],
+     AliceOut?),
+  ch(BobIn,
+     [msg(bob, X?)|BobOut?]),
+  ch(CharlieIn, CharlieOut?)) :-
+    network3(
+      ch(AliceIn?, AliceOut),
+      ch(BobIn?, BobOut),
+      ch(CharlieIn?, CharlieOut)).
+
+%% (Five more 2-arg clauses for
+%%  other sender/receiver pairs)
+
+%% Friend-to-friend (3-arg msg)
+
+%% Alice -> Bob
+network3(
+  ch([msg(alice, bob, X)|AliceIn],
+     AliceOut?),
+  ch(BobIn,
+     [msg(alice, bob, X?)
+      |BobOut?]),
+  ch(CharlieIn, CharlieOut?)) :-
+    network3(
+      ch(AliceIn?, AliceOut),
+      ch(BobIn?, BobOut),
+      ch(CharlieIn?, CharlieOut)).
+\end{verbatim}
+\columnbreak
+\begin{verbatim}
+%% Bob -> Charlie
+network3(
+  ch(AliceIn, AliceOut?),
+  ch([msg(bob, charlie, X)|BobIn],
+     BobOut?),
+  ch(CharlieIn,
+     [msg(bob, charlie, X?)
+      |CharlieOut?])) :-
+    network3(
+      ch(AliceIn?, AliceOut),
+      ch(BobIn?, BobOut),
+      ch(CharlieIn?, CharlieOut)).
+
+%% (Four more 3-arg clauses for
+%%  other sender/receiver pairs)
+
+%% Termination
+network3(
+  ch([], []),
+  ch([], []),
+  ch([], [])).
+\end{verbatim}
+\end{multicols}
+\caption{Network switch simulation for three agents}
+\label{fig:network-switch}
+\end{figure*}
+
+The network switch routes both 2-argument cold-call messages (where \verb|msg(Target, Content)| is addressed by target name) and 3-argument friend-to-friend messages (where \verb|msg(From, To, Content)| carries both sender and receiver identities). In deployment, the network switch is replaced by maGLP's Cold-call transaction (Section~\ref{sec:maglp}).
+
+%------------------------------------------------------------------------------
+\subsection{The Scenario and Actors}
+%------------------------------------------------------------------------------
+
+The complete scenario demonstrates all three protocols:
+\begin{enumerate}
+\item Alice cold-calls Bob (Bob accepts) --- Alice and Bob become friends
+\item Alice sends Bob: ``Hi Bob, this is Alice''
+\item Bob cold-calls Charlie (Charlie accepts) --- Bob and Charlie become friends
+\item Charlie sends Bob: ``Hi Bob, this is Charlie''
+\item Bob introduces Alice to Charlie (both accept) --- Alice and Charlie become direct friends
+\item Alice sends Charlie: ``Hi Charlie, this is Alice''
+\item Charlie responds: ``Hi Alice, this is Charlie''
+\end{enumerate}
+
+Each agent is driven by an \emph{actor}---a GLP procedure that implements a state machine, reacting to messages from the agent and producing commands. The actor's state is encoded in procedure names (e.g., \verb|alice_wait_bob_connected|, \verb|bob_wait_charlie_msg|), with transitions via recursive calls. See Appendix~\ref{appendix:social-graph-complete} for the complete program: helper predicates, actor implementations, the play that ties everything together, and the multiagent boot variants.

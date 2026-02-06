@@ -1,0 +1,22 @@
+\section{Term Matching}\label{appendix:term-matching}
+
+If two terms $T_1$ and $T_2$ that jointly satisfy SO are unifiable with an mgu $\sigma$, then $\sigma$ maps any variable in $T_1$ to a subterm of $T_2$ and vice versa. Hence, the SO invariant of GLP allows eschewing unification in favour of \emph{term matching} that performs joint term-tree traversal and collects variable assignments along the way.
+
+\begin{definition}[Term Matching]
+\label{def:term-matching}
+Given two terms $T_1$ and $T_2$ that jointly satisfy SO, their \temph{term matching} proceeds via the joint traversal of the term-trees of $T_1$ and $T_2$, consulting the following table at each pair of joint vertices, where $X_1, X_2$ denote writers, $X_1?, X_2?$ denote readers, and $f/n$ denotes a non-variable term, a constant when $n=0$ and a compound term when $n>0$:
+\begin{center}
+\begin{tabular}{l|lll}
+$T_1 \backslash T_2$ & Writer $X_2$ & Reader $X_2?$ & Term $f_2/n_2$ \\
+\hline
+Writer $X_1$ & fail & $X_1 := X_2?$ & $X_1 := T_2$ \\
+Reader $X_1?$ & $X_2 := X_1?$ & fail & suspend on $X_1?$\\
+Term $f_1/n_1$ & $X_2 := T_1$ & fail & fail if $f_1 \ne f_2$ or $n_1 \ne n_2$\\
+\end{tabular}
+\end{center}
+The writer mgu is the union of all writer assignments if no \emph{fail} was encountered and the suspension set is empty.
+\end{definition}
+
+\begin{remark}
+In an actual implementation, assuming $T_1$ is a goal term and $T_2$ a head term, the case of $X_1?$ and $T_2$ would add $X_1?$ to the set of readers the goal would suspend upon.
+\end{remark}

@@ -1,0 +1,48 @@
+\section{Grassroots Definitions}\label{appendix:grassroots-defs}
+
+This appendix contains the full definitions for protocols and the grassroots property referenced in Section~\ref{sec:grassroots}.
+
+%------------------------------------------------------------------------------
+\subsection{Protocols and the Grassroots Property}
+%------------------------------------------------------------------------------
+
+A protocol is a family of multiagent transition systems, one for each set of agents $P\subset \Pi$, which share an underlying set of local states $\calS$ with a designated initial state $s0$.
+
+\begin{definition}[Local-States Function]\label{definition:local-states-function}
+A \temph{local-states function} $S: 2^\Pi \to 2^\calS$ maps every set of agents $P \subset \Pi$ to a set of local states $S(P) \subset \calS$ that includes $s0$ and satisfies $P \subset P' \subset \Pi \implies S(P) \subset S(P')$.
+\end{definition}
+
+Given a local-states function $S$, we use $C$ to denote configurations over $S$, with $C(P) := S(P)^P$ and $c0(P):= \{s0\}^P$.
+
+\begin{definition}[Protocol]\label{definition:protocol}
+A \temph{protocol} $\calF$ over a local-states function $S$ is a family of multiagent transition systems that has exactly one transition system $\calF(P) = (C(P),c0(P),T(P))$ for every $P \subset \Pi$.
+\end{definition}
+
+\begin{definition}[Projection]\label{definition:projection}
+Let $\emptyset \subset P \subset P' \subset \Pi$.
+If $c'$ is a configuration over $P'$ then $c'/P$, the \temph{projection of $c'$ over $P$}, is the configuration $c$ over $P$ defined by $c_p := c'_p$ for every $p\in P$.
+\end{definition}
+
+Note that in the definition above, $c_p$, the state of $p$ in $c$, is in $S(P')$, not in $S(P)$, and hence may include elements ``alien'' to $P$, e.g., logic variables shared with $q\in P'\setminus P$.
+
+Being oblivious implies that if a run of $\calF(P')$ reaches some configuration $c'$, then anything $P$ could do on their own in the configuration $c'/P$ (with a transition from $T(P)$), they can still do in the larger configuration $c'$ (with a transition from $T(P')$), effectively being oblivious to members of $P'\setminus P$.
+
+Being interactive is a weak liveness requirement: no matter what members of $P$ do, if they run within a larger set of agents it is always the case that they can eventually interact with non-$P$'s in a way that leaves ``alien traces'' in the local states of $P$, so that the resulting configuration $c'/P$ could not have been produced by $P$ running on their own.
+
+%------------------------------------------------------------------------------
+\subsection{Transactions-Based Protocols}
+%------------------------------------------------------------------------------
+
+\begin{definition}[Transactions Over a Local-States Function]\label{definition:transactions-lsf}
+Let $S$ be a local-states function. A set of transactions $R$ is \temph{over $S$} if every transaction $t\in R$ is a multiagent transition over $Q$ and $S(Q')$ for some $Q \subseteq Q'\subset \Pi$. Given such a set $R$ and $P\subset \Pi$,
+$R(P) := \{ t\in R : t \text{ is over } Q \text{ and } S(Q'), Q \subseteq Q'\subseteq P\}$.
+\end{definition}
+
+\begin{definition}[Transactions-Based Protocol]\label{definition:tb-protocol}
+Let $S$ be a local-states function and $R$ a set of transactions over $S$.
+Then a \temph{protocol $\calF$ over $R$ and $S$} includes for each set of agents $P\subset \Pi$ the transactions-based multiagent transition system $\calF(P)$ over $P$, $S(P)$, and $R(P)$: $\calF(P) := (S(P)^P,\{s0\}^P,R(P){\uparrow}P)$.
+\end{definition}
+
+\begin{definition}[Interactive Transactions]\label{definition:interactive-transactions}
+A set of transactions $R$ over a local-states function $S$ is \temph{interactive} if for every $\emptyset \subset P \subset P' \subset \Pi$ and every configuration $c\in C(P')$ such that $c/P\in C(P)$, there is a computation $(c\xrightarrow{*} c')\subseteq R(P'){\uparrow}P'$ for which $c'/P\notin C(P)$.
+\end{definition}

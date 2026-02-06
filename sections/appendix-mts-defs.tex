@@ -1,0 +1,42 @@
+\section{Multiagent Transition System Definitions}\label{appendix:mts-defs}
+
+This appendix contains the formal definitions for multiagent transition systems referenced in Section~\ref{sec:mts}.
+
+We assume a potentially infinite set of \emph{agents} $\Pi$, but consider only finite subsets of it, so when we refer to a particular set of agents $P \subset \Pi$ we assume $P$ to be nonempty and finite. We use $\subset$ to denote the strict subset relation and $\subseteq$ when equality is also possible.
+
+We use $S^P$ to denote the set $S$ indexed by the set $P$, and if $c\in S^P$ we use $c_p$ to denote the member of $c$ indexed by $p\in P$. Intuitively, think of such a $c\in S^P$ as an array of cells indexed by members of $P$ with cell values in $S$.
+
+\begin{definition}[Local States, Configuration, Transaction, Participants]\label{definition:at}
+Given agents $Q \subset \Pi$ and an arbitrary set $S$ of \temph{local states}, a \temph{configuration} over $Q$ and $S$ is a member of $C:= S^Q$. An \temph{atomic transaction}, or just \emph{transaction}, over $Q$ and $S$ is any pair of configurations $t=c\rightarrow c' \in C^2$ such that $c\ne c'$, with $t_p := c_p \rightarrow c'_p$ for any $p\in Q$, and with $p$ being an \temph{active participant} in $t$ if $c_p\ne c'_p$, \temph{stationary participant} otherwise.
+\end{definition}
+
+\begin{definition}[Degree]\label{definition:degree}
+The \temph{degree} of a transaction $t$ (unary, binary, \ldots, $k$-ary) is the number of active participants in $t$, and the \temph{degree} of a set of transactions $T$ is the maximal degree of any $t\in T$.
+\end{definition}
+
+\begin{definition}[Multiagent Transition System]\label{definition:mts}
+Given agents $P \subset \Pi$ and an arbitrary set $S$ of \temph{local states} with a designated \temph{initial local state} $s0\in S$, a \temph{multiagent transition system} over $P$ and $S$ is a transition system $TS= (C,c0,T)$ with \temph{configurations} $C:= S^P$, \temph{initial configuration} $c0:= \{s0\}^P$, and \temph{transitions} $T\subseteq C^2$ being a set of transactions over $P$ and $S$, with the \temph{degree} of $TS$ being the degree of $T$.
+\end{definition}
+
+Rather than specifying a multiagent transition system over a set of agents $P$ directly, we specify it via atomic transactions, which are typically of bounded degree smaller than $|P|$.
+
+\begin{definition}[Transaction Closure]\label{definition:closure}
+Let $P\subset \Pi$, $S$ a set of local states, and $C:=S^P$.
+For a transaction $t=(c\rightarrow c')$ over local states $S$ with participants $Q \subseteq P$, the \temph{$P$-closure of $t$}, $t{\uparrow}P$, is the set of transitions over $P$ and $S$ defined by:
+$$
+t{\uparrow}P := \{ t' \in C^2 :
+\forall q\in Q.(t_q = t'_q) \wedge \forall p\in P\setminus Q.(p\text{ is stationary in }t')\}
+$$
+If $R$ is a set of transactions, each $t\in R$ over some $Q\subseteq P$ and $S$, then the \temph{$P$-closure of $R$}, $R{\uparrow}P$, is the set of transitions over $P$ and $S$ defined by:
+$$
+R{\uparrow}P := \bigcup_{t\in R} t{\uparrow}P
+$$
+\end{definition}
+
+Namely, the closure over $P\supseteq Q$ of a transaction $t$ over $Q$ includes all transitions $t'$ over $P$ in which members of $Q$ do the same in $t$ and in $t'$, and the rest remain in their current (arbitrary) state.
+
+\begin{definition}[Transactions-Based Multiagent Transition System]\label{definition:tbmts}
+Given agents $P \subset \Pi$, local states $S$ with initial local state $s0\in S$, and a set of transactions $R$, each $t\in R$ over some $Q\subseteq P$ and $S$, the \temph{transactions-based multiagent transition system} over $P$, $S$, and $R$ is the multiagent transition system $TS= (S^P,\{s0\}^P,R{\uparrow}P)$.
+\end{definition}
+
+In other words, one can fully specify a multiagent transition system over $S$ and $P$ simply by providing a set of atomic transactions over $S$, each with participants $Q\subseteq P$.

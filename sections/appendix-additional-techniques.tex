@@ -2,6 +2,29 @@
 
 This appendix presents GLP programs that were referenced in the main text, as well as additional programs that demonstrate the language's capabilities.
 
+\subsection{Stream Distribution and Lookup}
+
+\begin{example}[Stream Distribution]
+\label{ex:distribute}
+Broadcasting to multiple consumers uses the \verb|ground| guard to enable safe replication:
+\begin{verbatim}
+procedure distribute(Stream?, Stream, Stream).
+distribute([X|Xs], [X?|Ys1?], [X?|Ys2?]) :- ground(X?) |
+    distribute(Xs?, Ys1, Ys2).
+distribute([], [], []).
+\end{verbatim}
+Since \verb|X?| is ground, its multiple occurrences in the head do not violate SRSW.
+\end{example}
+
+\begin{example}[Lookup in Association List]
+\label{ex:lookup}
+\begin{verbatim}
+procedure lookup(_?, _?, _).
+lookup(Key, [(K, Value)|_], Value?) :- Key? =?= K? | true.
+lookup(Key, [_|Rest], Value?) :- otherwise | lookup(Key?, Rest?, Value).
+\end{verbatim}
+The \verb|=?=| guard tests ground equality; \verb|otherwise| succeeds when no prior clause applies.
+\end{example}
 
 \subsection{Channel Abstractions}
 
