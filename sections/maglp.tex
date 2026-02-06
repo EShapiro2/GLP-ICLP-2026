@@ -2,7 +2,7 @@
 \section{Multiagent GLP}\label{sec:maglp}
 %==============================================================================
 
-This section extends GLP to multiple agents. We first define multiagent transition systems vi multiagent atomic transactions, then define multiagent GLP (maGLP) as a transactions-based multiagent transition system, and finally show how the social graph operates in the multiagent setting.
+This section extends GLP to multiple agents. We first define multiagent transition systems via multiagent atomic transactions, then define multiagent GLP (maGLP) as a transactions-based multiagent transition system, and finally show how the social graph operates in the multiagent setting.
 
 %------------------------------------------------------------------------------
 \subsection{Multiagent Transition Systems}
@@ -53,7 +53,7 @@ In other words, one can fully specify a multiagent transition system over $S$ an
 \label{sec:glp-to-maglp}
 %------------------------------------------------------------------------------
 
-In extending GLP to multiple agents, each agent maintains its own asynchronous resolvent as its local state. The key insight is that GLP's variable pairs provide natural binary communication channels: when agent $p$ binds a writer $X$ for which the paired reader $X?$ is help by agent $q$, the assignment $X := T$ must be communicated to $q$.
+In extending GLP to multiple agents, each agent maintains its own asynchronous resolvent as its local state. The key insight is that GLP's variable pairs provide natural binary communication channels: when agent $p$ binds a writer $X$ for which the paired reader $X?$ is held by agent $q$, the assignment $X := T$ must be communicated to $q$.
 
 A key difference between single-agent GLP and multiagent GLP is in the initial state. In a multiagent transition system all agents must have the same initial local state $s0$ (Definition~\ref{definition:mts}). This precludes setting up an initial configuration in which agents share logic variables, as this would imply different initial states for different agents.
 
@@ -78,7 +78,7 @@ Given agents $P\subset \Pi$ and GLP program $M$, the \temph{maGLP transition sys
 \end{definition}
 
 Note that Communicate maybe unary or binary, depending on whether $p=q$.  Both Communicate and Cold-call transfer assignments from writers to readers: Communicate operates between agents sharing a paired reader and writer, while Cold-call operates through the network streams established in each agent's initial configuration, enabling the creation of paired variables among previously-disconnected agents.
-Naturally, Cold-call would be the exception, as once agents share a paired variable they to not need it communicate; moreover, an agent with two friends (which which it shares channels) may introduce them to each other, also saving the need for a Cold-call.
+Naturally, Cold-call would be the exception, as once agents share a paired variable they do not need to communicate; moreover, an agent with two friends (with which it shares channels) may introduce them to each other, also saving the need for a Cold-call.
 %------------------------------------------------------------------------------
 \subsection{The Multiagent Social Graph}
 \label{sec:ma-social-graph}
@@ -114,6 +114,16 @@ The proofs are identical to those for single-agent GLP, substituting ``agent $p$
 \begin{proposition}[maGLP Computation is Deduction]\label{prop:maglp-deduction}
 Let $L$ be the transition system whose resolvent is the union of all local resolvents, the initial goal includes a \verb|network| goal with channels paired to each agent's network channels, and the program is $M$ augmented with the GLP definition of \verb|network|. Then maGLP runs correspond to GLP runs of $L$, and their outcomes are logical consequences of the augmented program.
 \end{proposition}
+
+\begin{lemma}[maGLP Persistence]
+\label{lem:maglp-persistence}
+maGLP is persistent: all transactions, once enabled, remain enabled until taken. Reduce persistence follows from GLP persistence (Lemma~\ref{lem:persistence}); Communicate and Cold-call transactions remain enabled since Reduce transitions do not remove reader assignments or network messages.
+\end{lemma}
+
+\begin{definition}[maGLP Fair Run]
+\label{def:maglp-fair-run}
+A complete maGLP run is \temph{fair} if every transaction that becomes enabled is eventually taken.
+\end{definition}
 
 \mypara{Implementation}
 The implementation-ready variants of GLP and maGLP, along with formal correctness proofs that they implement their respective specifications, are presented in a companion paper~\cite{shapiro2026implementing}.

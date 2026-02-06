@@ -114,6 +114,11 @@ A GLP \temph{writer assignment} is a term of the form $X := T$, $X\in\calV$, $T\
 A \temph{GLP renaming} is a substitution $\rho: \hat\calV \to \hat\calV$ such that for each $X \in \calV$: $X\rho \in \calV$ and $X?\rho = (X\rho)?$. Two GLP terms \temph{have a variable in common} if for some writer $X \in \calV$, either $X$ or $X?$ occurs in both. A GLP renaming $\sigma$ \temph{renames $T'$ apart from} $T$ if $T'\sigma$ and $T$ have no variable in common.
 \end{definition}
 
+\begin{definition}[Writer MGU]
+\label{def:writer-mgu}
+Given two GLP unit goals $A$ and $H$, a \temph{writer mgu} is a writers substitution $\sigma$ such that $A\sigma = H\sigma$ and $\sigma$ is most general among such substitutions. Unlike standard unification, writer mgu only binds writers, not readers.
+\end{definition}
+
 \begin{definition}[GLP Goal/Clause Reduction]
 \label{def:glp-reduction}
 Given GLP unit goal $A$ and clause $C$, with $H$ \verb|:-| $B$ being the result of the GLP renaming of $C$ apart from $A$, the \temph{GLP reduction} of $A$ with $C$ \temph{succeeds with result} $(B,\sigma)$ if $A$ and $H$ have a writer mgu.
@@ -164,6 +169,16 @@ If the initial goal $G_0$ satisfies SO, then every goal in the GLP run satisfies
 In any GLP run, if unit goal $A$ can reduce with clause $C$ at step $i$, then either an instance of $A$ has been reduced by step $j > i$, or an instance of $A$ can still reduce with $C$ at step $j$.
 \end{proposition}
 
+\begin{lemma}[Persistence]
+\label{lem:persistence}
+GLP is persistent: every enabled transition remains enabled until taken. For Reduce: if a Reduce transition is enabled for goal $A$ in configuration $(G, \sigma_r)$, it remains enabled in any configuration $(G, \sigma'_r)$ with $\sigma_r \subseteq \sigma'_r$, since other Reduce transitions bind disjoint writers (by SO) and Communicate transitions only instantiate readers. For Communicate: applying $\{X? := T\} \in \sigma$ to $X? \in G$ remains enabled since Reduce transitions do not remove assignments from $\sigma$ and other Communicate transitions apply different assignments.
+\end{lemma}
+
+\begin{definition}[Fair Run]
+\label{def:fair-run}
+A complete GLP run is \temph{fair} if every transition that becomes enabled is eventually taken.
+\end{definition}
+
 Proofs appear in Appendix~\ref{appendix:proofs}.
 
 %------------------------------------------------------------------------------
@@ -213,6 +228,11 @@ Definition~\ref{def:glp-reduction} of a GLP goal/clause reduction is augmented t
 Guard occurrences count toward SRSW satisfaction: if $X?$ occurs in a guard, its paired writer $X$ must occur in the head and $X?$ may additionally occur once in the body.
 
 Furthermore, if the success of a guard implies that $X?$ is ground, then $X?$ as well as $X$ may occur multiple times in the clause. Groundness-implying guards include \verb|ground|, \verb|integer|, \verb|number|, \verb|string|, \verb|constant|, arithmetic comparisons (\verb|<|, \verb|>|, \verb|=<|, \verb|>=|, \verb|=:=|, \verb|=\=|), and ground equality (\verb|=?=|). However,  \verb|known| and \verb|compound| do not imply groundness.
+\end{remark}
+
+\begin{remark}[Anonymous Variables]
+\label{rem:anonymous-variables}
+An \emph{anonymous variable} is any variable whose name begins with \verb|_| (e.g., \verb|_|, \verb|_In?|, \verb|_Out|). Anonymous writers may appear in the head, denoting a fresh writer with no paired reader, so that a value assigned to it is discarded. This provides a controlled exception to the SRSW restriction, allowing a process to abandon an input (e.g.\ an input stream) they are no longer interested in.
 \end{remark}
 
 Guard predicates include type tests (\verb|integer|, \verb|number|, \verb|string|, \verb|constant|, \verb|compound|, \verb|ground|, \verb|known|), arithmetic comparisons (\verb|<|, \verb|>|, \verb|=<|, \verb|>=|, \verb|=:=|, \verb|=\=|), and ground equality (\verb|=?=|).
@@ -495,7 +515,7 @@ network3(
 \label{fig:network-switch}
 \end{figure*}
 
-The network switch simulates the Network transaction introduced in Section~\ref{sec:maglp}.
+The network switch simulates the Cold-call transaction introduced in Section~\ref{sec:maglp}.
 
 \subsubsection{The Scenario and Actors}
 

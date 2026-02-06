@@ -9,12 +9,16 @@ Guards provide read-only access to the runtime state of GLP computation. A guard
 \item \verb|ground(X)| succeeds if \verb|X| is ground (contains no variables).
 \item \verb|known(X)| succeeds if \verb|X| is not a variable, though it may not be ground.
 \item \verb|writer(X)| and \verb|reader(X)| succeed if \verb|X| is an uninstantiated writer or reader respectively. Note that \verb|reader(X)| is non-monotonic.
+\item \verb|no_readers(X)| succeeds if \verb|X| contains no readers; suspends if \verb|X| contains any readers; never fails. Useful for ensuring a term is safe for external output (ground terms or writers only).
 \item \verb|otherwise| succeeds if all previous clauses for this procedure failed.
 \item \verb|X =?= Y| succeeds if both arguments are ground and equal. For example, \verb|f(a,X?) =?= f(b,Z?)| fails (not suspends) because the ground subterms \verb|a| and \verb|b| already differ. Note that the implementation checks terms left-to-right and does not guarantee early failure detection; \verb|f(X?,a) =?= f(Y?,b)| may suspend rather than fail.
 \item Arithmetic comparison guards \verb|X < Y|, \verb|X > Y|, \verb|X =< Y|, \verb|X >= Y|, \verb|X =:= Y|, \verb|X =\= Y| succeed if both arguments are ground numbers satisfying the relation.
 \end{itemize}
 
 When a guard's success condition implies that a variable is ground, the clause body may contain multiple occurrences of that variable's reader without violating the single-writer requirement, enabling safe replication of ground terms to multiple concurrent consumers.
+
+\mypara{Monotonicity and implications}
+\verb|ground/1|, \verb|no_readers/1|, and \verb|known/1| are monotonic. \verb|ground(X)| implies both \verb|no_readers(X)| and \verb|known(X)|, which do not imply each other: \verb|no_readers(X)| succeeds but \verb|known(X)| fails; \verb|no_readers(f(X?))| suspends but \verb|known(f(X?))| succeeds.
 
 \mypara{Defined guard predicates}
 To support abstract data types and cleaner code organization, GLP provides for user-defined guards via unit clauses. A unit clause \verb|p(T1,...,Tn).| defines a guard predicate; the call \verb|p(S1,...,Sn)| in guard position is unfolded to the term matching of \verb|T1| with \verb|S1|, ..., \verb|Tn| with \verb|Sn|. For example, the equality guard is defined by the clause \verb|X = X.|, so the guard \verb|A = B| unfolds to matching both \verb|A| and \verb|B| against the same variable \verb|X|.

@@ -12,7 +12,7 @@ This section establishes that maGLP is grassroots. We first define protocols and
 A protocol is a family of multiagent transition systems, one for each set of agents $P\subset \Pi$, which share an underlying set of local states $\calS$ with a designated initial state $s0$.
 
 \begin{definition}[Local-States Function]\label{definition:local-states-function}
-A \temph{local-states function} $S: 2^\Pi \mapsto 2^\calS$ maps every set of agents $P \subset \Pi$ to a set of local states $S(P) \subset \calS$ that includes $s0$ and satisfies $P \subset P' \subset \Pi \implies S(P) \subset S(P')$.
+A \temph{local-states function} $S: 2^\Pi \to 2^\calS$ maps every set of agents $P \subset \Pi$ to a set of local states $S(P) \subset \calS$ that includes $s0$ and satisfies $P \subset P' \subset \Pi \implies S(P) \subset S(P')$.
 \end{definition}
 
 Given a local-states function $S$, we use $C$ to denote configurations over $S$, with $C(P) := S(P)^P$ and $c0(P):= \{s0\}^P$.
@@ -89,13 +89,13 @@ The maGLP protocol is grassroots.
 \begin{proof}
 By Theorem~\ref{theorem:interactive-grassroots}, it suffices to show that maGLP is a transactions-based protocol with interactive transactions.
 
-\emph{maGLP is transactions-based}: By Definition~\ref{definition:maGLP}, maGLP is defined via a set of transactions (Reduce, Communicate, Network) over a local-states function (asynchronous resolvents) with a common initial state. Hence maGLP is a transactions-based protocol (Definition~\ref{definition:tb-protocol}).
+\emph{maGLP is transactions-based}: By Definition~\ref{definition:maGLP}, maGLP is defined via a set of transactions (Reduce, Communicate, Cold-call) over a local-states function (asynchronous resolvents) with a common initial state. Hence maGLP is a transactions-based protocol (Definition~\ref{definition:tb-protocol}).
 
 \emph{maGLP transactions are interactive}: Let $\emptyset \subset P \subset P' \subseteq \Pi$ and let $c \in C(P')$ be a configuration such that $c/P \in C(P)$. We must show there exists a computation $c \xrightarrow{*} c'$ of maGLP$(P')$ such that $c'/P \notin C(P)$.
 
 Since $c/P \in C(P)$, the local states of agents in $P$ contain no variables shared with agents in $P' \setminus P$---all their reader/writer pairs are ``internal'' to $P$.
 
-Consider any agent $p \in P$ and any agent $q \in P' \setminus P$. Agent $p$ can execute a Reduce transaction that sends a message \verb|msg|$(q,X)$ on its network output stream, where $X$ is a fresh writer. Then the Network transaction from $p$ to $q$ adds $X?$ to agent $q$'s network input stream. Agent $q$ can then execute Reduce transactions that bind $X?$ to some term $T$, creating a reader assignment $X? := T$. Finally, the Communicate transaction from $q$ to $p$ applies this assignment to $p$'s resolvent.
+Consider any agent $p \in P$ and any agent $q \in P' \setminus P$. Agent $p$ can execute a Reduce transaction that sends a message \verb|msg|$(q,X)$ on its network output stream, where $X$ is a fresh writer. Then the Cold-call transaction from $p$ to $q$ adds $X?$ to agent $q$'s network input stream. Agent $q$ can then execute Reduce transactions that bind $X?$ to some term $T$, creating a reader assignment $X? := T$. Finally, the Communicate transaction from $q$ to $p$ applies this assignment to $p$'s resolvent.
 
 The result is that agent $p$'s local state now contains a term $T$ that originated from agent $q \in P' \setminus P$. This constitutes an ``alien trace''---the configuration $c'/P$ contains references to variables or terms that could not have been produced by agents in $P$ running alone. Hence $c'/P \notin C(P)$.
 
@@ -112,7 +112,7 @@ By Theorem~\ref{theorem:interactive-grassroots}, maGLP is grassroots.
 The grassroots property of maGLP extends to applications built on top of it, provided they use the cold-call mechanism.
 
 \begin{definition}[GLP Application, Cold Call]
-A \temph{GLP application} is a GLP program $M$ together with the maGLP infrastructure. An application \temph{uses cold calls} if agents can execute the Network transaction to establish communication with previously-disconnected agents.
+A \temph{GLP application} is a GLP program $M$ together with the maGLP infrastructure. An application \temph{uses cold calls} if agents can execute the Cold-call transaction to establish communication with previously-disconnected agents.
 \end{definition}
 
 \begin{proposition}[GLP Applications Using Cold Calls are Grassroots]\label{prop:app-grassroots}
@@ -120,7 +120,7 @@ Any GLP application that uses cold calls is grassroots.
 \end{proposition}
 
 \begin{proof}
-A GLP application using cold calls is a restriction of maGLP to a specific program $M$. The Network transaction remains available, as cold calls are used. The proof of Theorem~\ref{theorem:maGLP-grassroots} relies only on the availability of the Network transaction to establish interactivity. Since cold calls provide this mechanism, the application inherits the interactive property.
+A GLP application using cold calls is a restriction of maGLP to a specific program $M$. The Cold-call transaction remains available, as cold calls are used. The proof of Theorem~\ref{theorem:maGLP-grassroots} relies only on the availability of the Cold-call transaction to establish interactivity. Since cold calls provide this mechanism, the application inherits the interactive property.
 
 The application is transactions-based by construction (being a restriction of maGLP). By Proposition~\ref{proposition:oblivious}, it is oblivious. By the interactivity argument above, it is interactive. Therefore, by Definition~\ref{definition:grassroots}, it is grassroots.
 \end{proof}
