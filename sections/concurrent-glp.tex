@@ -42,13 +42,13 @@ Given an LP unit goal $A$ and clause $C$, with $H$ \verb|:-| $B$ being the resul
 A transition system $LP(P) = (C, c_0, T)$ is a \temph{Logic Programs transition system} for a logic program $P$ and initial goal $G_0 \in \mathcal{G}(P)$, if $C=\mathcal{G}(P)\times \Sigma$, $c_0=(G_0,\emptyset)$, and $T$ is the set of all transitions $(G,\sigma) \rightarrow (G',\sigma')$ such that for some unit goal $A \in G$ and clause $C \in P$ the LP reduction of $A$ with $C$ succeeds with $(B,\hat\sigma)$, $G' = (G \setminus \{A\} \cup B)\hat\sigma$, and $\sigma'=\sigma\circ\hat\sigma$.
 \end{definition}
 
-LP has two forms of nondeterminism: the choice of $A \in G$, called \emph{and-nondeterminism}, and the choice of $C \in P$, called \emph{or-nondeterminism}, and as such are closely-related to Alternating Turing Machines~\cite{shapiro1984alternation}.
+LP has two forms of nondeterminism: the choice of $A \in G$, called \emph{and-nondeterminism}, and the choice of $C \in P$, called \emph{or-nondeterminism}, and as such are closely-related to Alternating Turing Machines~\citep{shapiro1984alternation}.
 
 \begin{definition}[Proper and Successful Run, Outcome]
 \label{def:proper-run}
 A run $\rho: (G_0,\sigma_0) \rightarrow \cdots \rightarrow (G_n, \sigma_n)$ of $LP(P)$ is \temph{proper} if for any $1\le i< n$, a variable that occurs in $G_{i+1}$ but not in $G_i$ also does not occur in any $G_j$, $j<i$. If proper, the \temph{outcome} of $\rho$ is $(G_0$ \verb|:-| $G_n)\sigma_n$. Such a run is \temph{successful} if $G_n=\emptyset$.
 \end{definition}
-The following proposition justifies the computation-as-deduction view of LP~\cite{kowalski1974predicate},
+The following proposition justifies the computation-as-deduction view of LP~\citep{kowalski1974predicate},
 calling a proper LP run a \emph{derivation} and a complete proper run ending in the empty goal a \emph{successful derivation}.
 
 \begin{restatable}[LP Computation is Deduction]{proposition}{propLPDeduction}
@@ -56,14 +56,14 @@ calling a proper LP run a \emph{derivation} and a complete proper run ending in 
 The outcome $(G_0$ \verb|:-| $G_n)\sigma$ of a proper run of $LP(P)$ is a logical consequence of $P$.
 \end{restatable}
 
-The $LP(P)$ transition system also supports denotational semantics, including clause semantics~\cite{gaifman1989fully}, atom semantics, and ground atom semantics~\cite{lloyd1987foundations}; see Appendix~\ref{appendix:denotational}.
+The $LP(P)$ transition system also supports denotational semantics, including clause semantics~\citep{gaifman1989fully}, atom semantics, and ground atom semantics~\citep{lloyd1987foundations}; see Appendix~\ref{appendix:denotational}.
 
 %------------------------------------------------------------------------------
 \subsection{GLP: Extending LP with Readers}
 \label{sec:glp-ext}
 %------------------------------------------------------------------------------
 
-Grassroots Logic Programs (GLP) extend LP by (1) adding a paired \emph{reader} $X?$ to every ``ordinary'' logic variable $X$, now called a \emph{writer}; (2) restricting variables in goals and clauses to have at most a single occurrence (SO); and (3) requiring that a variable occurs in a clause iff its paired variable also occurs in it (single-reader single-writer, SRSW). The result eschews unification in favour of simple term matching, is linear-logic-like~\cite{girard1987linear}, and is futures/promises-like~\cite{friedman1976impact}: each assignment $X := T$ is produced at most once via the sole occurrence of a writer (promise) $X$, and consumed at most once via the sole occurrence of its paired reader (future) $X?$.
+Grassroots Logic Programs (GLP) extend LP by (1) adding a paired \emph{reader} $X?$ to every ``ordinary'' logic variable $X$, now called a \emph{writer}; (2) restricting variables in goals and clauses to have at most a single occurrence (SO); and (3) requiring that a variable occurs in a clause iff its paired variable also occurs in it (single-reader single-writer, SRSW). The result eschews unification in favour of simple term matching, is linear-logic-like~\citep{girard1987linear}, and is futures/promises-like~\citep{friedman1976impact}: each assignment $X := T$ is produced at most once via the sole occurrence of a writer (promise) $X$, and consumed at most once via the sole occurrence of its paired reader (future) $X?$.
 
 \begin{definition}[GLP Variables]
 \label{def:glp-variables}
@@ -99,7 +99,7 @@ and the goal \verb=merge([1,2,3|Xs?],[a,b|Ys?],Zs)=. Both the goal and each clau
 
 \begin{remark}[Typed Programs]
 \label{rem:typed-programs}
-GLP programs in this paper include \verb|procedure| declarations that specify the moded types of each predicate's arguments. These declarations are part of the moded type system for GLP presented in the companion paper~\cite{shapiro2026types}. The type system itself is not introduced here; the \verb|procedure| declarations and type definitions (e.g., \verb|Stream ::= [] ; [_|Stream].|) should be self-explanatory.
+GLP programs in this paper include \verb|procedure| declarations that specify the moded types of each predicate's arguments. These declarations are part of the moded type system for GLP presented in the companion paper~\citep{shapiro2026types}. The type system itself is not introduced here; the \verb|procedure| declarations and type definitions (e.g., \verb|Stream ::= [] ; [_|Stream].|) should be self-explanatory.
 \end{remark}
 
 As we shall see (Proposition~\ref{prop:so-preservation}), the SO invariant is maintained by the SRSW restriction: reducing a goal satisfying SO with a clause satisfying SRSW results in a goal satisfying SO. The purpose of the SRSW restriction is to prevent multiple writer occurrences racing to bind a variable.

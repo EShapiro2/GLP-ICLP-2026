@@ -200,7 +200,7 @@ The interlaced streams technique demonstrates how GLP's reader/writer synchroniz
 
 \subsection{Metainterpreters}
 
-Program development is essentially a single-agent endeavour:  The programmer trying to write and debug a GLP program.  As in Concurrent Prolog, a key strength of GLP is metainterpretation:  The ability to write GLP interpreters with various functions in GLP.  This allows writing a GLP program development environment and a GLP operating system within GLP itself~\cite{sterling1994art,safra1988meta,shapiro1982algorithmic,lichtenstein1988concurrent,silverman1988logix}, as well as writing a GLP operating system in GLP~\cite{shapiro1984systems}. These two scenarios are the focus of this section:
+Program development is essentially a single-agent endeavour:  The programmer trying to write and debug a GLP program.  As in Concurrent Prolog, a key strength of GLP is metainterpretation:  The ability to write GLP interpreters with various functions in GLP.  This allows writing a GLP program development environment and a GLP operating system within GLP itself~\citep{sterling1994art,safra1988meta,shapiro1982algorithmic,lichtenstein1988concurrent,silverman1988logix}, as well as writing a GLP operating system in GLP~\citep{shapiro1984systems}. These two scenarios are the focus of this section:
 a programmer developing a program and running it with enhanced metainterpreters that support the various needs of program development, and an operating system written in GLP that supports the execution, monitoring and and control of GLP programs.
 
 \mypara{Plain metainterpreter}
@@ -334,7 +334,7 @@ run(A,((I?:Time?):-TB?)) :- known(A) |
 \end{small}
 
 
-As another example, here is a \GLP metainterpreter, inspired by~\cite{shapiro1984systems}, that can suspend, resume, and abort a \GLP run and produce a dump of the processes of the aborted run. It employs the guard predicate \verb|otherwise|, which succeeds if and only if all previous clauses in the procedure fail (as opposed to suspend). This enables default case handling when no other clause applies.
+As another example, here is a \GLP metainterpreter, inspired by~\citep{shapiro1984systems}, that can suspend, resume, and abort a \GLP run and produce a dump of the processes of the aborted run. It employs the guard predicate \verb|otherwise|, which succeeds if and only if all previous clauses in the procedure fail (as opposed to suspend). This enables default case handling when no other clause applies.
 
 \Program{\GLP metainterpreter with runtime control}\label{program:runtime}
 \begin{small}
@@ -352,7 +352,7 @@ suspended_run(A,[C|Cs],L?,R) :- otherwise | run(A?,[C?|Cs?],L,R?).
 \end{verbatim}
 \end{small}
 
-Its first argument is the process (goal) to be executed, its second argument \verb|Cs| is the observed interrupt stream, and its last two arguments form a `difference-list', a standard logic programming technique~\cite{sterling1994art} by which a list can be accumulated in a distributed way (the program is not fail-stop resilient; it can be extended to be so). 
+Its first argument is the process (goal) to be executed, its second argument \verb|Cs| is the observed interrupt stream, and its last two arguments form a `difference-list', a standard logic programming technique~\citep{sterling1994art} by which a list can be accumulated in a distributed way (the program is not fail-stop resilient; it can be extended to be so). 
  
 
 
