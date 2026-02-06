@@ -3,7 +3,7 @@
 \label{sec:glp}
 %==============================================================================
 
-This section presents Grassroots Logic Programs (GLP), a concurrent logic programming language. We begin with transition systems, then define GLP. Standard LP definitions are recalled in Appendix~\ref{appendix:lp}. We illustrate GLP with programming examples and conclude with the grassroots social graph---the foundational platform that all other grassroots platforms build upon.
+This section presents Grassroots Logic Programs (GLP), a concurrent logic programming language. We begin with transition systems, then define GLP. Standard LP definitions are recalled in \ref{appendix:lp}. We illustrate GLP with programming examples and conclude with the grassroots social graph---the foundational platform that all other grassroots platforms build upon.
 
 %------------------------------------------------------------------------------
 \subsection{Transition Systems}
@@ -28,7 +28,7 @@ Grassroots Logic Programs (GLP) extend LP by (1) adding a paired \emph{reader} $
 Let $\calV$ denote the set of LP variables (identifiers beginning with uppercase), henceforth called \temph{writers}. Define $\calV? = \{X? \mid X \in \calV\}$, called \temph{readers}. The set of all GLP variables is $\hat\calV = \calV \cup \calV?$. A writer $X$ and its reader $X?$ form a \temph{variable pair}.
 \end{definition}
 
-GLP terms, unit goals, goals, and clauses are as in standard LP (Appendix~\ref{appendix:lp}) but defined over the variables in $\hat\calV$.
+GLP terms, unit goals, goals, and clauses are as in standard LP (\ref{appendix:lp}) but defined over the variables in $\hat\calV$.
 
 \begin{definition}[Single-Occurrence (SO) Invariant]
 \label{def:so-invariant}
@@ -113,7 +113,7 @@ Key differences between LP and GLP relate to monotonicity. In LP, if a goal cann
 
 Implementation-wise, if a GLP goal $A$ cannot be reduced now, but there is a readers substitution $\sigma$ such that $A\sigma$ can be reduced, such readers are identified, the goal $A$ \emph{suspends} on these readers, and is rescheduled for another reduction attempt once any of them is assigned.
 
-Despite these differences, GLP adopts the same notions of proper run, successful run, and outcome as LP (Definition~\ref{def:proper-run}, Appendix~\ref{appendix:lp}), and has the same notion of logical consequence as LP. Let $/?$ be an operator that replaces every reader by its paired writer.
+Despite these differences, GLP adopts the same notions of proper run, successful run, and outcome as LP (Definition~\ref{def:proper-run}, \ref{appendix:lp}), and has the same notion of logical consequence as LP. Let $/?$ be an operator that replaces every reader by its paired writer.
 
 \begin{restatable}[GLP Computation is Deduction]{proposition}{propGLPDeduction}
 \label{prop:glp-deduction}
@@ -147,7 +147,7 @@ GLP is persistent.
 A complete GLP run is \temph{fair} if every transition that becomes enabled is eventually taken.
 \end{definition}
 
-The SO invariant of GLP allows eschewing unification in favour of \emph{term matching}: if two terms that jointly satisfy SO are unifiable, their mgu maps each variable in one term to a subterm of the other. Term matching thus performs joint term-tree traversal and collects variable assignments along the way; the detailed definition and table appear in Appendix~\ref{appendix:term-matching}.
+The SO invariant of GLP allows eschewing unification in favour of \emph{term matching}: if two terms that jointly satisfy SO are unifiable, their mgu maps each variable in one term to a subterm of the other. Term matching thus performs joint term-tree traversal and collects variable assignments along the way; the detailed definition and table appear in \ref{appendix:term-matching}.
 
 %------------------------------------------------------------------------------
 \subsection{Guards}
@@ -177,14 +177,14 @@ Furthermore, if the success of a guard implies that $X?$ is ground, then $X?$ as
 An \emph{anonymous variable} is any variable whose name begins with \verb|_| (e.g., \verb|_|, \verb|_In?|, \verb|_Out|). Anonymous writers may appear in the head, denoting a fresh writer with no paired reader, so that a value assigned to it is discarded. This provides a controlled exception to the SRSW restriction, allowing a process to abandon an input (e.g.\ an input stream) they are no longer interested in.
 \end{remark}
 
-Guard predicates include type tests (\verb|integer|, \verb|number|, \verb|string|, \verb|constant|, \verb|compound|, \verb|ground|, \verb|known|), arithmetic comparisons (\verb|<|, \verb|>|, \verb|=<|, \verb|>=|, \verb|=:=|, \verb|=\=|), and ground equality (\verb|=?=|).
+Guard predicates include type tests (\verb|integer|, \verb|number|, \verb|string|, \verb|constant|, \verb|compound|, \verb|ground|, \verb|known|), arithmetic comparisons (\verb|<|, \verb|>|, \verb|=<|, \verb|>=|, \verb|=:=|, \verb|=\=|), and ground equality (\verb|=?=|). The full specification of guards and system predicates appears in \ref{appendix:guards-system}.
 
 %------------------------------------------------------------------------------
 \subsection{Programming Examples}
 \label{sec:examples}
 %------------------------------------------------------------------------------
 
-Additional programming examples---including stream distribution, association list lookup, channel abstractions, stream tagging, cooperative production, and metainterpreters---appear in Appendix~\ref{appendix:additional-techniques}.
+Additional programming examples---including stream distribution, association list lookup, channel abstractions, stream tagging, cooperative production, and metainterpreters---appear in \ref{appendix:additional-techniques}.
 
 %------------------------------------------------------------------------------
 \subsection{The Grassroots Social Graph}
@@ -195,4 +195,4 @@ The grassroots social graph is the foundational platform upon which all other gr
 
 Each agent processes messages from user and network input streams and maintains an outputs list mapping named destinations to output streams. The program supports three protocols: (1) \emph{cold-call befriending}, where agents with no prior shared variables establish friendship by exchanging a response variable through the network; (2) \emph{text messaging} between established friends via named output streams; and (3) \emph{friend-mediated introduction}, where a mutual friend creates a channel pair and sends each half to the respective parties, establishing a direct connection.
 
-A network switch process routes messages between agents in simulation; in deployment, it is replaced by maGLP's Cold-call transaction (Section~\ref{sec:maglp}). The detailed walkthrough with code, figures, and a comprehensive scenario involving Alice, Bob, and Charlie appears in Appendix~\ref{appendix:social-graph-walkthrough}. The complete program---helper predicates, actor implementations, and boot variants---appears in Appendix~\ref{appendix:social-graph-complete}.
+A network switch process routes messages between agents in simulation; in deployment, it is replaced by maGLP's Cold-call transaction (Section~\ref{sec:maglp}). The detailed walkthrough with code, figures, and a comprehensive scenario involving Alice, Bob, and Charlie appears in \ref{appendix:social-graph-walkthrough}. The complete program---helper predicates, actor implementations, and boot variants---appears in \ref{appendix:social-graph-complete}.

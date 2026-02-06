@@ -3,33 +3,76 @@
 Guards and system predicates extend GLP programs with access to the GLP runtime state, operating system and hardware capabilities.
 
 \mypara{Guard predicates}
-Guards provide read-only access to the runtime state of GLP computation. A guard appears after the clause head, separated by \verb=|=, and must be satisfied for the clause to be selected. The following builtin guards are fundamental for concurrent GLP programming:
+Guards provide read-only access to the runtime state of GLP computation. A guard appears after the clause head, separated by \verb=|=, and must be satisfied for the clause to be selected. The ``Ground'' column indicates whether success of the guard implies that the argument is ground; such guards permit multiple occurrences of the reader in the clause body (Remark~\ref{rem:guards-srsw}).
 
-\begin{itemize}
-\item \verb|ground(X)| succeeds if \verb|X| is ground (contains no variables).
-\item \verb|known(X)| succeeds if \verb|X| is not a variable, though it may not be ground.
-\item \verb|writer(X)| and \verb|reader(X)| succeed if \verb|X| is an uninstantiated writer or reader respectively. Note that \verb|reader(X)| is non-monotonic.
-\item \verb|no_readers(X)| succeeds if \verb|X| contains no readers; suspends if \verb|X| contains any readers; never fails. Useful for ensuring a term is safe for external output (ground terms or writers only).
-\item \verb|otherwise| succeeds if all previous clauses for this procedure failed.
-\item \verb|X =?= Y| succeeds if both arguments are ground and equal. For example, \verb|f(a,X?) =?= f(b,Z?)| fails (not suspends) because the ground subterms \verb|a| and \verb|b| already differ. Note that the implementation checks terms left-to-right and does not guarantee early failure detection; \verb|f(X?,a) =?= f(Y?,b)| may suspend rather than fail.
-\item Arithmetic comparison guards \verb|X < Y|, \verb|X > Y|, \verb|X =< Y|, \verb|X >= Y|, \verb|X =:= Y|, \verb|X =\= Y| succeed if both arguments are ground numbers satisfying the relation.
-\end{itemize}
+\begin{center}
+\begin{tabular}{lll}
+\textbf{Guard} & \textbf{Signature} & \textbf{Ground} \\
+\hline
+\verb|integer| & \verb|procedure integer(Integer?).| & yes \\
+\verb|number| & \verb|procedure number(Number?).| & yes \\
+\verb|string| & \verb|procedure string(String?).| & yes \\
+\verb|atom| & \verb|procedure atom(String?).| & yes \\
+\verb|constant| & \verb|procedure constant(Constant?).| & yes \\
+\verb|compound| & \verb|procedure compound(_?).| & no \\
+\verb|is_list| & \verb|procedure is_list(Stream?).| & no \\
+\verb|ground| & \verb|procedure ground(_?).| & yes \\
+\verb|known| & \verb|procedure known(_?).| & no \\
+\verb|unknown| & \verb|procedure unknown(_?).| & no \\
+\verb|writer| & \verb|procedure writer(_?).| & no \\
+\verb|reader| & \verb|procedure reader(_?).| & no$^*$ \\
+\verb|no_readers| & \verb|procedure no_readers(_?).| & no \\
+\verb|otherwise| & (no arguments) & --- \\
+\verb|=?=| & \verb|procedure =?=(_?, _?).| & yes (both) \\
+\end{tabular}
+\end{center}
+\noindent$^*$\verb|reader(X)| is non-monotonic: it succeeds if \verb|X| is an unassigned reader, but once \verb|X| is assigned it fails.
 
-When a guard's success condition implies that a variable is ground, the clause body may contain multiple occurrences of that variable's reader without violating the single-writer requirement, enabling safe replication of ground terms to multiple concurrent consumers.
+\verb|otherwise| succeeds if all previous clauses for this procedure failed (or suspended).
+
+\verb|=?=| succeeds if both arguments are ground and equal. For example, \verb|f(a,X?) =?= f(b,Z?)| fails (not suspends) because the ground subterms \verb|a| and \verb|b| already differ. Note that the implementation checks terms left-to-right and does not guarantee early failure detection; \verb|f(X?,a) =?= f(Y?,b)| may suspend rather than fail.
+
+\mypara{Arithmetic comparison guards}
+Arithmetic comparison guards evaluate their arguments as arithmetic expressions and compare the results. Success implies both arguments are ground.
+
+\begin{center}
+\begin{tabular}{ll}
+\textbf{Guard} & \textbf{Signature} \\
+\hline
+\verb|<| & \verb|procedure <(Exp?, Exp?).| \\
+\verb|>| & \verb|procedure >(Exp?, Exp?).| \\
+\verb|=<| & \verb|procedure =<(Exp?, Exp?).| \\
+\verb|>=| & \verb|procedure >=(Exp?, Exp?).| \\
+\verb|=:=| & \verb|procedure =:=(Exp?, Exp?).| \\
+\verb|=\=| & \verb|procedure =\=(Exp?, Exp?).| \\
+\end{tabular}
+\end{center}
 
 \mypara{Monotonicity and implications}
-\verb|ground/1|, \verb|no_readers/1|, and \verb|known/1| are monotonic. \verb|ground(X)| implies both \verb|no_readers(X)| and \verb|known(X)|, which do not imply each other: \verb|no_readers(X)| succeeds but \verb|known(X)| fails; \verb|no_readers(f(X?))| suspends but \verb|known(f(X?))| succeeds.
+\verb|ground/1|, \verb|no_readers/1|, and \verb|known/1| are monotonic. \verb|ground(X)| implies both \verb|no_readers(X)| and \verb|known(X)|, which do not imply each other: \verb|no_readers(X)| succeeds but \verb|known(X)| fails for an unassigned writer; \verb|no_readers(f(X?))| suspends but \verb|known(f(X?))| succeeds.
 
 \mypara{Defined guard predicates}
 To support abstract data types and cleaner code organization, GLP provides for user-defined guards via unit clauses. A unit clause \verb|p(T1,...,Tn).| defines a guard predicate; the call \verb|p(S1,...,Sn)| in guard position is unfolded to the term matching of \verb|T1| with \verb|S1|, ..., \verb|Tn| with \verb|Sn|. For example, the equality guard is defined by the clause \verb|X = X.|, so the guard \verb|A = B| unfolds to matching both \verb|A| and \verb|B| against the same variable \verb|X|.
 
+Channel operations (\verb|new_channel|, \verb|send|, \verb|receive|) are defined as guard predicates; see \ref{appendix:additional-techniques}.
+
 \mypara{System predicates}
 System predicates execute atomically with goal/clause reduction and provide access to underlying runtime services:
-\begin{itemize}
-\item \verb|evaluate(Expr?,Result)| evaluates ground arithmetic expressions.
-\item \verb|current_time(T)| provides system timestamps for temporal coordination.
-\item \verb|variable_name(X,Name)| returns a unique identifier for variable \verb|X| and its pair.
-\end{itemize}
+
+\begin{center}
+\begin{tabular}{ll}
+\textbf{Predicate} & \textbf{Description} \\
+\hline
+\verb|=(_, _?).| & Unification \\
+\verb|=..(_, Stream?).| & Term composition: constructs term from list \\
+\verb|..=(Stream, _?).| & Term decomposition: decomposes term into list \\
+\verb|evaluate(Exp?,Result).| & Evaluates ground arithmetic expressions \\
+\verb|current_time(T).| & Provides system timestamps \\
+\verb|variable_name(X,Name).| & Returns a unique identifier for variable \verb|X| and its pair \\
+\end{tabular}
+\end{center}
+
+\noindent The \verb|=| predicate performs unification: \verb|X? = X| succeeds, assigning both sides. The \verb|=..| predicate composes a term from a list: \verb|Term =.. [Functor, Arg1, ..., ArgN]?| constructs \verb|Term| as \verb|Functor(Arg1, ..., ArgN)|. The \verb|..=| predicate decomposes a term into a list: \verb|List ..= Term?| produces \verb|[Functor, Arg1, ..., ArgN]| from \verb|Term|. Both follow the convention of input on the right (reader) and output on the left (writer).
 
 \mypara{Arithmetic evaluation in assignments}
 Arithmetic expressions are defined by the following clause:

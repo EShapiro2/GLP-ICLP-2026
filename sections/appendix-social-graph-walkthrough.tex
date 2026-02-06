@@ -298,4 +298,4 @@ The complete scenario demonstrates all three protocols:
 \item Charlie responds: ``Hi Alice, this is Charlie''
 \end{enumerate}
 
-Each agent is driven by an \emph{actor}---a GLP procedure that implements a state machine, reacting to messages from the agent and producing commands. The actor's state is encoded in procedure names (e.g., \verb|alice_wait_bob_connected|, \verb|bob_wait_charlie_msg|), with transitions via recursive calls. See Appendix~\ref{appendix:social-graph-complete} for the complete program: helper predicates, actor implementations, the play that ties everything together, and the multiagent boot variants.
+Each agent is driven by an \emph{actor}---a GLP procedure that implements a state machine, reacting to messages from the agent and producing commands. The actor's state is encoded in procedure names (e.g., \verb|alice_wait_bob_connected|, \verb|bob_wait_charlie_msg|), with transitions via recursive calls. See \ref{appendix:social-graph-complete} for the complete program: helper predicates, actor implementations, the play that ties everything together, and the multiagent boot variants.
