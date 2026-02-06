@@ -104,22 +104,26 @@
 \jnlDoiYr{2026}
 \doival{10.1017/xxxxx}
 
-\title{GLP: A Grassroots, Multiagent, Concurrent, Logic Programming Language}
+\title{GLP: A Grassroots, Multiagent, Concurrent,\\ Logic Programming Language}
 
 \begin{authgrp}
-\author{\sn{Shapiro} \gn{Ehud}}
-\affiliation{London School of Economics and Weizmann Institute of Science\\
-(e-mail: \texttt{ehud.shapiro@weizmann.ac.il})}
+\author{\gn{Ehud} \sn{Shapiro}}
+\affiliation{London School of Economics and Weizmann Institute of Science}
 \end{authgrp}
 
 \maketitle
 
 \begin{abstract}
-We present Grassroots Logic Programs (GLP), a multiagent, concurrent, logic programming language designed for the implementation of smartphone-based, serverless, grassroots platforms---platforms that can operate independently and coalesce into ever larger instances. GLP extends Logic Programs with (1) reader/writer variable pairs, where each writer is paired with a reader that receives its value; (2) single-occurrence (SO): a variable may occur at most once in a goal or clause; and (3) single-reader single-writer (SRSW): a writer occurs in a clause iff its paired reader does. The operational semantics conjures both linear logic and futures/promises: an assignment may be produced at most once via a writer and consumed at most once via its paired reader. We define multiagent GLP (maGLP), which extends GLP with named agents communicating via reader assignments and cold-calls---a means for agents with no prior shared variables to establish communication. We prove that maGLP is grassroots. Programming is illustrated via a grassroots social graph.
+Grassroots platforms are distributed systems with multiple instances that can (1) operate independently of each other and of any global resource other than the network, and (2) coalesce into ever larger instances, possibly resulting in a single global instance.
+
+Here, we present Grassroots Logic Programs (GLP), a multiagent concurrent logic programming language designed for the implementation of grassroots platforms.  
+We introduce the language  incrementally: We recall the standard operational semantics of logic programs; introduce the operational semantics of Concurrent (single-agent) GLP as a restriction of that of LP; recall the notion of multiagent transition systems and atomic transactions; introduce the operational semantics of multiagent GLP via a multiagent transition system specified via atomic transactions; and prove multiagent GLP to be grassroots. The accompanying programming example is the grassroots social graph---the fundamental grassroots platform on which all others are based. 
+
+With the mathematical foundations presented here: a workstation-based implementation of Concurrent GLP was developed by AI, based on the operational semantics of Concurrent GLP;  a distributed peer-to-peer smartphone-based implementation of multiagent GLP is being developed by AI, based on the operational semantics of multiagent GLP; a moded type system for GLP was implemented by AI, to facilitate the specification of GLP programs by human and AI designers, for their programming by AI; all reported in detail in companion papers.
 \end{abstract}
 
 \begin{keywords}
-concurrent logic programming, grassroots platforms, multiagent systems, transition systems
+concurrent logic programming, grassroots platforms, operational semantics, multiagent transition systems
 \end{keywords}
 % Main sections
 \input{sections/introduction}
