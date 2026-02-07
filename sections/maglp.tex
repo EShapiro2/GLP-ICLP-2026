@@ -97,20 +97,26 @@ The network switch in the concurrent GLP version (Section~\ref{sec:social-graph}
 \label{sec:maglp-safety}
 %------------------------------------------------------------------------------
 
-The safety properties established for single-agent GLP in Section~\ref{sec:glp} extend to maGLP:
-\begin{restatable}[Safety Properties of maGLP]{proposition}{propMaGLPSafety}
-\label{proposition:maGLP-safety}
-\begin{enumerate}
-\item \textbf{SO Preservation} (cf.\ Proposition~\ref{prop:so-preservation}): If the initial goals of all agents satisfy SO, then every goal in every agent's resolvent throughout the run satisfies SO.
-\item \textbf{Monotonicity} (cf.\ Proposition~\ref{prop:glp-monotonicity}): If unit goal $A$ in agent $p$'s resolvent can reduce with clause $C$ at step $i$, then at any step $j > i$, either $A$ has been reduced or there exists $A'$ in $p$'s resolvent where $A' = A\tau$ for some reader substitution $\tau$, and $A'$ can reduce with $C$.
-\end{enumerate}
+The safety properties established for single-agent GLP in Section~\ref{sec:glp} extend to maGLP. SO preservation (cf.\ Proposition~\ref{prop:so-preservation}) generalizes directly:
+
+\begin{restatable}[maGLP SO Preservation]{proposition}{propMaGLPSOPreservation}
+\label{prop:maglp-so-preservation}
+If the initial goals of all agents satisfy SO, then every goal in every agent's resolvent throughout the run satisfies SO.
+\end{restatable}
+
+Monotonicity (cf.\ Proposition~\ref{prop:glp-monotonicity}) likewise extends:
+
+\begin{restatable}[maGLP Monotonicity]{proposition}{propMaGLPMonotonicity}
+\label{prop:maglp-monotonicity}
+If unit goal $A$ in agent $p$'s resolvent can reduce with clause $C$ at step $i$, then at any step $j > i$, either $A$ has been reduced or there exists $A'$ in $p$'s resolvent where $A' = A\tau$ for some reader substitution $\tau$, and $A'$ can reduce with $C$.
 \end{restatable}
 
 
-\begin{restatable}[maGLP Computation is Deduction]{proposition}{propMaGLPDeduction}
+To relate maGLP to deduction, consider the \temph{lifted system} $L$: the GLP transition system whose resolvent is the union of all agents' local resolvents, whose initial goal includes a \texttt{network} goal with channels paired to each agent's network channels, and whose program is $M$ augmented with the GLP definition of \texttt{network}.
+
+\begin{restatable}{proposition}{propMaGLPDeduction}
 \label{prop:maglp-deduction}
-[[This is informal text, not a proposition, say informally before what is needed, defined what is needed, and then state the proposition without verbiage]]
-Let $L$ be the transition system whose resolvent is the union of all local resolvents, the initial goal includes a \texttt{network} goal with channels paired to each agent's network channels, and the program is $M$ augmented with the GLP definition of \texttt{network}. Then maGLP runs correspond to GLP runs of $L$, and their outcomes are logical consequences of the augmented program.
+maGLP runs correspond to GLP runs of $L$, and their outcomes are logical consequences of the augmented program.
 \end{restatable}
 
 \begin{restatable}{lemma}{lemmaGLPPersistence}

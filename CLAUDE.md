@@ -132,6 +132,7 @@
 1. SMALL CHANGES - Make targeted edits, not wholesale rewrites
 2. PRESERVE LABELS - Don't change \label{} references without updating \ref{}
 3. CHECK MATH - Verify math mode is correct
+4. MATH-ONLY FORMAL ENVIRONMENTS - Propositions and definitions contain only math; all auxiliary/explanatory text must be placed before or after the environment, not inside it
 
 ### Common LaTeX Patterns in This Paper
 - `\mypara{Name}` - Paragraph headers

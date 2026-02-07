@@ -64,10 +64,16 @@ For Reduce: if a Reduce transition is enabled for goal $A$ in configuration $(G,
 \label{app:maglp-proofs}
 %------------------------------------------------------------------------------
 
-\propMaGLPSafety*
+\propMaGLPSOPreservation*
 
 \begin{proof}
-The proofs are identical to those for single-agent GLP, substituting ``agent $p$'s resolvent'' for ``resolvent'' and noting that Reduce transitions operate locally within each agent whilst Communicate and Cold-call transitions preserve the properties through reader assignment transfer.
+Identical to single-agent GLP (Proposition~\ref{prop:so-preservation}), substituting ``agent $p$'s resolvent'' for ``resolvent'' and noting that Communicate and Cold-call transitions transfer only reader assignments, which do not affect SO.
+\end{proof}
+
+\propMaGLPMonotonicity*
+
+\begin{proof}
+Identical to single-agent GLP (Proposition~\ref{prop:glp-monotonicity}), substituting ``agent $p$'s resolvent'' for ``resolvent'' and noting that Reduce transitions operate locally within each agent whilst Communicate and Cold-call transitions preserve reducibility through reader assignment transfer.
 \end{proof}
 
 \lemmaGLPPersistence*
