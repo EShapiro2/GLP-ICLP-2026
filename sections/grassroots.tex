@@ -2,29 +2,11 @@
 \section{Multiagent GLP is Grassroots}\label{sec:grassroots}
 %==============================================================================
 
-This section establishes that maGLP is grassroots, following the framework of~\citep{shapiro2023grassrootsBA,shapiro2025atomic}. The full definitions of protocols, projections, transactions-based protocols, and interactive transactions appear in \ref{appendix:grassroots-defs}; here we state the key definition and results.
+This section establishes that maGLP is grassroots, following the framework of~\citep{shapiro2023grassrootsBA,shapiro2025atomic}. Formal definitions appear in Appendix~\ref{appendix:grassroots-defs}.
 
-A \emph{protocol} is a family of multiagent transition systems, one for each set of agents $P\subset \Pi$. Informally, a protocol is \emph{oblivious} if any subset of agents can do anything in a larger group that they could do on their own, and \emph{interactive} if agents in a larger group can always eventually interact with outsiders in a way that leaves ``alien traces'' in their local states.
+Informally, a protocol defined via atomic transactions is \emph{grassroots} if its transactions are \emph{interactive}: for any group of agents $P$ running within a larger group $P'$, it is always possible for an outsider in $P' \setminus P$ to interact with a member of $P$ in a way that leaves an ``alien trace'' in $P$'s state---a configuration that $P$ could not have produced on its own.
 
-\begin{definition}[Oblivious, Interactive, Grassroots]\label{definition:grassroots}
-A protocol $\calF$ is:
-\begin{enumerate}
-    \item \temph{oblivious} if for every $\emptyset \subset P \subset P' \subseteq \Pi$,
-    $T(P){\uparrow}P'\subseteq T(P')$
-    \item \temph{interactive} if for every $\emptyset \subset P \subset P' \subseteq \Pi$ and every configuration $c\in C(P')$ such that $c{/}P\in C(P)$, there is a computation $c\xrightarrow{*} c'$ of $\calF(P')$ for which $c'{/}P\notin C(P)$.
-    \item \temph{grassroots} if it is oblivious and interactive.
-\end{enumerate}
-\end{definition}
-
-\begin{restatable}[Transactions-Based Protocols are Oblivious]{proposition}{propOblivious}
-\label{proposition:oblivious}
-A transactions-based protocol is oblivious.
-\end{restatable}
-
-\begin{restatable}[Interactive Transactions Induce Grassroots Protocols]{theorem}{thmInteractiveGrassroots}
-\label{theorem:interactive-grassroots}
-A protocol over an interactive set of transactions is grassroots.
-\end{restatable}
+The Cold-call transaction (Definition~\ref{definition:maGLP}) is the fundamental interactive transaction of maGLP. It allows an agent $q$ outside a group $P$ to connect to an agent $p \in P$, establishing a pair of shared variables: a writer held by one agent and its paired reader held by the other. The resulting shared variable constitutes an alien trace in $p$'s state---a reference that could not have arisen from $P$ running alone.
 
 \begin{restatable}[maGLP is Grassroots]{theorem}{thmMaGLPGrassroots}
 \label{theorem:maGLP-grassroots}

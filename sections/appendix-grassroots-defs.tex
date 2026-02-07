@@ -46,3 +46,27 @@ Then a \temph{protocol $\calF$ over $R$ and $S$} includes for each set of agents
 \begin{definition}[Interactive Transactions]\label{definition:interactive-transactions}
 A set of transactions $R$ over a local-states function $S$ is \temph{interactive} if for every $\emptyset \subset P \subset P' \subset \Pi$ and every configuration $c\in C(P')$ such that $c/P\in C(P)$, there is a computation $(c\xrightarrow{*} c')\subseteq R(P'){\uparrow}P'$ for which $c'/P\notin C(P)$.
 \end{definition}
+
+%------------------------------------------------------------------------------
+\subsection{Grassroots Protocols}
+%------------------------------------------------------------------------------
+
+\begin{definition}[Oblivious, Interactive, Grassroots]\label{definition:grassroots}
+A protocol $\calF$ is:
+\begin{enumerate}
+    \item \temph{oblivious} if for every $\emptyset \subset P \subset P' \subseteq \Pi$,
+    $T(P){\uparrow}P'\subseteq T(P')$
+    \item \temph{interactive} if for every $\emptyset \subset P \subset P' \subseteq \Pi$ and every configuration $c\in C(P')$ such that $c{/}P\in C(P)$, there is a computation $c\xrightarrow{*} c'$ of $\calF(P')$ for which $c'{/}P\notin C(P)$.
+    \item \temph{grassroots} if it is oblivious and interactive.
+\end{enumerate}
+\end{definition}
+
+\begin{restatable}[Transactions-Based Protocols are Oblivious]{proposition}{propOblivious}
+\label{proposition:oblivious}
+A transactions-based protocol is oblivious.
+\end{restatable}
+
+\begin{restatable}[Interactive Transactions Induce Grassroots Protocols]{theorem}{thmInteractiveGrassroots}
+\label{theorem:interactive-grassroots}
+A protocol over an interactive set of transactions is grassroots.
+\end{restatable}
