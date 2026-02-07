@@ -35,17 +35,20 @@ GLP terms, unit goals, goals, and clauses are as in standard LP (\ref{appendix:l
 A term, goal, or clause satisfies the \temph{single-occurrence (SO) invariant} if every variable occurs in it at most once.
 \end{definition}
 
-\begin{definition}[GLP Program]
+\begin{definition}[GLP Program, Goals]
 \label{def:glp-program}
 A clause $C$ satisfies the \temph{single-reader/single-writer (SRSW) restriction} if it satisfies SO and a variable occurs in $C$ iff its paired variable also occurs in $C$.
 A \temph{GLP program} is a finite set of clauses satisfying SRSW; clauses for the same predicate form a \temph{procedure}.
-Let $\hat\calG(P)$ denote the set of goals over $\hat\calV$ and the vocabulary of $P$.
+The set of GLP goals $\hat\calG(P)$ includes all goals over $\hat\calV$ and the vocabulary of $P$that satisfy SO.
 \end{definition}
 
 \begin{example}[Fair Merge]
 \label{ex:merge}
 Consider the quintessential concurrent logic program for fairly merging two streams, written in GLP:
 \begin{verbatim}
+Stream ::= [] ;[_|Stream].
+
+
 procedure merge(Stream?, Stream?, Stream).
 merge([X|Xs], Ys, [X?|Zs?]) :- merge(Ys?, Xs?, Zs).
 merge(Xs, [Y|Ys], [Y?|Zs?]) :- merge(Xs?, Ys?, Zs).
@@ -55,10 +58,6 @@ merge([], Ys, Ys?).
 and the goal \verb=merge([1,2,3|Xs?],[a,b|Ys?],Zs)=. Both the goal and each clause satisfy SO, and each clause satisfies SRSW. The first two clauses swap inputs in recursive calls, ensuring fairness when both streams are available.
 \end{example}
 
-\begin{remark}[Typed Programs]
-\label{rem:typed-programs}
-GLP programs in this paper include \verb|procedure| declarations that specify the moded types of each predicate's arguments. These declarations are part of the moded type system for GLP presented in the companion paper~\citep{shapiro2026types}. The type system itself is not introduced here; the \verb|procedure| declarations and type definitions (e.g., \verb|Stream ::= [] ; [_|Stream].|) should be self-explanatory.
-\end{remark}
 
 As we shall see (Proposition~\ref{prop:so-preservation}), the SO invariant is maintained by the SRSW restriction: reducing a goal satisfying SO with a clause satisfying SRSW results in a goal satisfying SO. The purpose of the SRSW restriction is to prevent multiple writer occurrences racing to assign a variable.
 
@@ -103,7 +102,7 @@ A transition system $GLP(P) = (\calC, c_0, \calT)$ is a \temph{GLP transition sy
 \end{enumerate}
 \end{definition}
 
-GLP Reduce differs from LP in (1) the use of a writer mgu instead of a regular mgu and (2) the choice of the first applicable clause instead of any clause. The first is the fundamental use of GLP readers for synchronization. The second compromises on the or-nondeterminism of LP to allow writing fair concurrent programs, such as fair merge above. Note that or-nondeterminism is not completely eliminated, as different scheduling of arrival of assignments on the two input streams of \verb|merge| may result in different orders in its output stream.
+GLP Reduce differs from LP in (1) the use of a writer mgu instead of a regular mgu and (2) the choice of the first applicable clause instead of any clause. The first is the fundamental use of GLP readers for communication and synchronization. The second compromises on the or-nondeterminism of LP to allow writing fair concurrent programs, such as fair merge above. Note that or-nondeterminism is not completely eliminated, as different scheduling of arrival of assignments on the two input streams of \verb|merge| may result in different orders in its output stream.
 
 The GLP Communicate rule realizes the use of reader/writer pairs for asynchronous communication: it communicates an assignment from its writer to its paired reader.
 
@@ -133,7 +132,7 @@ In any GLP run, if unit goal $A$ can reduce with clause $C$ at step $i$, then ei
 \end{restatable}
 
 \begin{definition}[Persistent Transition System]
-\label{def:persistent};//;/;
+\label{def:persistent}
 A transition system is \temph{persistent} if every enabled transition remains enabled until taken.
 \end{definition}
 
@@ -174,7 +173,7 @@ Furthermore, if the success of a guard implies that $X?$ is ground, then $X?$ as
 
 \begin{remark}[Anonymous Variables]
 \label{rem:anonymous-variables}
-An \emph{anonymous variable} is any variable whose name begins with \verb|_| (e.g., \verb|_|, \verb|_In?|, \verb|_Out|). Anonymous writers may appear in the head, denoting a fresh writer with no paired reader, so that a value assigned to it is discarded. This provides a controlled exception to the SRSW restriction, allowing a process to abandon an input (e.g.\ an input stream) they are no longer interested in.
+An \emph{anonymous variable} is any variable whose name begins with \verb|_| (e.g., \verb|_|, \verb|_In?|, \verb|_Out|). Anonymous writers may appear in the head, denoting a fresh writer with no paired reader, so that a value assigned to it is discarded. These provide a controlled exception to the SRSW restriction, allowing a process to abandon an input (e.g.\ an input stream) they are no longer interested in.
 \end{remark}
 
 Guard predicates include type tests (\verb|integer|, \verb|number|, \verb|string|, \verb|constant|, \verb|compound|, \verb|ground|, \verb|known|), arithmetic comparisons (\verb|<|, \verb|>|, \verb|=<|, \verb|>=|, \verb|=:=|, \verb|=\=|), and ground equality (\verb|=?=|). The full specification of guards and system predicates appears in \ref{appendix:guards-system}.
