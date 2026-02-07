@@ -84,12 +84,12 @@ Naturally, Cold-call would be the exception, as once agents share a paired varia
 \label{sec:ma-social-graph}
 %------------------------------------------------------------------------------
 
-The social graph agent code presented in Section~\ref{sec:social-graph} runs unchanged in maGLP. The only difference is the boot code: the network switch is replaced by maGLP's Cold-call transaction, and each agent runs on a separate isolate. Two boot variants are presented in \ref{appendix:social-graph-complete}: a headless boot with actors (Appendix~\ref{app:maglp-boot}) and an interactive UI boot (Appendix~\ref{app:maglp-ui-boot}).
+The social graph agent code presented in Section~\ref{sec:social-graph} runs unchanged in maGLP. The only difference is the boot code: the GLP network switch is replaced by maGLP's Cold-call transaction, and each agent runs on a separate isolate (later -- separate smartphone). Two boot variants are presented in \ref{appendix:social-graph-complete}: a headless (UI-less) boot with actors (Appendix~\ref{app:maglp-boot}) and an interactive UI boot (Appendix~\ref{app:maglp-ui-boot}).
 
 When Alice executes the cold-call protocol to befriend Bob, her agent sends \verb|msg(bob, intro(alice, Resp))| on the \verb|'_net'| output stream. The Cold-call transaction (Definition~\ref{definition:maGLP}) transfers this message to Bob's network input stream, adding the reader \verb|Resp?| to Bob's resolvent. When Bob accepts, assigning \verb|Resp| to \verb|accept(ch(FIn?, FOut))|, the Communicate transaction transfers this assignment back to Alice.
 
-Similarly, friend-mediated introduction works through Communicate transactions: when Bob introduces Alice to Charlie, the channel pair he creates contains readers that are transferred to Alice and Charlie via Communicate, establishing their direct connection.
-
+In contrast, friend-mediated introduction works solely through Communicate transactions: when Bob introduces Alice to Charlie, the channel pair he creates contains readers that are transferred to Alice and Charlie via Communicate, establishing their direct connection.
+%
 The network switch in the concurrent GLP version (Section~\ref{sec:social-graph}) is thus a faithful simulation of maGLP's Cold-call transaction, allowing single-process testing of multiagent protocols.
 
 %------------------------------------------------------------------------------
@@ -97,19 +97,19 @@ The network switch in the concurrent GLP version (Section~\ref{sec:social-graph}
 \label{sec:maglp-safety}
 %------------------------------------------------------------------------------
 
-The safety properties established for single-agent GLP extend to maGLP.
-
+The safety properties established for single-agent GLP in Section~\ref{sec:glp} extend to maGLP:
 \begin{restatable}[Safety Properties of maGLP]{proposition}{propMaGLPSafety}
 \label{proposition:maGLP-safety}
-The safety properties established for GLP in Section~\ref{sec:glp} extend to maGLP:
 \begin{enumerate}
 \item \textbf{SO Preservation} (cf.\ Proposition~\ref{prop:so-preservation}): If the initial goals of all agents satisfy SO, then every goal in every agent's resolvent throughout the run satisfies SO.
 \item \textbf{Monotonicity} (cf.\ Proposition~\ref{prop:glp-monotonicity}): If unit goal $A$ in agent $p$'s resolvent can reduce with clause $C$ at step $i$, then at any step $j > i$, either $A$ has been reduced or there exists $A'$ in $p$'s resolvent where $A' = A\tau$ for some reader substitution $\tau$, and $A'$ can reduce with $C$.
 \end{enumerate}
 \end{restatable}
 
+
 \begin{restatable}[maGLP Computation is Deduction]{proposition}{propMaGLPDeduction}
 \label{prop:maglp-deduction}
+[[This is informal text, not a proposition, say informally before what is needed, defined what is needed, and then state the proposition without verbiage]]
 Let $L$ be the transition system whose resolvent is the union of all local resolvents, the initial goal includes a \texttt{network} goal with channels paired to each agent's network channels, and the program is $M$ augmented with the GLP definition of \texttt{network}. Then maGLP runs correspond to GLP runs of $L$, and their outcomes are logical consequences of the augmented program.
 \end{restatable}
 
@@ -124,4 +124,4 @@ A complete maGLP run is \temph{fair} if every transaction that becomes enabled i
 \end{definition}
 
 \mypara{Implementation}
-The implementation-ready variants of GLP and maGLP, along with formal correctness proofs that they implement their respective specifications, are presented in a companion paper~\citep{shapiro2026implementing}.
+The implementation-ready deterministic variants of GLP and maGLP (the latter deterministic at the agent, not system, level), along with formal correctness proofs that they implement their respective specifications, are presented in a companion paper~\citep{shapiro2026implementing}.
