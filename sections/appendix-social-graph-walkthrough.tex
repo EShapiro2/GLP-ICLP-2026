@@ -9,12 +9,10 @@ This appendix presents the detailed walkthrough of the grassroots social graph p
 The social graph uses the following type definitions:
 \begin{verbatim}
 Response ::= accept(Channel) ; no.
+Decision ::= yes ; no.
+PendingValue ::= response(Response?) ; channel(Channel?) ; error.
 OutputEntry ::= output(String, Stream?).
 OutputsList ::= [] ; [OutputEntry|OutputsList].
-NetMsg ::= msg(Constant, _).
-NetStream ::= [] ; [NetMsg|NetStream].
-AgentId ::= Constant.
-Decision ::= yes ; no.
 \end{verbatim}
 
 A \verb|Channel| is a pair of streams for bidirectional communication. The \verb|new_channel| guard creates complementary channel endpoints:
@@ -30,7 +28,7 @@ The first  reads from \verb|Xs?| and writes to \verb|Ys|; the second reads from 
 
 Each agent processes messages from two separate input streams---user and network---and maintains an outputs list mapping named destinations to output streams:
 \begin{verbatim}
-procedure agent(AgentId?, Stream?, Stream?, OutputsList?).
+procedure agent(Constant?, Stream?, Stream?, OutputsList?).
 \end{verbatim}
 The four arguments are: agent identity, user input stream, network input stream, and an outputs list. The outputs list initially contains two entries---\verb|output('_user', ...)|  and \verb|output('_net', ...)|---providing streams to the user interface and the network, respectively. As the agent befriends others, new entries are added.
 
@@ -56,10 +54,13 @@ agent(Id, UserIn, [msg(Id1, intro(From, Resp))|NetIn], Outs) :-
     agent(Id?, UserIn?, NetIn?, Outs1?).
 
 %% User decision on cold-call
-agent(Id, [msg('_user', Id1, decision(Dec, From, Resp?))|UserIn], NetIn, Outs) :-
-    Id? =?= Id1? |
-    bind_response(Dec?, From?, Resp, Outs?, Outs1, NetIn?, NetIn1),
-    agent(Id?, UserIn?, NetIn1?, Outs1?).
+agent(Id, [msg('_user', Id1,
+    decision(Dec, From, response(Resp?)))|UserIn],
+    NetIn, Outs) :-
+        Id? =?= Id1? |
+        bind_response(Dec?, From?, Resp,
+            Outs?, Outs1, NetIn?, NetIn1),
+        agent(Id?, UserIn?, NetIn1?, Outs1?).
 
 %% Response to sent cold-call (injected into UserIn by inject_msg)
 agent(Id, [msg(From, Id1, response(Resp))|UserIn], NetIn, Outs) :-
@@ -81,7 +82,7 @@ When a cold-call is accepted, both agents establish symmetric channels (Figure~\
 
 \begin{figure*}[t]
 \begin{verbatim}
-procedure bind_response(Decision?, AgentId?, Response,
+procedure bind_response(Decision?, Constant?, Response,
     OutputsList?, OutputsList, Stream?, Stream).
 bind_response(yes, From, accept(RetCh?), Outs, Outs1?, In, In1?) :-
     new_channel(RetCh, LocalCh) |
@@ -89,7 +90,7 @@ bind_response(yes, From, accept(RetCh?), Outs, Outs1?, In, In1?) :-
 bind_response(no, _, no, Outs, Outs1?, In, In?) :-
     lookup_send('_user', msg(agent, '_user', rejected), Outs?, Outs1).
 
-procedure handle_response(Response?, AgentId?,
+procedure handle_response(Response?, Constant?,
     OutputsList?, OutputsList, Stream?, Stream).
 handle_response(accept(ch(FIn, FOut?)), From, Outs, Outs2?, In, In1?) :-
     ground(From?) |
@@ -191,13 +192,20 @@ agent(Id, UserIn,
 %% User accepts friend introduction
 agent(Id,
   [msg('_user', Id1,
-    accept_intro(Other, Ch))|UserIn],
+    accept_intro(Other,
+      channel(ch(FIn, FOut?))))
+   |UserIn],
   NetIn, Outs) :-
     Id? =?= Id1?, ground(Other?) |
-    handle_intro_accept(Ch?, Other?,
-      Outs?, Outs1, NetIn?, NetIn1),
+    add_output(Other?, FOut,
+      Outs?, Outs1),
+    lookup_send('_user',
+      msg(agent, '_user',
+        connected(Other?)),
+      Outs1?, Outs2),
+    merge(NetIn?, FIn?, NetIn1),
     agent(Id?, UserIn?, NetIn1?,
-      Outs1?).
+      Outs2?).
 \end{verbatim}
 \end{multicols}
 \caption{Friend-mediated introduction protocol}
@@ -299,4 +307,4 @@ The complete scenario demonstrates all three protocols:
 \item Charlie responds: ``Hi Alice, this is Charlie''
 \end{enumerate}
 
-Each agent is driven by an \emph{actor}---a GLP procedure that implements a state machine, reacting to messages from the agent and producing commands. The actor's state is encoded in procedure names (e.g., \verb|alice_wait_bob_connected|, \verb|bob_wait_charlie_msg|), with transitions via recursive calls. See \ref{appendix:social-graph-complete} for the complete program: helper predicates, actor implementations, the play that ties everything together, and the multiagent boot variants.
+Each agent is driven by an \emph{actor}---a GLP procedure that implements a state machine, reacting to messages from the UI mediator and producing commands. The actor communicates in ground terms only---the same protocol a human uses in the interactive UI. The actor's state is encoded in procedure names (e.g., \verb|alice_ui_wait_bob_connected|, \verb|bob_ui_wait_charlie_msg|), with transitions via recursive calls. See \ref{appendix:social-graph-complete} for the complete program: helper predicates, the UI mediator, actor implementations, the play that ties everything together, and the multiagent boot variants.

@@ -3,7 +3,7 @@
 \label{appendix:social-graph-complete}
 %==============================================================================
 
-This appendix presents the complete GLP social graph program that demonstrates cold-call befriending, text messaging, and friend-mediated introduction. The program includes three agents (Alice, Bob, Charlie) driven by actor scripts that execute a comprehensive scenario. We present the shared agent code, then three boot variants: a single-process play with a network switch (Concurrent GLP), a multiagent boot with actors (maGLP), and a multiagent UI boot with interactive windows (maGLP).
+This appendix presents the complete GLP social graph program that demonstrates cold-call befriending, text messaging, and friend-mediated introduction. The program includes three agents (Alice, Bob, Charlie) driven by actor scripts that execute a comprehensive scenario. A UI mediator sits between each agent and its user, translating between the agent's non-ground terms and the ground terms used at the user interface. We present the shared agent code, the UI mediator, the actors, and three boot variants: a single-process play with a network switch (Concurrent GLP), a multiagent boot with actors (maGLP), and a multiagent interactive UI boot (maGLP).
 
 %------------------------------------------------------------------------------
 \subsection{The Scenario}
@@ -28,12 +28,10 @@ The play executes the following sequence:
 
 \begin{verbatim}
 Response ::= accept(Channel) ; no.
+Decision ::= yes ; no.
+PendingValue ::= response(Response?) ; channel(Channel?) ; error.
 OutputEntry ::= output(String, Stream?).
 OutputsList ::= [] ; [OutputEntry|OutputsList].
-NetMsg ::= msg(Constant, _).
-NetStream ::= [] ; [NetMsg|NetStream].
-AgentId ::= Constant.
-Decision ::= yes ; no.
 \end{verbatim}
 
 %------------------------------------------------------------------------------
@@ -83,12 +81,11 @@ lookup_send_step(Key, Msg,
         lookup_send_step(Key?, Msg?, Rest?, Rest1).
 lookup_send_step(_, _, [], []).
 
-procedure inject_msg(Response?, AgentId?, AgentId?, Stream?, Stream).
+procedure inject_msg(Response?, Constant?, Constant?, Stream?, Stream).
 inject_msg(Resp, Target, Id, Ys,
     [msg(Target?, Id?, response(Resp?))|Ys?]) :-
         known(Resp?) | true.
 inject_msg(Resp, Target, Id, [Y|Ys], [Y?|Ys1?]) :-
-    otherwise |
     inject_msg(Resp?, Target?, Id?, Ys?, Ys1).
 
 procedure add_output(String?, Stream, OutputsList?, OutputsList).
@@ -105,7 +102,7 @@ close_outputs([]).
 %------------------------------------------------------------------------------
 
 \begin{verbatim}
-procedure bind_response(Decision?, AgentId?, Response,
+procedure bind_response(Decision?, Constant?, Response,
     OutputsList?, OutputsList, Stream?, Stream).
 bind_response(yes, From, accept(RetCh?),
     Outs, Outs1?, In, In1?) :-
@@ -117,7 +114,7 @@ bind_response(no, _, no, Outs, Outs1?, In, In?) :-
         msg(agent, '_user', rejected),
         Outs?, Outs1).
 
-procedure handle_response(Response?, AgentId?,
+procedure handle_response(Response?, Constant?,
     OutputsList?, OutputsList, Stream?, Stream).
 handle_response(accept(ch(FIn, FOut?)), From,
     Outs, Outs2?, In, In1?) :-
@@ -135,24 +132,6 @@ handle_response(no, From, Outs, Outs1?, In, In?) :-
 \end{verbatim}
 
 %------------------------------------------------------------------------------
-\subsection{Introduction Acceptance}
-\label{app:intro-accept}
-%------------------------------------------------------------------------------
-
-\begin{verbatim}
-procedure handle_intro_accept(Channel?, AgentId?,
-    OutputsList?, OutputsList, Stream?, Stream).
-handle_intro_accept(ch(FIn, FOut?), Other,
-    Outs, Outs2?, In, In1?) :-
-        ground(Other?) |
-        add_output(Other?, FOut, Outs?, Outs1),
-        lookup_send('_user',
-            msg(agent, '_user', connected(Other?)),
-            Outs1?, Outs2),
-        merge(In?, FIn?, In1).
-\end{verbatim}
-
-%------------------------------------------------------------------------------
 \subsection{The Agent}
 \label{app:agent}
 %------------------------------------------------------------------------------
@@ -160,9 +139,9 @@ handle_intro_accept(ch(FIn, FOut?), Other,
 The agent procedure is the main event loop handling all protocols. It takes four arguments: agent identity, user input stream, network input stream, and an outputs list mapping names to output streams.
 
 \begin{verbatim}
-procedure agent(AgentId?, Stream?, Stream?, OutputsList?).
+procedure agent(Constant?, Stream?, Stream?, OutputsList?).
 
-%% --- User messages (from '_user') ---
+%% --- User messages ---
 
 %% User initiates cold call
 agent(Id, [msg('_user', Id1, connect(Target))|UserIn],
@@ -175,16 +154,16 @@ agent(Id, [msg('_user', Id1, connect(Target))|UserIn],
             UserIn?, UserIn1),
         agent(Id?, UserIn1?, NetIn?, Outs1?).
 
-%% User decision on cold-call introduction
+%% User decision on cold-call
 agent(Id, [msg('_user', Id1,
-    decision(Dec, From, Resp?))|UserIn],
+    decision(Dec, From, response(Resp?)))|UserIn],
     NetIn, Outs) :-
         Id? =?= Id1? |
         bind_response(Dec?, From?, Resp,
             Outs?, Outs1, NetIn?, NetIn1),
         agent(Id?, UserIn?, NetIn1?, Outs1?).
 
-%% User sends text message to friend
+%% User sends text message
 agent(Id, [msg('_user', Id1,
     send(Target, Text))|UserIn],
     NetIn, Outs) :-
@@ -194,7 +173,7 @@ agent(Id, [msg('_user', Id1,
             Outs?, Outs1),
         agent(Id?, UserIn?, NetIn?, Outs1?).
 
-%% User commands: introduce P to Q
+%% User introduces P to Q
 agent(Id, [msg('_user', Id1,
     introduce(P, Q))|UserIn],
     NetIn, Outs) :-
@@ -210,12 +189,16 @@ agent(Id, [msg('_user', Id1,
 
 %% User accepts friend introduction
 agent(Id, [msg('_user', Id1,
-    accept_intro(Other, Ch))|UserIn],
+    accept_intro(Other,
+        channel(ch(FIn, FOut?))))|UserIn],
     NetIn, Outs) :-
         Id? =?= Id1?, ground(Other?) |
-        handle_intro_accept(Ch?, Other?,
-            Outs?, Outs1, NetIn?, NetIn1),
-        agent(Id?, UserIn?, NetIn1?, Outs1?).
+        add_output(Other?, FOut, Outs?, Outs1),
+        lookup_send('_user',
+            msg(agent, '_user', connected(Other?)),
+            Outs1?, Outs2),
+        merge(NetIn?, FIn?, NetIn1),
+        agent(Id?, UserIn?, NetIn1?, Outs2?).
 
 %% User rejects friend introduction
 agent(Id, [msg('_user', Id1,
@@ -224,7 +207,7 @@ agent(Id, [msg('_user', Id1,
         Id? =?= Id1? |
         agent(Id?, UserIn?, NetIn?, Outs?).
 
-%% Response to cold-call (injected into UserIn)
+%% Response to cold-call (injected by inject_msg)
 agent(Id, [msg(From, Id1, response(Resp))|UserIn],
     NetIn, Outs) :-
         Id? =?= Id1? |
@@ -239,7 +222,7 @@ agent(Id, [_|UserIn], NetIn, Outs) :-
 
 %% --- Network messages ---
 
-%% Received cold-call introduction from net
+%% Cold-call from network
 agent(Id, UserIn,
     [msg(Id1, intro(From, Resp))|NetIn], Outs) :-
         Id? =?= Id1? |
@@ -249,7 +232,7 @@ agent(Id, UserIn,
             Outs?, Outs1),
         agent(Id?, UserIn?, NetIn?, Outs1?).
 
-%% Response to sent cold-call introduction
+%% Response to cold-call from network
 agent(Id, UserIn,
     [msg(From, Id1, response(Resp))|NetIn],
     Outs) :-
@@ -258,7 +241,7 @@ agent(Id, UserIn,
             Outs?, Outs1, NetIn?, NetIn1),
         agent(Id?, UserIn?, NetIn1?, Outs1?).
 
-%% Received text message from friend
+%% Text from friend
 agent(Id, UserIn,
     [msg(From, Id1, text(Text))|NetIn], Outs) :-
         Id? =?= Id1? |
@@ -268,7 +251,7 @@ agent(Id, UserIn,
             Outs?, Outs1),
         agent(Id?, UserIn?, NetIn?, Outs1?).
 
-%% Received introduction from friend
+%% Introduction from friend
 agent(Id, UserIn,
     [msg(From, Id1, intro(Other, Ch))|NetIn],
     Outs) :-
@@ -433,164 +416,332 @@ network3(ch([], []), ch([], []), ch([], [])).
 \end{verbatim}
 
 %------------------------------------------------------------------------------
-\subsection{Actors as State Machines}
+\subsection{UI Mediator}
+\label{app:ui-mediator}
+%------------------------------------------------------------------------------
+
+The UI mediator sits between \verb|agent/4| and the user (whether a human or an actor). Agent output may contain unbound variables (e.g., \verb|befriend(alice, Resp)|); the mediator replaces these with ground request identifiers \verb|req(N)|, stores the original variables in a pending list, and retrieves them when the user responds. All communication between the mediator and the user is in ground terms.
+
+\begin{verbatim}
+ReqId       ::= req(Constant).
+PendingValue ::= response(Response?)
+               ; channel(Channel?) ; error.
+PendingEntry ::= pending(ReqId, PendingValue).
+PendingList  ::= [] ; [PendingEntry|PendingList].
+
+procedure ui_mediator(Constant?, Channel?,
+    Channel?, PendingList?, Constant?).
+
+%% --- Agent-to-user: non-ground ---
+
+%% Cold-call befriend: store response variable
+ui_mediator(Id, AgentCh, UserCh, Ps, N) :-
+    receive(msg(agent, '_user',
+                befriend(From, Resp?)),
+            AgentCh?, AgentCh1),
+    ground(From?) |
+    send(befriend(From?, req(N?)),
+         UserCh?, UserCh1),
+    N1 := N? + 1,
+    ui_mediator(Id?, AgentCh1?, UserCh1?,
+        [pending(req(N?), response(Resp))
+         | Ps?], N1?).
+
+%% Introduction: store channel variable
+ui_mediator(Id, AgentCh, UserCh, Ps, N) :-
+    receive(msg(agent, '_user',
+                befriend_intro(From, Other, Ch?)),
+            AgentCh?, AgentCh1),
+    ground(From?), ground(Other?) |
+    send(befriend_intro(From?, Other?, req(N?)),
+         UserCh?, UserCh1),
+    N1 := N? + 1,
+    ui_mediator(Id?, AgentCh1?, UserCh1?,
+        [pending(req(N?), channel(Ch))
+         | Ps?], N1?).
+
+%% --- Agent-to-user: ground (pass through) ---
+
+ui_mediator(Id, AgentCh, UserCh, Ps, N) :-
+    receive(msg(agent, '_user', connected(Who)),
+            AgentCh?, AgentCh1),
+    ground(Who?) |
+    send(connected(Who?), UserCh?, UserCh1),
+    ui_mediator(Id?, AgentCh1?, UserCh1?,
+        Ps?, N?).
+
+ui_mediator(Id, AgentCh, UserCh, Ps, N) :-
+    receive(msg(agent, '_user', rejected),
+            AgentCh?, AgentCh1) |
+    send(rejected, UserCh?, UserCh1),
+    ui_mediator(Id?, AgentCh1?, UserCh1?,
+        Ps?, N?).
+
+ui_mediator(Id, AgentCh, UserCh, Ps, N) :-
+    receive(msg(agent, '_user', rejected(Who)),
+            AgentCh?, AgentCh1),
+    ground(Who?) |
+    send(rejected(Who?), UserCh?, UserCh1),
+    ui_mediator(Id?, AgentCh1?, UserCh1?,
+        Ps?, N?).
+
+ui_mediator(Id, AgentCh, UserCh, Ps, N) :-
+    receive(msg(agent, '_user',
+                received(From, Text)),
+            AgentCh?, AgentCh1),
+    ground(From?), ground(Text?) |
+    send(received(From?, Text?),
+         UserCh?, UserCh1),
+    ui_mediator(Id?, AgentCh1?, UserCh1?,
+        Ps?, N?).
+
+%% --- User-to-agent: decision ---
+
+ui_mediator(Id, AgentCh, UserCh, Ps, N) :-
+    receive(decision(Dec, From, ReqId),
+            UserCh?, UserCh1),
+    ground(Id?), ground(Dec?), ground(From?),
+    ground(ReqId?) |
+    lookup_pending(ReqId?, Resp, Ps?, Ps1),
+    send(msg('_user', Id?,
+             decision(Dec?, From?, Resp?)),
+         AgentCh?, AgentCh1),
+    ui_mediator(Id?, AgentCh1?, UserCh1?,
+        Ps1?, N?).
+
+%% --- User-to-agent: accept/reject intro ---
+
+ui_mediator(Id, AgentCh, UserCh, Ps, N) :-
+    receive(accept_intro(Other, ReqId),
+            UserCh?, UserCh1),
+    ground(Id?), ground(Other?),
+    ground(ReqId?) |
+    lookup_pending(ReqId?, Ch, Ps?, Ps1),
+    send(msg('_user', Id?,
+             accept_intro(Other?, Ch?)),
+         AgentCh?, AgentCh1),
+    ui_mediator(Id?, AgentCh1?, UserCh1?,
+        Ps1?, N?).
+
+ui_mediator(Id, AgentCh, UserCh, Ps, N) :-
+    receive(reject_intro(Other),
+            UserCh?, UserCh1),
+    ground(Id?), ground(Other?) |
+    send(msg('_user', Id?,
+             reject_intro(Other?)),
+         AgentCh?, AgentCh1),
+    ui_mediator(Id?, AgentCh1?, UserCh1?,
+        Ps?, N?).
+
+%% --- User-to-agent: pass-through commands ---
+
+ui_mediator(Id, AgentCh, UserCh, Ps, N) :-
+    receive(connect(Target),
+            UserCh?, UserCh1),
+    ground(Id?), ground(Target?) |
+    send(msg('_user', Id?,
+             connect(Target?)),
+         AgentCh?, AgentCh1),
+    ui_mediator(Id?, AgentCh1?, UserCh1?,
+        Ps?, N?).
+
+ui_mediator(Id, AgentCh, UserCh, Ps, N) :-
+    receive(send(Target, Text),
+            UserCh?, UserCh1),
+    ground(Id?), ground(Target?),
+    ground(Text?) |
+    send(msg('_user', Id?,
+             send(Target?, Text?)),
+         AgentCh?, AgentCh1),
+    ui_mediator(Id?, AgentCh1?, UserCh1?,
+        Ps?, N?).
+
+ui_mediator(Id, AgentCh, UserCh, Ps, N) :-
+    receive(introduce(P, Q),
+            UserCh?, UserCh1),
+    ground(Id?), ground(P?), ground(Q?) |
+    send(msg('_user', Id?,
+             introduce(P?, Q?)),
+         AgentCh?, AgentCh1),
+    ui_mediator(Id?, AgentCh1?, UserCh1?,
+        Ps?, N?).
+
+%% Termination
+ui_mediator(_, ch([], []),
+    ch([], []), _, _).
+
+%% --- Pending list management ---
+
+procedure lookup_pending(ReqId?,
+    PendingValue, PendingList?, PendingList).
+lookup_pending(ReqId, Val?,
+    [pending(Id, Val) | Rest], Rest?) :-
+    ReqId? =?= Id? | true.
+lookup_pending(ReqId, Val?,
+    [P | Rest], [P? | Rest1?]) :-
+    otherwise |
+    lookup_pending(ReqId?, Val, Rest?, Rest1).
+lookup_pending(_, error, [], []).
+\end{verbatim}
+
+%------------------------------------------------------------------------------
+\subsection{UI Actors}
 \label{app:actors}
 %------------------------------------------------------------------------------
 
-Each actor is a GLP procedure that implements a state machine, reacting to messages from the agent and producing commands for it. The actor's state is encoded in the procedure name (e.g., \verb|alice_wait_bob_connected|, \verb|alice_wait_intro|), and transitions occur via recursive calls to different procedures.
+Each actor is a GLP procedure that implements a state machine, communicating with the UI mediator in ground terms---the same protocol a human uses in the interactive UI. The actor's state is encoded in the procedure name (e.g., \verb|alice_ui_wait_bob_connected|, \verb|bob_ui_wait_charlie_msg|), and transitions occur via recursive calls to different procedures.
 
 \subsubsection{Alice's Actor}
 
-Alice's script: (1) cold-call Bob, (2) wait for connection confirmation, (3) send greeting to Bob, (4) wait for introduction to Charlie and accept it, (5) send greeting to Charlie, (6) wait for Charlie's reply.
+Alice's script: (1) send \verb|connect(bob)|, (2) wait for \verb|connected(bob)|, (3) send greeting to Bob, (4) wait for \verb|befriend_intro| and accept it, (5) wait for \verb|connected(charlie)|, (6) send greeting to Charlie, (7) wait for Charlie's reply.
 
 \begin{verbatim}
-procedure alice_actor(Channel?).
-alice_actor(ch(In,
-    [msg('_user', alice, connect(bob))|Out?])) :-
-        alice_wait_bob_connected(In?, Out).
+procedure alice_ui_actor(Channel?).
+alice_ui_actor(ch(In,
+    [connect(bob)|Out?])) :-
+        alice_ui_wait_bob_connected(In?, Out).
 
-procedure alice_wait_bob_connected(Stream?, Stream).
-alice_wait_bob_connected(
-    [msg(agent, '_user', connected(bob))|In],
-    [msg('_user', alice,
-        send(bob, 'Hi Bob, this is Alice'))
+procedure alice_ui_wait_bob_connected(
+    Stream?, Stream).
+alice_ui_wait_bob_connected(
+    [connected(bob)|In],
+    [send(bob, 'Hi Bob, this is Alice')
      |Out?]) :-
-        alice_wait_intro(In?, Out).
-alice_wait_bob_connected([_|In], Out?) :-
+        alice_ui_wait_intro(In?, Out).
+alice_ui_wait_bob_connected([_|In], Out?) :-
     otherwise |
-    alice_wait_bob_connected(In?, Out).
-alice_wait_bob_connected([], []).
+    alice_ui_wait_bob_connected(In?, Out).
+alice_ui_wait_bob_connected([], []).
 
-procedure alice_wait_intro(Stream?, Stream).
-alice_wait_intro(
-    [msg(agent, '_user',
-        befriend_intro(_, Other, Ch))|In],
-    [msg('_user', alice,
-        accept_intro(Other?, Ch?))|Out?]) :-
-        ground(Other?) |
-        alice_send_to_charlie(In?, Out).
-alice_wait_intro([_|In], Out?) :-
-    otherwise | alice_wait_intro(In?, Out).
-alice_wait_intro([], []).
+procedure alice_ui_wait_intro(
+    Stream?, Stream).
+alice_ui_wait_intro(
+    [befriend_intro(bob, charlie, ReqId)|In],
+    [accept_intro(charlie, ReqId?)|Out?]) :-
+        ground(ReqId?) |
+        alice_ui_wait_charlie_connected(
+            In?, Out).
+alice_ui_wait_intro([_|In], Out?) :-
+    otherwise |
+    alice_ui_wait_intro(In?, Out).
+alice_ui_wait_intro([], []).
 
-procedure alice_send_to_charlie(Stream?, Stream).
-alice_send_to_charlie(In,
-    [msg('_user', alice,
-        send(charlie,
-            'Hi Charlie, this is Alice'))
+procedure alice_ui_wait_charlie_connected(
+    Stream?, Stream).
+alice_ui_wait_charlie_connected(
+    [connected(charlie)|In],
+    [send(charlie,
+        'Hi Charlie, this is Alice')
      |Out?]) :-
-        alice_wait_charlie_reply(In?, Out).
+        alice_ui_wait_charlie_reply(In?, Out).
+alice_ui_wait_charlie_connected(
+    [_|In], Out?) :-
+        otherwise |
+        alice_ui_wait_charlie_connected(
+            In?, Out).
+alice_ui_wait_charlie_connected([], []).
 
-procedure alice_wait_charlie_reply(Stream?, Stream).
-alice_wait_charlie_reply(
-    [msg(agent, '_user',
-        received(charlie, _))|_], []).
-alice_wait_charlie_reply([_|In], Out?) :-
+procedure alice_ui_wait_charlie_reply(
+    Stream?, Stream).
+alice_ui_wait_charlie_reply(
+    [received(charlie, _)|_], []).
+alice_ui_wait_charlie_reply([_|In], Out?) :-
     otherwise |
-    alice_wait_charlie_reply(In?, Out).
-alice_wait_charlie_reply([], []).
+    alice_ui_wait_charlie_reply(In?, Out).
+alice_ui_wait_charlie_reply([], []).
 \end{verbatim}
 
 \subsubsection{Bob's Actor}
 
-Bob's script: (1) accept Alice's cold-call, (2) receive Alice's message, (3) cold-call Charlie, (4) wait for connection, (5) receive Charlie's message, (6) introduce Alice to Charlie.
+Bob's script: (1) wait for \verb|befriend(alice, req(N))| and accept, (2) wait for Alice's message, (3) send \verb|connect(charlie)|, (4) wait for connection, (5) wait for Charlie's message, (6) introduce Alice to Charlie.
 
 \begin{verbatim}
-procedure bob_actor(Channel?).
-bob_actor(ch(
-    [msg(agent, '_user',
-        befriend(From, Resp))|In],
-    [msg('_user', bob,
-        decision(yes, From?, Resp?))
-     |Out?])) :-
-        ground(From?) |
-        bob_wait_alice_msg(In?, Out).
-bob_actor(ch([_|In], Out?)) :-
-    otherwise | bob_actor(ch(In?, Out)).
+procedure bob_ui_actor(Channel?).
+bob_ui_actor(ch(
+    [befriend(alice, ReqId)|In],
+    [decision(yes, alice, ReqId?)|Out?])) :-
+        ground(ReqId?) |
+        bob_ui_wait_alice_msg(In?, Out).
+bob_ui_actor(ch([_|In], Out?)) :-
+    otherwise | bob_ui_actor(ch(In?, Out)).
 
-procedure bob_wait_alice_msg(Stream?, Stream).
-bob_wait_alice_msg(
-    [msg(agent, '_user', connected(_))|In],
-    Out?) :-
-        bob_wait_alice_msg(In?, Out).
-bob_wait_alice_msg(
-    [msg(agent, '_user',
-        received(alice, _))|In],
-    [msg('_user', bob, connect(charlie))
-     |Out?]) :-
-        bob_wait_charlie_connected(In?, Out).
-bob_wait_alice_msg([_|In], Out?) :-
+procedure bob_ui_wait_alice_msg(
+    Stream?, Stream).
+bob_ui_wait_alice_msg(
+    [connected(_)|In], Out?) :-
+        bob_ui_wait_alice_msg(In?, Out).
+bob_ui_wait_alice_msg(
+    [received(alice, _)|In],
+    [connect(charlie)|Out?]) :-
+        bob_ui_wait_charlie_connected(
+            In?, Out).
+bob_ui_wait_alice_msg([_|In], Out?) :-
     otherwise |
-    bob_wait_alice_msg(In?, Out).
-bob_wait_alice_msg([], []).
+    bob_ui_wait_alice_msg(In?, Out).
+bob_ui_wait_alice_msg([], []).
 
-procedure bob_wait_charlie_connected(Stream?, Stream).
-bob_wait_charlie_connected(
-    [msg(agent, '_user',
-        connected(charlie))|In], Out?) :-
-        bob_wait_charlie_msg(In?, Out).
-bob_wait_charlie_connected([_|In], Out?) :-
-    otherwise |
-    bob_wait_charlie_connected(In?, Out).
-bob_wait_charlie_connected([], []).
+procedure bob_ui_wait_charlie_connected(
+    Stream?, Stream).
+bob_ui_wait_charlie_connected(
+    [connected(charlie)|In], Out?) :-
+        bob_ui_wait_charlie_msg(In?, Out).
+bob_ui_wait_charlie_connected(
+    [_|In], Out?) :-
+        otherwise |
+        bob_ui_wait_charlie_connected(
+            In?, Out).
+bob_ui_wait_charlie_connected([], []).
 
-procedure bob_wait_charlie_msg(Stream?, Stream).
-bob_wait_charlie_msg(
-    [msg(agent, '_user',
-        received(charlie, _))|_],
-    [msg('_user', bob,
-        introduce(alice, charlie))]).
-bob_wait_charlie_msg([_|In], Out?) :-
+procedure bob_ui_wait_charlie_msg(
+    Stream?, Stream).
+bob_ui_wait_charlie_msg(
+    [received(charlie, _)|_],
+    [introduce(alice, charlie)]).
+bob_ui_wait_charlie_msg([_|In], Out?) :-
     otherwise |
-    bob_wait_charlie_msg(In?, Out).
-bob_wait_charlie_msg([], []).
+    bob_ui_wait_charlie_msg(In?, Out).
+bob_ui_wait_charlie_msg([], []).
 \end{verbatim}
 
 \subsubsection{Charlie's Actor}
 
-Charlie's script: (1) accept Bob's cold-call, (2) send greeting to Bob, (3) wait for introduction to Alice and accept it, (4) receive Alice's message, (5) send reply to Alice.
+Charlie's script: (1) wait for \verb|befriend(bob, req(N))| and accept, (2) send greeting to Bob, (3) wait for \verb|befriend_intro| and accept, (4) wait for Alice's message, (5) send reply to Alice.
 
 \begin{verbatim}
-procedure charlie_actor(Channel?).
-charlie_actor(ch(
-    [msg(agent, '_user',
-        befriend(From, Resp))|In],
-    [msg('_user', charlie,
-        decision(yes, From?, Resp?)),
-     msg('_user', charlie,
-        send(bob,
-            'Hi Bob, this is Charlie'))
+procedure charlie_ui_actor(Channel?).
+charlie_ui_actor(ch(
+    [befriend(bob, ReqId)|In],
+    [decision(yes, bob, ReqId?),
+     send(bob, 'Hi Bob, this is Charlie')
      |Out?])) :-
-        ground(From?) |
-        charlie_wait_intro(In?, Out).
-charlie_actor(ch([_|In], Out?)) :-
+        ground(ReqId?) |
+        charlie_ui_wait_intro(In?, Out).
+charlie_ui_actor(ch([_|In], Out?)) :-
     otherwise |
-    charlie_actor(ch(In?, Out)).
+    charlie_ui_actor(ch(In?, Out)).
 
-procedure charlie_wait_intro(Stream?, Stream).
-charlie_wait_intro(
-    [msg(agent, '_user',
-        befriend_intro(_, Other, Ch))|In],
-    [msg('_user', charlie,
-        accept_intro(Other?, Ch?))|Out?]) :-
-        ground(Other?) |
-        charlie_wait_alice_msg(In?, Out).
-charlie_wait_intro([_|In], Out?) :-
+procedure charlie_ui_wait_intro(
+    Stream?, Stream).
+charlie_ui_wait_intro(
+    [befriend_intro(bob, alice, ReqId)|In],
+    [accept_intro(alice, ReqId?)|Out?]) :-
+        ground(ReqId?) |
+        charlie_ui_wait_alice_msg(In?, Out).
+charlie_ui_wait_intro([_|In], Out?) :-
     otherwise |
-    charlie_wait_intro(In?, Out).
-charlie_wait_intro([], []).
+    charlie_ui_wait_intro(In?, Out).
+charlie_ui_wait_intro([], []).
 
-procedure charlie_wait_alice_msg(Stream?, Stream).
-charlie_wait_alice_msg(
-    [msg(agent, '_user',
-        received(alice, _))|_],
-    [msg('_user', charlie,
-        send(alice,
-            'Hi Alice, this is Charlie'))]).
-charlie_wait_alice_msg([_|In], Out?) :-
+procedure charlie_ui_wait_alice_msg(
+    Stream?, Stream).
+charlie_ui_wait_alice_msg(
+    [received(alice, _)|_],
+    [send(alice,
+        'Hi Alice, this is Charlie')]).
+charlie_ui_wait_alice_msg([_|In], Out?) :-
     otherwise |
-    charlie_wait_alice_msg(In?, Out).
-charlie_wait_alice_msg([], []).
+    charlie_ui_wait_alice_msg(In?, Out).
+charlie_ui_wait_alice_msg([], []).
 \end{verbatim}
 
 %------------------------------------------------------------------------------
@@ -598,28 +749,54 @@ charlie_wait_alice_msg([], []).
 \label{app:play}
 %------------------------------------------------------------------------------
 
-The play initializes three agents with their user and network channels, connects them via the network switch, and starts each actor. All agents run in a single process.
+The play initializes three agents, each connected to the network switch via the UI mediator. All agents run in a single process.
 
 \begin{verbatim}
 procedure play.
 play :-
     network3(ch(AliceNetOut?, AliceNetIn),
              ch(BobNetOut?, BobNetIn),
-             ch(CharlieNetOut?, CharlieNetIn)),
-    agent(alice, AliceUserOut?, AliceNetIn?,
-        [output('_user', AliceUserIn),
+             ch(CharlieNetOut?,
+                CharlieNetIn)),
+
+    %% Alice: agent <-> mediator <-> actor
+    agent(alice, AliceAgentIn?,
+        AliceNetIn?,
+        [output('_user', AliceAgentToUser),
          output('_net', AliceNetOut)]),
-    agent(bob, BobUserOut?, BobNetIn?,
-        [output('_user', BobUserIn),
+    ui_mediator(alice,
+        ch(AliceAgentToUser?, AliceAgentIn),
+        ch(AliceUserOut?, AliceUserIn),
+        [], 1),
+    alice_ui_actor(
+        ch(AliceUserIn?, AliceUserOut)),
+
+    %% Bob: agent <-> mediator <-> actor
+    agent(bob, BobAgentIn?,
+        BobNetIn?,
+        [output('_user', BobAgentToUser),
          output('_net', BobNetOut)]),
-    agent(charlie, CharlieUserOut?,
+    ui_mediator(bob,
+        ch(BobAgentToUser?, BobAgentIn),
+        ch(BobUserOut?, BobUserIn),
+        [], 1),
+    bob_ui_actor(
+        ch(BobUserIn?, BobUserOut)),
+
+    %% Charlie: agent <-> mediator <-> actor
+    agent(charlie, CharlieAgentIn?,
         CharlieNetIn?,
-        [output('_user', CharlieUserIn),
+        [output('_user', CharlieAgentToUser),
          output('_net', CharlieNetOut)]),
-    alice_actor(ch(AliceUserIn?, AliceUserOut)),
-    bob_actor(ch(BobUserIn?, BobUserOut)),
-    charlie_actor(
-        ch(CharlieUserIn?, CharlieUserOut)).
+    ui_mediator(charlie,
+        ch(CharlieAgentToUser?,
+           CharlieAgentIn),
+        ch(CharlieUserOut?,
+           CharlieUserIn),
+        [], 1),
+    charlie_ui_actor(
+        ch(CharlieUserIn?,
+           CharlieUserOut)).
 \end{verbatim}
 
 The play terminates successfully when all streams are closed and all agents reach their terminal states. The network switch simulates the Cold-call transaction introduced in Section~\ref{sec:maglp}.
@@ -642,30 +819,40 @@ procedure agent_init(Constant?, Stream?).
 agent_init(Id, NetIn) :-
     ground(Id?) |
     send_to_net(NetOut?),
-    agent(Id?, UserOut?, NetIn?,
-        [output('_user', UserIn),
+    agent(Id?, AgentIn?, NetIn?,
+        [output('_user', AgentToUser),
          output('_net', NetOut)]),
-    actor(Id?, ch(UserIn?, UserOut)).
+    ui_mediator(Id?,
+        ch(AgentToUser?, AgentIn),
+        ch(UserOut?, UserIn), [], 1),
+    ui_actor(Id?,
+        ch(UserIn?, UserOut)).
 
-procedure actor(_?, Channel?).
-actor(alice, Ch) :- alice_actor(Ch?).
-actor(bob, Ch) :- bob_actor(Ch?).
-actor(charlie, Ch) :- charlie_actor(Ch?).
+procedure ui_actor(_?, Channel?).
+ui_actor(alice, Ch) :-
+    alice_ui_actor(Ch?).
+ui_actor(bob, Ch) :-
+    bob_ui_actor(Ch?).
+ui_actor(charlie, Ch) :-
+    charlie_ui_actor(Ch?).
 \end{verbatim}
 
 %------------------------------------------------------------------------------
-\subsection{Multiagent UI Boot (maGLP with Windows)}
+\subsection{Multiagent UI Boot (maGLP Interactive)}
 \label{app:maglp-ui-boot}
 %------------------------------------------------------------------------------
 
-In the interactive UI variant, each agent runs in its own window. The UI provides user and network channels directly---no actors are needed, as the user interacts by typing GLP terms (e.g., \verb|connect(bob)|, \verb|send(bob, hello)|, \verb|introduce(alice, charlie)|).
+In the interactive UI variant, each agent runs in its own window. The user interacts by typing ground GLP terms (e.g., \verb|connect(bob)|, \verb|decision(yes, alice, req(1))|, \verb|introduce(alice, charlie)|). The \verb|send_to_user| system predicate outputs ground terms from the mediator to the UI.
 
 \begin{verbatim}
-procedure agent_init(Constant?, Channel?, Channel?).
-agent_init(Id, ch(UserIn, UserOut?),
-    ch(NetIn, NetOut?)) :-
-        ground(Id?) |
-        agent(Id?, UserOut?, NetIn?,
-            [output('_user', UserIn),
-             output('_net', NetOut)]).
+agent_init(Id, UserIn, NetIn) :-
+    ground(Id?) |
+    send_to_net(NetOut?),
+    agent(Id?, AgentIn?, NetIn?,
+        [output('_user', AgentToUser),
+         output('_net', NetOut)]),
+    ui_mediator(Id?,
+        ch(AgentToUser?, AgentIn),
+        ch(UserIn?, UserOut), [], 1),
+    send_to_user(UserOut?).
 \end{verbatim}
