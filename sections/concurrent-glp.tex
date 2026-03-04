@@ -177,7 +177,19 @@ Furthermore, if the success of a guard implies that $X?$ is ground, then $X?$ as
 An \emph{anonymous variable} is any variable whose name begins with \verb|_| (e.g., \verb|_|, \verb|_In?|, \verb|_Out|). Anonymous writers may appear in the head, denoting a fresh writer with no paired reader, so that a value assigned to it is discarded. These provide a controlled exception to the SRSW restriction, allowing a process to abandon an input (e.g.\ an input stream) they are no longer interested in.
 \end{remark}
 
-Guard predicates include type tests (\verb|integer|, \verb|number|, \verb|string|, \verb|constant|, \verb|compound|, \verb|ground|, \verb|known|), arithmetic comparisons (\verb|<|, \verb|>|, \verb|=<|, \verb|>=|, \verb|=:=|, \verb|=\=|), and ground equality (\verb|=?=|). The full specification of guards and system predicates appears in \ref{appendix:guards-system}.
+Guard predicates include type tests (\verb|integer|, \verb|number|, \verb|string|, \verb|constant|, \verb|compound|, \verb|ground|, \verb|known|), arithmetic comparisons (\verb|<|, \verb|>|, \verb|=<|, \verb|>=|, \verb|=:=|, \verb|=\=|), and ground equality (\verb|=?=|).
+
+\mypara{System predicates and body kernels}
+GLP \emph{system predicates} such as \verb|:=| (arithmetic assignment), \verb|now| (clock access), and \verb|=..| (term composition/decomposition) are predicates defined by GLP clauses whose bodies may invoke \emph{body kernel predicates}---runtime-implemented primitives not directly accessible to user programs. The system predicate's own guards ensure that body kernel preconditions are met before invocation. For example, arithmetic assignment is defined recursively by clauses that pattern-match on each operator:
+
+\begin{verbatim}
+Result? := N :- number(N?) | Result = N?.
+Result? := X + Y :- number(X?), number(Y?) |
+    '_add'(X?, Y?, Result).
+Result? := X + Y :- otherwise |
+    X1 := X?, Y1 := Y?, Result := X1? + Y1?.
+\end{verbatim}
+\noindent The base case binds a plain number; the first addition clause guards that both operands are numbers and invokes the \verb|'_add'| body kernel; the fallback clause recursively evaluates subexpressions. The complete definitions of all system predicates and the full table of body kernels appear in \ref{appendix:guards-system}.
 
 %------------------------------------------------------------------------------
 \subsection{Programming Examples}
