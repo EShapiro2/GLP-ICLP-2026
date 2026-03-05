@@ -159,53 +159,51 @@ agent(Id, UserIn,
 \begin{figure*}[t]
 \begin{multicols}{2}
 \begin{verbatim}
-%%look up friend, send unfriend message
-with Done variable
-procedure send_unfriend(_?, _?,
-FriendList?, FriendList, _).
-send_unfriend(Id, Target, Fs,Fs1?,
-Done?) :-
-    lookup(Target?, Fs?, Result),
-    do_send_unfriend(Result?, Id?,
-    Target?, Fs?, Fs1, Done).
+procedure remove_output(OutputKey?, 
+OutputsList?, OutputsList).
+remove_output(Key, [output(K, [])|Rest],
+Rest?) :-
+    Key? =?= K? | true.
+remove_output(Key, [O|Rest], [O?|Rest1?])
+:-
+    otherwise |
+    remove_output(Key?, Rest?, Rest1).
+remove_output(_, [], []).
+\end{verbatim}
 
-procedure do_send_unfriend(
-LookupResult?,_?, _?,
-FriendList?, FriendList, _).
-do_send_unfriend(found(Out), Id,
-Target, Fs, Fs1?, Done?) :-
-    update(Target?, [unfriend(Id?,
-    Done)|Out?], Fs?, Fs1).
+\begin{verbatim}
+procedure agent(Constant?, UserInStream?,
+NetInStream?, OutputsList?).
+agent(Id, [msg('_user', Id1, unfriend
+(Target))|UserIn], NetIn, Outs) :-
+    Id? =?= Id1?, ground(Target?) |
+    lookup_send(friend(Target?), msg(Id?,
+    Target?, unfriend(Id?)), Outs?, Outs1),
+    remove_output(friend(Target?), Outs1?,
+    Outs2),
+    lookup_send('_user', msg(agent, '_user',
+    unfriended(Target?)), Outs2?, Outs3),
+    agent(Id?, UserIn?, NetIn?, Outs3?).
+
+
 \end{verbatim}
 \columnbreak
 \begin{verbatim}
-%%notify user, wait for Done, then close
-and remove, 
-procedure await_unfriend(_?, _?, _?, 
-MsgStream?, FriendList?).
-await_unfriend(Done, Id, Target, In, Fs) :-
-    Done? =?= true |
-    close_and_remove(Target?, Fs?, Fs1),
-    lookup_send(user, msg(agent, user,
-    unfriended(Target?)),Fs1?, Fs2, _),
-    social_graph(Id?, In?, Fs2?).
-\end{verbatim}
-\begin{verbatim}
-%%close stream and remove entry
-procedure close_and_remove(_?, FriendList?,
-FriendList).
-close_and_remove(Key, [(K, S)|Rest], Rest?)
-:- Key? =?= K? | S = [].
-close_and_remove(Key, [(K, V)|Rest], 
-[(K?, V?)|Rest1?]) :-
-    otherwise | close_and_remove(Key?
-    Rest?, Rest1).
-close_and_remove(_, [], []).
+agent(Id, UserIn, [msg(From, Id1, 
+unfriend(_))|NetIn], Outs) :-
+    Id? =?= Id1?, ground(From?) |
+    remove_output(friend(From?), Outs?,
+    Outs1),
+    lookup_send('_user', msg(agent, '_user', 
+    unfriended(From?)), Outs1?, Outs2),
+    agent(Id?, UserIn?, NetIn?, Outs2?).
 \end{verbatim}
 \end{multicols}
 \caption{Agent unfriend mechanism}
 \label{fig:end-friendship}
 \end{figure*}
+
+
 %------------------------------------------------------------------------------
 \subsection{Friend-Mediated Introduction}
 %------------------------------------------------------------------------------
