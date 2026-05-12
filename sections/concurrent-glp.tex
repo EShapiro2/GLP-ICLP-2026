@@ -128,7 +128,7 @@ We note an additional safety property of cGLP runs.
 If the initial goal $G_0$ satisfies SO, then every goal in the cGLP run satisfies SO.
 \end{restatable}
 
-Persistence and fairness require identifying ``the same transition'' across configurations as goals are instantiated by reader substitutions. Following~\cite{lewis2026volitional}, we define goal identity and transition equivalence.
+Fairness requires identifying ``the same transition'' across configurations as goals are instantiated by reader substitutions. Following~\cite{lewis2026volitional}, we define goal identity and transition equivalence.
 
 \begin{definition}[Goal Identity]
 \label{def:goal-identity}
@@ -147,16 +147,6 @@ For cGLP, $t_1 \sim t_2$ if:
 \end{definition}
 
 Two equivalent Reduce transitions may operate on different instantiations of the same goal---with different reader substitutions applied---but produce the same writer mgu (since the writer mgu assigns only writers and is unaffected by reader substitutions).
-
-\begin{definition}[Persistent Transition System]
-\label{def:persistent}
-A transition system with transition equivalence $\sim$ is \temph{persistent} if: whenever a transition $t$ is enabled in configuration $c$, and $c = c_0 \rightarrow c_1 \rightarrow \cdots \rightarrow c_k = c'$ is a computation in which no $t' \sim t$ is taken, then some $t'' \sim t$ is enabled in $c'$.
-\end{definition}
-
-\begin{restatable}[cGLP Persistence]{lemma}{lemPersistence}
-\label{lem:cglp-persistence}
-cGLP is persistent.
-\end{restatable}
 
 \begin{definition}[cGLP Fair Run]
 \label{def:cglp-fair-run}

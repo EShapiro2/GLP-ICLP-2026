@@ -34,14 +34,6 @@ For the inductive step, assume $G$ satisfies SO and consider a transition $(G, \
 \end{itemize}
 \end{proof}
 
-\lemPersistence*
-
-\begin{proof}
-For Reduce: a Reduce reducing goal $A$ (by identity) with clause $C$ having head $H$ is enabled iff $A$ and $H$ have a writer mgu $\hat\sigma$. Other Reduce transitions assign disjoint writers (by SO), and Communicate transitions apply only reader substitutions; hence $A$---possibly with additional reader substitutions applied---and $H$ still have the same writer mgu $\hat\sigma$. Thus an equivalent Reduce remains enabled in any configuration reachable without taking an equivalent transition.
-
-For Communicate: applying $\{X? := T\} \in \sigma$ to the goal containing $X?$ (by identity) remains enabled since Reduce transitions do not remove assignments from $\sigma$ and other Communicate transitions apply different assignments.
-\end{proof}
-
 %------------------------------------------------------------------------------
 \subsection{maGLP Proofs}
 \label{app:maglp-proofs}
@@ -57,16 +49,6 @@ Reduce $p$ preserves SO at agent $p$ by the same argument as cGLP SO Preservatio
 
 \begin{proof}
 By inspection of the transactions in Definition~\ref{definition:maGLP}: Reduce $p$ adds new reader assignments to $\sigma_p$ with $\mathit{sent} = 0$; existing assignments are unchanged. Communicate $p$ to $q$ sets $\mathit{sent}(X?) := 1$ in $\sigma_p$ (a $0 \to 1$ transition); no assignment is removed. Cold-call $p$ to $q$ does not modify $\sigma$. Hence $\sigma_p$ only grows, and sent flags only flip from $0$ to $1$.
-\end{proof}
-
-\lemmaGLPPersistence*
-
-\begin{proof}
-For Reduce $p$: enabled iff goal $A$ (by identity) at agent $p$ and clause head $H$ have a writer mgu $\hat\sigma$. Other Reduce transactions assign disjoint writers (by SO). Communicate transactions apply reader substitutions to $G_p$ or set sent flags in $\sigma_p$, neither of which affects $A$'s identifier or its writer mgu with $H$. Cold-call transactions modify network streams but not $G_p$'s existing goals. Thus an equivalent Reduce remains enabled (cf.\ cGLP persistence, Lemma~\ref{lem:cglp-persistence}).
-
-For Communicate $p$ to $q$: enabled iff $(X? := T, 0) \in \sigma_p$ and the goal containing $X?$ (by identity) is in $G_q$. By state growth (Proposition~\ref{prop:maglp-state-growth}), the assignment is in $\sigma'_p$; since no equivalent Communicate is taken, the sent flag remains $0$. The goal at $q$ retains its identifier across Communicate substitutions. Thus an equivalent Communicate remains enabled.
-
-For Cold-call $p$ to $q$: enabled iff $p$'s network output stream has a message for $q$. Other transactions don't consume this message. Thus an equivalent Cold-call remains enabled.
 \end{proof}
 
 %------------------------------------------------------------------------------
