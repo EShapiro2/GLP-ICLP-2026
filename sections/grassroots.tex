@@ -2,11 +2,11 @@
 \section{Multiagent GLP is Grassroots}\label{sec:grassroots}
 %==============================================================================
 
-This section establishes that maGLP is grassroots, following the framework of~\citep{shapiro2023grassrootsBA,shapiro2025atomic}. Formal definitions appear in Appendix~\ref{appendix:grassroots-defs}.
+This section establishes that maGLP is grassroots. We define the notion of grassroots following~\cite{lewis2026volitional}; formal definitions appear in Appendix~\ref{appendix:grassroots-defs}.
 
-Informally, a protocol defined via atomic transactions is \emph{grassroots} if its transactions are \emph{interactive}: for any group of agents $P$ running within a larger group $P'$, it is always possible for an outsider in $P' \setminus P$ to interact with a member of $P$ in a way that leaves an ``alien trace'' in $P$'s state---a configuration that $P$ could not have produced on its own.
+Informally, a protocol is \emph{grassroots} if two disjoint groups of agents can each operate independently---their interleaved correct runs are correct runs of the combined system---yet the combined system offers genuinely new behaviours that neither group could produce on its own. The first requirement is \emph{obliviousness}; the second is \emph{interactivity}.
 
-The Cold-call transaction (Definition~\ref{definition:maGLP}) is the fundamental interactive transaction of maGLP. It allows an agent $q$ outside a group $P$ to connect to an agent $p \in P$, establishing a pair of shared variables: a writer held by one agent and its paired reader held by the other. The resulting shared variable constitutes an alien trace in $p$'s state---a reference that could not have arisen from $P$ running alone.
+The Cold-call transaction (Definition~\ref{definition:maGLP}) is the fundamental interactive transaction of maGLP. It allows an agent $q$ in one group to connect to an agent $p$ in another, establishing shared variables that span both groups---a behaviour that no interleaving of independent runs of the two groups could produce.
 
 \begin{restatable}{theorem}{thmMaGLPGrassroots}
 \label{theorem:maGLP-grassroots}

@@ -3,7 +3,7 @@
 \label{appendix:social-graph-complete}
 %==============================================================================
 
-This appendix presents the complete GLP social graph program that demonstrates cold-call befriending, text messaging, and friend-mediated introduction. The program includes three agents (Alice, Bob, Charlie) driven by actor scripts that execute a comprehensive scenario. A UI mediator sits between each agent and its user, translating between the agent's non-ground terms and the ground terms used at the user interface. We present the shared agent code, the UI mediator, the actors, and three boot variants: a single-process play with a network switch (Concurrent GLP), a multiagent boot with actors (maGLP), and a multiagent interactive UI boot (maGLP).
+This appendix presents the complete GLP social graph program that demonstrates cold-call befriending, text messaging, and friend-mediated introduction. The program includes three agents (Alice, Bob, Charlie) driven by actor scripts that execute a comprehensive scenario. A UI mediator sits between each agent and its user, translating between the agent's non-ground terms and the ground terms used at the user interface. We present the shared agent code, the UI mediator, the actors, and three boot variants: a single-process play with a network switch (cGLP), a multiagent boot with actors (maGLP), and a multiagent interactive UI boot (maGLP).
 
 %------------------------------------------------------------------------------
 \subsection{The Scenario}
@@ -745,7 +745,7 @@ charlie_ui_wait_alice_msg([], []).
 \end{verbatim}
 
 %------------------------------------------------------------------------------
-\subsection{The Play (Concurrent GLP)}
+\subsection{The Play (cGLP)}
 \label{app:play}
 %------------------------------------------------------------------------------
 

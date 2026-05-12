@@ -1,72 +1,73 @@
 \section{Grassroots Definitions}\label{appendix:grassroots-defs}
 
-This appendix contains the full definitions for protocols and the grassroots property referenced in Section~\ref{sec:grassroots}.
+This appendix contains the full definitions for protocols and the grassroots property referenced in Section~\ref{sec:grassroots}, following~\cite{lewis2026volitional}.
 
 %------------------------------------------------------------------------------
 \subsection{Protocols and the Grassroots Property}
 %------------------------------------------------------------------------------
 
-A protocol is a family of multiagent transition systems, one for each set of agents $P\subset \Pi$, which share an underlying set of local states $\calS$ with a designated initial state $s0$.
+A protocol is a family of multiagent transition systems, one for each finite set of agents $P \subset \Pi$, sharing an underlying set of local states with a designated initial state.
 
 \begin{definition}[Local-States Function]\label{definition:local-states-function}
-A \temph{local-states function} $S: 2^\Pi \to 2^\calS$ maps every set of agents $P \subset \Pi$ to a set of local states $S(P) \subset \calS$ that includes $s0$ and satisfies $P \subset P' \subset \Pi \implies S(P) \subset S(P')$.
+A \temph{local-states function} $S: 2^\Pi \to 2^\calS$ maps every finite set of agents $P \subset \Pi$ to a set of local states $S(P) \subset \calS$ that includes $s0$ and satisfies $P \subset P' \implies S(P) \subset S(P')$.
 \end{definition}
 
-Given a local-states function $S$, we use $C$ to denote configurations over $S$, with $C(P) := S(P)^P$ and $c0(P):= \{s0\}^P$.
+Given a local-states function $S$, we use $C(P) := S(P)^P$ for configurations over $P$ and $c0(P) := \{s0\}^P$ for the initial configuration.
 
 \begin{definition}[Protocol]\label{definition:protocol}
-A \temph{protocol} $\calF$ over a local-states function $S$ is a family of multiagent transition systems that has exactly one transition system $\calF(P) = (C(P),c0(P),T(P))$ for every $P \subset \Pi$.
+A \temph{protocol} $\calF$ over a local-states function $S$ is a family of multiagent transition systems with exactly one transition system $\calF(P) = (C(P), c0(P), T(P))$ for every finite $P \subset \Pi$.
 \end{definition}
 
-\begin{definition}[Projection]\label{definition:projection}
-Let $\emptyset \subset P \subset P' \subset \Pi$.
-If $c'$ is a configuration over $P'$ then $c'/P$, the \temph{projection of $c'$ over $P$}, is the configuration $c$ over $P$ defined by $c_p := c'_p$ for every $p\in P$.
+A \emph{correct} run of a transition system is a complete fair run.
+
+Informally, in a grassroots protocol two disjoint groups of agents can each operate independently---their interleaved correct runs are correct runs of the combined system---yet the combined system offers genuinely new behaviours that neither group could produce on its own. To define this formally, we first define the interleaving of runs of two disjoint groups.
+
+\begin{definition}[Interleaving]\label{def:interleaving}
+Let $P, P' \subset \Pi$ be disjoint nonempty sets of agents, $r = c_0, c_1, \ldots$ a run of $\calF(P)$, and $r' = d_0, d_1, \ldots$ a run of $\calF(P')$. An \temph{interleaving} of $r$ and $r'$ is a sequence $e_0, e_1, \ldots$ of configurations in $C(P \cup P')$ for which there exist non-decreasing sequences of indices $(i_k)_{k \geq 0}$ and $(j_k)_{k \geq 0}$ with $i_0 = j_0 = 0$ such that for every $k \geq 0$:
+\begin{enumerate}
+\item $(e_k)_p = (c_{i_k})_p$ for every $p \in P$,
+\item $(e_k)_q = (d_{j_k})_q$ for every $q \in P'$,
+\item if $e_{k+1}$ exists, then exactly one of:
+  (a) $i_{k+1} = i_k + 1$ and $j_{k+1} = j_k$ (a $P$-step), or
+  (b) $i_{k+1} = i_k$ and $j_{k+1} = j_k + 1$ (a $P'$-step).
+\end{enumerate}
 \end{definition}
 
-Note that in the definition above, $c_p$, the state of $p$ in $c$, is in $S(P')$, not in $S(P)$, and hence may include elements ``alien'' to $P$, e.g., logic variables shared with $q\in P'\setminus P$.
+Note that an interleaving is well-defined: since $P \subset P \cup P'$, the local-states function ensures $S(P) \subset S(P \cup P')$, and similarly for $P'$, so each $e_k$ is a valid configuration in $C(P \cup P')$. Also, $e_0 = c0(P \cup P')$, since $(e_0)_p = (c_0)_p = s0$ for all $p \in P$ and $(e_0)_q = (d_0)_q = s0$ for all $q \in P'$.
 
-Being oblivious implies that if a run of $\calF(P')$ reaches some configuration $c'$, then anything $P$ could do on their own in the configuration $c'/P$ (with a transition from $T(P)$), they can still do in the larger configuration $c'$ (with a transition from $T(P')$), effectively being oblivious to members of $P'\setminus P$.
+\begin{definition}[Oblivious, Interactive, Grassroots]\label{definition:grassroots}
+A protocol $\calF$ is:
+\begin{enumerate}
+\item \temph{oblivious} if for every disjoint nonempty $P, P' \subset \Pi$,
+    every interleaving of a correct run of $\calF(P)$ and a correct run of $\calF(P')$ is a correct run of $\calF(P \cup P')$.
+\item \temph{interactive} if for every disjoint nonempty $P, P' \subset \Pi$, there exists a correct run $\hat{r}$ of $\calF(P \cup P')$ such that for every correct run $r$ of $\calF(P)$, every correct run $r'$ of $\calF(P')$, and every interleaving $e$ of $r$ and $r'$, $\hat{r} \neq e$.
+\item \temph{grassroots} if it is oblivious and interactive.
+\end{enumerate}
+\end{definition}
 
-Being interactive is a weak liveness requirement: no matter what members of $P$ do, if they run within a larger set of agents it is always the case that they can eventually interact with non-$P$'s in a way that leaves ``alien traces'' in the local states of $P$, so that the resulting configuration $c'/P$ could not have been produced by $P$ running on their own.
+Being oblivious means that two disjoint groups of agents, each running the protocol independently and correctly, do not interfere with each other: any interleaving of their independent correct runs is a correct run of the combined system. Being interactive means that two disjoint groups, when brought together, can do something genuinely new: there exists a correct run of the combined system that could not arise from the two groups operating independently. In an interleaving, each step changes the local states of agents in only one group; therefore, any transaction whose active participants span both groups yields a step that cannot occur in any interleaving.
 
 %------------------------------------------------------------------------------
 \subsection{Transactions-Based Protocols}
 %------------------------------------------------------------------------------
 
 \begin{definition}[Transactions Over a Local-States Function]\label{definition:transactions-lsf}
-Let $S$ be a local-states function. A set of transactions $R$ is \temph{over $S$} if every transaction $t\in R$ is a multiagent transition over $Q$ and $S(Q')$ for some $Q \subseteq Q'\subset \Pi$. Given such a set $R$ and $P\subset \Pi$,
-$R(P) := \{ t\in R : t \text{ is over } Q \text{ and } S(Q'), Q \subseteq Q'\subseteq P\}$.
+Let $S$ be a local-states function. A set of transactions $R$ is \temph{over $S$} if every transaction $t \in R$ is a transition over participants $Q$ and local states $S(Q')$ for some $Q \subseteq Q' \subset \Pi$. Given such $R$ and $P \subset \Pi$:
+$$R(P) := \{t \in R : t \text{ has participants } Q \subseteq P \text{ and is over } S(Q') \text{ for some } Q' \subseteq P\}$$
 \end{definition}
 
 \begin{definition}[Transactions-Based Protocol]\label{definition:tb-protocol}
-Let $S$ be a local-states function and $R$ a set of transactions over $S$.
-Then a \temph{protocol $\calF$ over $R$ and $S$} includes for each set of agents $P\subset \Pi$ the transactions-based multiagent transition system $\calF(P)$ over $P$, $S(P)$, and $R(P)$: $\calF(P) := (S(P)^P,\{s0\}^P,R(P){\uparrow}P)$.
+Let $S$ be a local-states function and $R$ a set of transactions over $S$ with equivalence $\sim$. The \temph{protocol $\calF$ over $R$, $S$, and $\sim$} is defined by $\calF(P) := (C(P), c0(P), R(P){\uparrow}P)$ for each $P \subset \Pi$.
 \end{definition}
 
-\begin{definition}[Interactive Transactions]\label{definition:interactive-transactions}
-A set of transactions $R$ over a local-states function $S$ is \temph{interactive} if for every $\emptyset \subset P \subset P' \subset \Pi$ and every configuration $c\in C(P')$ such that $c/P\in C(P)$, there is a computation $(c\xrightarrow{*} c')\subseteq R(P'){\uparrow}P'$ for which $c'/P\notin C(P)$.
-\end{definition}
+Since liveness applies to all equivalence classes, any class $[t]$ in $R(P \cup P')/{\sim}$ whose transactions have participants spanning both $P$ and $P'$ could obstruct obliviousness if enabled in an interleaving. The following proposition identifies the condition under which this does not occur.
 
-%------------------------------------------------------------------------------
-\subsection{Grassroots Protocols}
-%------------------------------------------------------------------------------
-
-\begin{definition}[Oblivious, Interactive, Grassroots]\label{definition:grassroots}
-A protocol $\calF$ is:
-\begin{enumerate}
-    \item \temph{oblivious} if for every $\emptyset \subset P \subset P' \subseteq \Pi$,
-    $T(P){\uparrow}P'\subseteq T(P')$
-    \item \temph{interactive} if for every $\emptyset \subset P \subset P' \subseteq \Pi$ and every configuration $c\in C(P')$ such that $c{/}P\in C(P)$, there is a computation $c\xrightarrow{*} c'$ of $\calF(P')$ for which $c'{/}P\notin C(P)$.
-    \item \temph{grassroots} if it is oblivious and interactive.
-\end{enumerate}
-\end{definition}
-
-\begin{restatable}{proposition}{propOblivious}
+\begin{restatable}[Obliviousness Condition]{proposition}{propOblivious}
 \label{proposition:oblivious}
-A transactions-based protocol is oblivious.
+A transactions-based protocol is oblivious provided that for every disjoint nonempty $P, P' \subset \Pi$, no equivalence class whose transactions have participants spanning both $P$ and $P'$ is ever enabled in any interleaving of correct runs of $\calF(P)$ and $\calF(P')$.
 \end{restatable}
 
-\begin{restatable}{theorem}{thmInteractiveGrassroots}
+\begin{restatable}[Transactions-Based Grassroots]{theorem}{thmInteractiveGrassroots}
 \label{theorem:interactive-grassroots}
-A protocol over an interactive set of transactions is grassroots.
+A transactions-based protocol that satisfies the condition of Proposition~\ref{proposition:oblivious} and is interactive is grassroots.
 \end{restatable}
