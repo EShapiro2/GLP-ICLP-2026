@@ -1,36 +1,44 @@
 \pdfoutput=1
-\documentclass{tlp}
+\documentclass[copyright,creativecommons]{eptcs}
+\providecommand{\event}{ICLP 2026}
 
-% Packages not already loaded by tlp.cls
-% (tlp.cls loads: graphicx, color, amsmath, hyperref, enumitem, natbib)
+% Math
+\usepackage{amsmath}
 \usepackage{amssymb,amsfonts}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{relsize}
+
+% Color (xcolor for \textcolor used by \udi, \claude)
+\usepackage{xcolor}
+
+% Graphics
+\usepackage{graphicx}
+
+% Misc
 \usepackage{xspace}
 \usepackage{cleveref}
-\usepackage{xcolor} % extends color already loaded by tlp
 
 % Algorithm packages
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
 
-% Additional packages
+% Layout packages
 \usepackage{multicol}
 \usepackage{multirow}
-\usepackage{mathtools}
-\usepackage{relsize}
-\usepackage{bm}
 \usepackage{verbatimbox}
 \usepackage{wrapfig}
 \usepackage{fancyvrb}
-%\RecustomVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\footnotesize}
 
-% Theorem-like environments (not provided by tlp class)
-% Undefine tlp.cls proof environment before loading amsthm
-\let\proof\relax
-\let\endproof\relax
+% Lists
+\usepackage{enumitem}
+
+% Theorem-like environments
 \usepackage{amsthm}
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}[section]
 \newtheorem{example}[definition]{Example}
+\newtheorem{observation}[definition]{Observation}
 \theoremstyle{plain}
 \newtheorem{theorem}[definition]{Theorem}
 \newtheorem{proposition}[definition]{Proposition}
@@ -42,29 +50,26 @@
 % Restatable theorems (must be after amsthm)
 \usepackage{thmtools,thm-restate}
 
+% Keywords environment (TLP supplied one; EPTCS does not)
+\newenvironment{keywords}{\par\smallskip\noindent\textbf{Keywords:} }{}
+
+% Set list spacing
+\setlist{nosep, leftmargin=*}
+\setlist{itemsep=1pt, topsep=3pt, leftmargin=*}
+
 % Custom formatting commands
 \newcommand{\mypara}[1]{\smallskip\noindent\textbf{#1.}}
-%\newcommand{\temph}[1]{\textbf{#1}}
 \newcommand{\temph}[1]{\emph{#1}}
 
 \newcommand{\remove}[1]{}
 \newcommand{\udi}[1]{\textcolor{blue}{[Udi says: #1]}}
 \newcommand{\claude}[1]{\textcolor{red}{[Claude: #1]}}
 
-% Abbreviation commands
-\newcommand{\GLP}{\textsc{GLP}\xspace}
-\newcommand{\lp}{logic programs\xspace}
-\newcommand{\cp}{Concurrent Prolog\xspace}
-\newcommand{\scl}{\textsc{scl}\xspace}
-\newcommand{\gsn}{\textsc{gsn}\xspace}
-
 % Math commands
 \newcommand{\calV}{\mathcal{V}}
 \newcommand{\calG}{\mathcal{G}}
 \newcommand{\calT}{\mathcal{T}}
 \newcommand{\calF}{\mathcal{F}}
-\newcommand{\calR}{\mathbb{R}}
-\newcommand{\calN}{\mathbb{N}}
 \newcommand{\calA}{\mathcal{A}}
 \newcommand{\V}{\mathcal{V}}
 \newcommand{\calS}{\mathcal{S}}
@@ -92,31 +97,33 @@
 \newcommand\spc{\addtocounter{pc}{1}\thepc}
 \newcommand{\Program}[1]{\medskip\noindent\textbf{Program \spc: #1}\vspace{-5pt}}
 
-% Set list spacing
-\setlist{nosep, leftmargin=*}
-\setlist{itemsep=1pt, topsep=3pt, leftmargin=*}
+% EPTCS volume cross-reference placeholder (per EPTCS instructions)
+\providecommand{\thisvolume}[1]{this volume of EPTCS, Open Publishing Association}
 
-\newtheorem{observation}{Observation}
-
-\begin{document}
-
-\lefttitle{E. Shapiro}
-\jnlPage{1}{14}
-\jnlDoiYr{2026}
-\doival{10.1017/xxxxx}
-
-
-\makeatletter
-\def\@j@urnal{}
-\makeatother
-
+% TEMPORARY natbib-compatibility shim --- to be removed once all \citep and
+% \citeN sites have been rewritten to EPTCS-style \cite.  Until then this
+% keeps the paper compiling between per-file commits.
+\providecommand{\citep}[1]{\cite{#1}}
+\providecommand{\citet}[1]{\cite{#1}}
+\providecommand{\citeN}[1]{\cite{#1}}
 
 \title{GLP: A Grassroots, Multiagent, Concurrent,\\ Logic Programming Language}
+\author{Ehud Shapiro
+\institute{London School of Economics\\ and Weizmann Institute of Science}
+}
 
-\begin{authgrp}
-\author{\gn{Ehud} \sn{Shapiro}}
-\affiliation{London School of Economics and Weizmann Institute of Science}
-\end{authgrp}
+\titlerunning{GLP}
+\authorrunning{E. Shapiro}
+
+\hypersetup{
+  bookmarksnumbered,
+  pdftitle    = {GLP: A Grassroots, Multiagent, Concurrent, Logic Programming Language},
+  pdfauthor   = {Ehud Shapiro},
+  pdfsubject  = {EPTCS},
+  pdfkeywords = {concurrent logic programming, grassroots platforms, operational semantics, multiagent transition systems}
+}
+
+\begin{document}
 
 \maketitle
 
@@ -132,6 +139,7 @@ With the mathematical foundations presented here: a workstation-based implementa
 \begin{keywords}
 concurrent logic programming, grassroots platforms, operational semantics, multiagent transition systems
 \end{keywords}
+
 % Main sections
 \input{sections/introduction}
 \input{sections/concurrent-glp}
@@ -146,7 +154,6 @@ concurrent logic programming, grassroots platforms, operational semantics, multi
 
 \input{sections/appendix-lp}
 \input{sections/appendix-term-matching}
-%\input{sections/appendix-denotational}
 \input{sections/appendix-grassroots-defs}
 \input{sections/appendix-proofs}
 \input{sections/appendix-guards}
