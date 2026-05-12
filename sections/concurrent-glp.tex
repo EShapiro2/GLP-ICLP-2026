@@ -1,5 +1,5 @@
 %==============================================================================
-\section{Concurrent GLP}
+\section{Concurrent GLP (cGLP)}
 \label{sec:glp}
 %==============================================================================
 
@@ -21,7 +21,7 @@ A transition $c \rightarrow c' \in T$ is \temph{enabled} from configuration $c$.
 \label{sec:glp-ext}
 %------------------------------------------------------------------------------
 
-Grassroots Logic Programs (GLP) extend LP by (1) adding a paired \emph{reader} $X?$ to every ``ordinary'' logic variable $X$, now called a \emph{writer}; (2) restricting variables in goals and clauses to have at most a single occurrence (SO); and (3) requiring that a variable occurs in a clause iff its paired variable also occurs in it (single-reader single-writer, SRSW). The result eschews unification in favour of simple term matching, is linear-logic-like~\citep{girard1987linear}, and is futures/promises-like~\citep{friedman1976impact}: each assignment $X := T$ is produced at most once via the sole occurrence of a writer (promise) $X$, and consumed at most once via the sole occurrence of its paired reader (future) $X?$.
+Grassroots Logic Programs (GLP) extend LP by (1) adding a paired \emph{reader} $X?$ to every ``ordinary'' logic variable $X$, now called a \emph{writer}; (2) restricting variables in goals and clauses to have at most a single occurrence (SO); and (3) requiring that a variable occurs in a clause iff its paired variable also occurs in it (single-reader single-writer, SRSW). The result eschews unification in favour of simple term matching, is linear-logic-like~\cite{girard1987linear}, and is futures/promises-like~\cite{baker1977future,friedman1976impact}: each assignment $X := T$ is produced at most once via the sole occurrence of a writer (promise) $X$, and consumed at most once via the sole occurrence of its paired reader (future) $X?$.
 
 \begin{definition}[GLP Variables]
 \label{def:glp-variables}
@@ -38,13 +38,15 @@ A term, goal, or clause satisfies the \temph{single-occurrence (SO) invariant} i
 \begin{definition}[GLP Program, Goals]
 \label{def:glp-program}
 A clause $C$ satisfies the \temph{single-reader/single-writer (SRSW) restriction} if it satisfies SO and a variable occurs in $C$ iff its paired variable also occurs in $C$.
-A \temph{GLP program} is a finite set of clauses satisfying SRSW; clauses for the same predicate form a \temph{procedure}.
+A \temph{GLP program} is a finite sequence of clauses satisfying SRSW; clauses for the same predicate form a \temph{procedure}.
 The set of GLP goals $\hat\calG(P)$ includes all goals over $\hat\calV$ and the vocabulary of $P$ that satisfy SO.
 \end{definition}
 
+We use set notation to denote a multiset of unit goals; the same goal may occur more than once in a body.
+
 \begin{example}[Fair Merge]
 \label{ex:merge}
-Consider the quintessential concurrent logic program for fairly merging two streams, written in GLP:
+Consider the quintessential concurrent logic program for fairly merging two streams, written in GLP:\footnote{Mode annotations (\texttt{?} suffix) and type declarations (\texttt{procedure ...}, \texttt{T ::= ...}) used informally in examples are formally introduced in the TGLP companion paper~\cite{shapiro2026types}.}
 \begin{verbatim}
 Stream ::= [] ;[_|Stream].
 
@@ -62,7 +64,7 @@ and the goal \verb=merge([1,2,3|Xs?],[a,b|Ys?],Zs)=. Both the goal and each clau
 As we shall see (Proposition~\ref{prop:so-preservation}), the SO invariant is maintained by the SRSW restriction: reducing a goal satisfying SO with a clause satisfying SRSW results in a goal satisfying SO. The purpose of the SRSW restriction is to prevent multiple writer occurrences racing to assign a variable.
 
 %------------------------------------------------------------------------------
-\subsection{GLP Operational Semantics}
+\subsection{cGLP Operational Semantics}
 \label{sec:glp-operational}
 %------------------------------------------------------------------------------
 
@@ -73,25 +75,24 @@ A GLP \temph{writer assignment} is a term of the form $X := T$, $X\in\calV$, $T\
 
 \begin{definition}[GLP Renaming, Renaming Apart]
 \label{def:glp-renaming}
-A \temph{GLP renaming} is a substitution $\rho: \hat\calV \to \hat\calV$ such that for each $X \in \calV$: $X\rho \in \calV$ and $X?\rho = (X\rho)?$. Two GLP terms $T_1, T_2$ \temph{have a variable in common} if for some writer $X \in \calV$,  $T_1$ has an occurrence of $X$ or $X?$ and so does $T_2$. A GLP renaming $\sigma$ \temph{renames $T'$ apart from} $T$ if $T'\sigma$ and $T$ have no variable in common.
+A \temph{GLP renaming} is an injective substitution $\rho: \hat\calV \to \hat\calV$ such that for each $X \in \calV$: $X\rho \in \calV$ and $X?\rho = (X\rho)?$. Two GLP terms \temph{have a variable in common} if for some writer $X \in \calV$, either $X$ or $X?$ occurs in both. A GLP renaming $\sigma$ \temph{renames $T'$ apart from} $T$ if $T'\sigma$ and $T$ have no variable in common.
 \end{definition}
 
 \begin{definition}[Writer MGU]
 \label{def:writer-mgu}
 Given two GLP unit goals $A$ and $H$, a \temph{writer mgu} is a writers substitution $\sigma$ such that $A\sigma = H\sigma$ and $\sigma$ is most general among such substitutions. 
 \end{definition}
-Note that a writer mgu cannot assign readers.
 
 \begin{definition}[GLP Goal/Clause Reduction]
 \label{def:glp-reduction}
 Given GLP unit goal $A$ and clause $C$, with $H$ \verb|:-| $B$ being the result of the GLP renaming of $C$ apart from $A$, the \temph{GLP reduction} of $A$ with $C$ \temph{succeeds with result} $(B,\sigma)$ if $A$ and $H$ have a writer mgu.
 \end{definition}
 
-\begin{definition}[GLP Transition System]
-\label{def:glp-ts}
+\begin{definition}[cGLP Transition System]
+\label{def:cglp-ts}
 Given a GLP program $P$, an \temph{asynchronous resolvent} over $P$ is a pair $(G, \sigma)$ where $G \in \hat\calG(P)$ and $\sigma$ is a readers substitution.
 
-A transition system $GLP(P) = (\calC, c_0, \calT)$ is a \temph{GLP transition system} over $P$ and initial goal $G_0$ satisfying SO if:
+A transition system $cGLP = (\calC, c_0, \calT)$ is a \temph{cGLP transition system} over $P$ and initial goal $G_0$ satisfying SO if:
 \begin{enumerate}
     \item $\calC$ is the set of all asynchronous resolvents over $P$
     \item $c_0 = (G_0, \emptyset)$
@@ -103,48 +104,63 @@ A transition system $GLP(P) = (\calC, c_0, \calT)$ is a \temph{GLP transition sy
 \end{enumerate}
 \end{definition}
 
-GLP Reduce differs from LP in (1) the use of a writer mgu instead of a regular mgu and (2) the choice of the first applicable clause instead of any clause. The first is the fundamental use of GLP readers for communication and synchronization. The second compromises on the or-nondeterminism of LP to allow writing fair concurrent programs, such as fair merge above. Note that or-nondeterminism is not completely eliminated, as different scheduling of arrival of assignments on the two input streams of \verb|merge| may result in different orders in its output stream.
+cGLP Reduce differs from LP in (1) the use of a writer mgu instead of a regular mgu and (2) the choice of the first applicable clause instead of any clause. The first is the fundamental use of GLP readers for communication and synchronization. The second compromises on the or-nondeterminism of LP to allow writing fair concurrent programs, such as fair merge above. Note that or-nondeterminism is not completely eliminated, as different scheduling of arrival of assignments on the two input streams of \verb|merge| may result in different orders in its output stream.
 
-The GLP Communicate rule realizes the use of reader/writer pairs for asynchronous communication: it communicates an assignment from its writer to its paired reader.
+The cGLP Communicate rule realizes the use of reader/writer pairs for asynchronous communication: it communicates an assignment from its writer to its paired reader.
 
 
-\mypara{Monotonicity}
-Key differences between LP and GLP relate to monotonicity. In LP, if a goal cannot be reduced, it will never be reduced. In GLP, a goal that cannot be reduced now may be reduced in the future: if $A$ and $H$ have an mgu that writes on a reader $X? \in A$, and therefore have no writer mgu at present,  another goal that has $X$ may reduce, assigning $X$, and later $X?$, to a value that will allow $A$ and $H$ to have a writer mgu. Conversely, in LP, if a goal $A$ can be reduced now with some clause $H$\verb|:-|$B$, with a regular mgu of $A$ and $H$, it may not be reducible in the future due to variables that $A$ shares with other goals being assigned values by reductions of other goals, preventing unification between the instantiated $A$ and $H$. In GLP, if a goal $A$ can be reduced now (with a writers mgu), it can always be reduced in the future, as the SO invariant ensures that no other goal can assign any writer in $A$.
+\mypara{Persistence}
+Key differences between LP and cGLP relate to persistence. In LP, if a goal cannot be reduced, it will never be reduced. In cGLP, a goal that cannot be reduced now may be reduced in the future: if $A$ and $H$ have an mgu that writes on a reader $X? \in A$, and therefore have no writer mgu at present,  another goal that has $X$ may reduce, assigning $X$, and later $X?$, to a value that will allow $A$ and $H$ to have a writer mgu. Conversely, in LP, if a goal $A$ can be reduced now with some clause $H$\verb|:-|$B$, with a regular mgu of $A$ and $H$, it may not be reducible in the future due to variables that $A$ shares with other goals being assigned values by reductions of other goals, preventing unification between the instantiated $A$ and $H$. In cGLP, if a goal $A$ can be reduced now (with a writers mgu), it can always be reduced in the future, as the SO invariant ensures that no other goal can assign any writer in $A$.
 
 Implementation-wise, if a GLP goal $A$ cannot be reduced now, but there is a readers substitution $\sigma$ such that $A\sigma$ can be reduced, such readers are identified, the goal $A$ \emph{suspends} on these readers, and is rescheduled for another reduction attempt once any of them is assigned.
 
-Despite these differences, GLP adopts the same notions of proper run, successful run, and outcome as LP (Definition~\ref{def:proper-run}, \ref{appendix:lp}), and has the same notion of logical consequence as LP. Let $/?$ be an operator that replaces every reader by its paired writer.
+Despite these differences, cGLP adopts the same notions of proper run, successful run, and outcome as LP (Definition~\ref{def:proper-run}, \ref{appendix:lp}), and has the same notion of logical consequence as LP. Let $/?$ be an operator that replaces every reader by its paired writer.
 
-\begin{restatable}[GLP Computation is Deduction]{proposition}{propGLPDeduction}
-\label{prop:glp-deduction}
-Let $(G_0$ \texttt{:-} $G_n)\sigma$ be the outcome of a proper GLP run $\rho: (G_0,\sigma_0) \rightarrow \cdots \rightarrow (G_n, \sigma_n)$ of $GLP(P)$. Then $(G_0$ \texttt{:-} $G_n)\sigma/?$ is a logical consequence of $P/?$.
+\begin{restatable}[cGLP Computation is Deduction]{proposition}{propGLPDeduction}
+\label{prop:cglp-deduction}
+Let $(G_0$ \texttt{:-} $G_n)\sigma$ be the outcome of a proper cGLP run $\rho: (G_0,\sigma_0) \rightarrow \cdots \rightarrow (G_n, \sigma_n)$ of $cGLP$. Then $(G_0$ \texttt{:-} $G_n)\sigma/?$ is a logical consequence of $P/?$.
 \end{restatable}
 
-We note two additional safety properties of GLP runs.
+We note an additional safety property of cGLP runs.
 
 \begin{restatable}[SO Preservation]{proposition}{propSOPreservation}
 \label{prop:so-preservation}
-If the initial goal $G_0$ satisfies SO, then every goal in the GLP run satisfies SO.
+If the initial goal $G_0$ satisfies SO, then every goal in the cGLP run satisfies SO.
 \end{restatable}
 
-\begin{restatable}[Monotonicity]{proposition}{propMonotonicity}
-\label{prop:glp-monotonicity}
-In any GLP run, if unit goal $A$ can reduce with clause $C$ at step $i$, then either an instance of $A$ has been reduced by step $j > i$, or an instance of $A$ can still reduce with $C$ at step $j$.
-\end{restatable}
+Persistence and fairness require identifying ``the same transition'' across configurations as goals are instantiated by reader substitutions. Following~\cite{lewis2026volitional}, we define goal identity and transition equivalence.
+
+\begin{definition}[Goal Identity]
+\label{def:goal-identity}
+Each unit goal in a cGLP computation carries a unique \temph{identifier} assigned at spawn time: goals in the initial goal $G_0$ receive distinct initial identifiers, and goals spawned by a Reduce transition receive fresh identifiers. Communicate transitions preserve identifiers: the goal containing $X?$ retains its identity after instantiation.
+\end{definition}
+
+\begin{definition}[Transition Equivalence]
+\label{def:transition-equivalence}
+Given a set of transitions $T$, a \temph{transition equivalence}~\cite{lewis2026volitional} is an equivalence relation $\sim$ on $T$. We write $[t]$ for the equivalence class of $t$ under $\sim$. An equivalence class $[t]$ is \temph{enabled} in configuration $c$ if some $t' \in [t]$ is enabled in $c$.
+
+For cGLP, $t_1 \sim t_2$ if:
+\begin{itemize}
+\item both are Reduce transitions that reduce the same goal (by identity) with the same clause, or
+\item both are Communicate transitions that apply the counterpart of the same writer assignment to the same goal (by identity).
+\end{itemize}
+\end{definition}
+
+Two equivalent Reduce transitions may operate on different instantiations of the same goal---with different reader substitutions applied---but produce the same writer mgu (since the writer mgu assigns only writers and is unaffected by reader substitutions).
 
 \begin{definition}[Persistent Transition System]
 \label{def:persistent}
-A transition system is \temph{persistent} if every enabled transition remains enabled until taken.
+A transition system with transition equivalence $\sim$ is \temph{persistent} if: whenever a transition $t$ is enabled in configuration $c$, and $c = c_0 \rightarrow c_1 \rightarrow \cdots \rightarrow c_k = c'$ is a computation in which no $t' \sim t$ is taken, then some $t'' \sim t$ is enabled in $c'$.
 \end{definition}
 
-\begin{restatable}{lemma}{lemPersistence}
-\label{lem:persistence}
-GLP is persistent.
+\begin{restatable}[cGLP Persistence]{lemma}{lemPersistence}
+\label{lem:cglp-persistence}
+cGLP is persistent.
 \end{restatable}
 
-\begin{definition}[Fair Run]
-\label{def:fair-run}
-A complete GLP run is \temph{fair} if every transition that becomes enabled is eventually taken.
+\begin{definition}[cGLP Fair Run]
+\label{def:cglp-fair-run}
+A complete cGLP run is \temph{fair} if for every equivalence class $[t] \in T/{\sim}$: whenever $[t]$ becomes enabled, eventually some $t' \in [t]$ is taken.
 \end{definition}
 
 The SO invariant of GLP allows eschewing unification in favour of \emph{term matching}: if two terms that jointly satisfy SO are unifiable, their mgu maps each variable in one term to a subterm of the other. Term matching thus performs joint term-tree traversal and collects variable assignments along the way; the detailed definition and table appear in \ref{appendix:term-matching}.
@@ -169,12 +185,12 @@ Definition~\ref{def:glp-reduction} of a GLP goal/clause reduction is augmented t
 \label{rem:guards-srsw}
 Guard occurrences count toward SRSW satisfaction: if $X?$ occurs in a guard, its paired writer $X$ must occur in the head and $X?$ may additionally occur once in the body.
 %
-Furthermore, if the success of a guard implies that $X?$ is ground, then $X?$ as well as $X$ may occur multiple times in the clause. Groundness-implying guards include \verb|ground|, \verb|integer|, \verb|number|, \verb|string|, \verb|constant|, arithmetic comparisons (\verb|<|, \verb|>|, \verb|=<|, \verb|>=|, \verb|=:=|, \verb|=\=|), and ground equality (\verb|=?=|). However,  \verb|known| and \verb|compound| do not imply groundness.
+Furthermore, if the success of a guard implies that $X?$ is bound to a ground term, then $X?$ as well as $X$ may occur multiple times in the clause. Groundness-implying guards include \verb|ground|, \verb|integer|, \verb|number|, \verb|string|, \verb|constant|, arithmetic comparisons (\verb|<|, \verb|>|, \verb|=<|, \verb|>=|, \verb|=:=|, \verb|=\=|), and ground equality (\verb|=?=|). However,  \verb|known| and \verb|compound| do not imply groundness.
 \end{remark}
 
 \begin{remark}[Anonymous Variables]
 \label{rem:anonymous-variables}
-An \emph{anonymous variable} is any variable whose name begins with \verb|_| (e.g., \verb|_|, \verb|_In?|, \verb|_Out|). Anonymous writers may appear in the head, denoting a fresh writer with no paired reader, so that a value assigned to it is discarded. These provide a controlled exception to the SRSW restriction, allowing a process to abandon an input (e.g.\ an input stream) they are no longer interested in.
+An \emph{anonymous variable} is any variable whose name begins with \verb|_| (e.g., \verb|_|, \verb|_Out|). Anonymous variables may appear anywhere a writer variable may appear; each occurrence denotes a fresh writer with no paired reader. Anonymous readers (\verb|_?|, \verb|_Name?|) are not permitted.
 \end{remark}
 
 Guard predicates include type tests (\verb|integer|, \verb|number|, \verb|string|, \verb|constant|, \verb|compound|, \verb|ground|, \verb|known|), arithmetic comparisons (\verb|<|, \verb|>|, \verb|=<|, \verb|>=|, \verb|=:=|, \verb|=\=|), and ground equality (\verb|=?=|).
