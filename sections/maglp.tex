@@ -112,14 +112,6 @@ The safety properties established for cGLP in Section~\ref{sec:glp} extend to ma
 If the initial goals of all agents satisfy SO, then every goal in every agent's resolvent throughout the run satisfies SO.
 \end{restatable}
 
-State growth follows directly from the sent-flag formulation of Definition~\ref{definition:maGLP}:
-
-\begin{restatable}[maGLP State Growth]{proposition}{propMaGLPStateGrowth}
-\label{prop:maglp-state-growth}
-In any maGLP run, the local state of each agent grows monotonically under the natural ordering on $\sigma$-components: for each agent $p$, no reader assignment is ever removed from $\sigma_p$, and sent flags only transition from $0$ to $1$.
-\end{restatable}
-
-
 To relate maGLP to deduction, consider the \temph{lifted system} $L$: the cGLP transition system whose resolvent is the union of all agents' local resolvents, whose initial goal includes a \texttt{network} goal with channels paired to each agent's network channels, and whose program is $M$ augmented with the GLP definition of \texttt{network}.
 
 \begin{restatable}{proposition}{propMaGLPDeduction}

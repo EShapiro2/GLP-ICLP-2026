@@ -45,12 +45,6 @@ For the inductive step, assume $G$ satisfies SO and consider a transition $(G, \
 Reduce $p$ preserves SO at agent $p$ by the same argument as cGLP SO Preservation (Proposition~\ref{prop:so-preservation}), restricted to agent $p$'s resolvent. Communicate $p$ to $q$ removes $\{X? := T\}$ from $\sigma_p$ (no change to $G_p$) and applies $\{X? := T\}$ to $G_q$. The substitution preserves SO in $G_q$ provided variables in $T$ are fresh with respect to $G_q$; this holds by the proper run condition, since $X$ was a fresh writer when assigned. For Cold-call $p$ to $q$, the term $X$ in \verb|msg|$(q,X)$ is transferred from $p$'s network output stream to $q$'s network input stream. The writers in $X$ are no longer reachable from $p$'s resolvent after advancing (the resolvent has iterated past the consumed stream element), so they occur only in $q$'s resolvent. SO is preserved.
 \end{proof}
 
-\propMaGLPStateGrowth*
-
-\begin{proof}
-By inspection of the transactions in Definition~\ref{definition:maGLP}: Reduce $p$ adds new reader assignments to $\sigma_p$ with $\mathit{sent} = 0$; existing assignments are unchanged. Communicate $p$ to $q$ sets $\mathit{sent}(X?) := 1$ in $\sigma_p$ (a $0 \to 1$ transition); no assignment is removed. Cold-call $p$ to $q$ does not modify $\sigma$. Hence $\sigma_p$ only grows, and sent flags only flip from $0$ to $1$.
-\end{proof}
-
 %------------------------------------------------------------------------------
 \subsection{Grassroots Proofs}
 \label{app:grassroots-proofs}
