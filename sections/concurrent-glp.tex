@@ -13,7 +13,7 @@ This section presents Grassroots Logic Programs (GLP), a concurrent logic progra
 \begin{definition}[Transition System]
 \label{def:ts}
 A \temph{transition system} is a tuple $TS = (C, c_0, T)$ where $C$ is an arbitrary set of \temph{configurations}, $c_0 \in C$ is a designated \temph{initial configuration}, and $T \subseteq C \times C$ is a \temph{transition relation}, with transitions written $c \rightarrow c' \in T$.
-A transition $c \rightarrow c' \in T$ is \temph{enabled} from configuration $c$. A configuration $c$ is \temph{terminal} if no transitions are enabled from $c$. A \temph{computation} is a (finite or infinite) sequence of configurations where for each two consecutive configurations $(c,c')$ in the sequence, $c \rightarrow c' \in T$. A \temph{run} is a computation starting from $c_0$, which is \temph{complete} if it is infinite or ends in a terminal configuration.
+A transition $c \rightarrow c' \in T$ is \temph{enabled} from configuration $c$. A configuration $c$ is \temph{terminal} if no transitions are enabled from $c$. A \temph{computation} is a (finite or infinite) sequence of configurations where for each two consecutive configurations $(c,c')$ in the sequence, $c \rightarrow c' \in T$. We write $c \xrightarrow{*} c'$ to denote the existence of a computation (empty if $c = c'$) from $c$ to $c'$. A \temph{run} is a computation starting from $c_0$, which is \temph{complete} if it is infinite or ends in a terminal configuration. The \temph{outcome} of a complete run is determined by a domain-specific function from complete runs to an outcome space.
 \end{definition}
 
 %------------------------------------------------------------------------------
