@@ -66,11 +66,11 @@ Second, the Cold-call transaction enables agents to bootstrap communication by e
 %------------------------------------------------------------------------------
 
 \begin{definition}[Multiagent GLP]\label{definition:maGLP}
-Given agents $P\subset \Pi$ and GLP program $M$, the \temph{maGLP transition system} over $P$ and $M$ is the transactions-based multiagent transition system (Definition~\ref{def:tbmts}) over $P$, local states being asynchronous resolvents $(G_p, \sigma_p)$ over $M$ where each reader assignment in $\sigma_p$ is annotated with a flag $\mathit{sent} \in \{0,1\}$ (initially $0$), initial local state $s0 = (\{\verb|agent(ch(_?,_),ch(_?,_))|\}, \emptyset)$, and the following transactions $c\rightarrow c'$:
+Given agents $P\subset \Pi$ and GLP program $M$, the \temph{maGLP transition system} over $P$ and $M$ is the transactions-based multiagent transition system (Definition~\ref{def:tbmts}) over $P$, local states being asynchronous resolvents $(G_p, \sigma_p)$ over $M$, initial local state $s0 = (\{\verb|agent(ch(_?,_),ch(_?,_))|\}, \emptyset)$, and the following transactions $c\rightarrow c'$:
 \begin{enumerate}
-    \item \textbf{Reduce $p$:} A unary transaction with participant $p$ where $c_p \rightarrow c'_p$ is a cGLP Reduce transition (Definition~\ref{def:cglp-ts}), with new reader assignments added to $\sigma_p$ with $\mathit{sent} = 0$.
+    \item \textbf{Reduce $p$:} A unary transaction with participant $p$ where $c_p \rightarrow c'_p$ is a cGLP Reduce transition (Definition~\ref{def:cglp-ts}).
 
-    \item \textbf{Communicate $p$ to $q$:} A transaction with participants $p,q\in P$ where $(X? := T, 0) \in \sigma_p$, $X?$ occurs in $G_q$, $c'_p$ is the result of setting $\mathit{sent}(X?) := 1$ in $\sigma_p$, and $c'_q = (G_q\{X? := T\}, \sigma_q)$.
+    \item \textbf{Communicate $p$ to $q$:} A transaction with participants $p,q\in P$ where $\{X? := T\} \in \sigma_p$, $X?$ occurs in $G_q$, $\sigma'_p = \sigma_p \setminus \{X? := T\}$, and $c'_q = (G_q\{X? := T\}, \sigma_q)$.
 
     \item \textbf{Cold-call $p$ to $q$:} A binary transaction with participants $p\ne q \in P$ where the network output stream in $c_p$ has a new message \verb|msg|$(q,X)$, $c'_p$ is the result of advancing the network output stream in $c_p$, and $c'_q$ is the result of adding $X$ to the network input stream in $c_q$.
 \end{enumerate}
@@ -78,11 +78,6 @@ Given agents $P\subset \Pi$ and GLP program $M$, the \temph{maGLP transition sys
 
 Note that Communicate may be unary or binary, depending on whether $p=q$.  Communicate transfers assignments from writers to readers between agents sharing a paired reader and writer.  Cold-call transfers a term with its variables to $q$ through the network streams established in each agent's initial configuration, enabling the creation of paired variables among previously-disconnected agents.
 Naturally, Cold-call would be the exception, as once agents share a paired variable they can use it to communicate indefinitely; moreover, an agent with two friends (with which it shares channels) may introduce them to each other, also eschewing the need for a Cold-call.
-
-\begin{remark}[Sent Assignments as Garbage]
-\label{rem:sent-gc}
-By the SRSW restriction, each reader $X?$ has exactly one paired writer $X$, so each reader assignment has exactly one recipient and need be communicated at most once. Removing sent assignments ($\mathit{sent} = 1$) from $\sigma_p$ is therefore a safe garbage collection optimization that does not affect the observable behaviour.
-\end{remark}
 
 \mypara{Transaction Equivalence for maGLP}
 Following the cGLP transition equivalence (Definition~\ref{def:transition-equivalence}), we extend the equivalence relation to maGLP transactions. Two maGLP transactions $t_1 \sim t_2$ if:
