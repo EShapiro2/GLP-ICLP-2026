@@ -2,7 +2,7 @@
 \section{Multiagent GLP}\label{sec:maglp}
 %==============================================================================
 
-This section extends GLP to multiple agents. We first recall the notion of multiagent transition systems via multiagent atomic transactions~\citep{shapiro2021multiagent,shapiro2025atomic}, then define multiagent GLP (maGLP) as a transactions-based multiagent transition system, and finally show how the social graph operates in the multiagent setting.
+This section extends GLP to multiple agents. We first recall the notion of multiagent transition systems via multiagent atomic transactions~\cite{shapiro2021multiagent,shapiro2025atomic}, then define multiagent GLP (maGLP) as a transactions-based multiagent transition system, and finally show how the social graph operates in the multiagent setting.
 
 %------------------------------------------------------------------------------
 \subsection{Multiagent Transition Systems}
@@ -12,21 +12,21 @@ We assume a potentially infinite set of \emph{agents} $\Pi$, but consider only f
 
 We use $S^P$ to denote the set $S$ indexed by the set $P$, and if $c\in S^P$ we use $c_p$ to denote the member of $c$ indexed by $p\in P$. Intuitively, think of such a $c\in S^P$ as an array of cells indexed by members of $P$ with cell values in $S$.
 
-\begin{definition}[Local States, Configuration, Transaction, Participants]\label{definition:at}
+\begin{definition}[Local States, Configuration, Transaction, Participants]\label{def:transaction}
 Given agents $Q \subset \Pi$ and an arbitrary set $S$ of \temph{local states}, a \temph{configuration} over $Q$ and $S$ is a member of $C:= S^Q$. An \temph{atomic transaction}, or just \emph{transaction}, over $Q$ and $S$ is any pair of configurations $t=c\rightarrow c' \in C^2$ such that $c\ne c'$, with $t_p := c_p \rightarrow c'_p$ for any $p\in Q$, and with $p$ being an \temph{active participant} in $t$ if $c_p\ne c'_p$, \temph{stationary participant} otherwise.
 \end{definition}
 
-\begin{definition}[Degree]\label{definition:degree}
+\begin{definition}[Degree]\label{def:degree}
 The \temph{degree} of a transaction $t$ (unary, binary, \ldots, $k$-ary) is the number of active participants in $t$, and the \temph{degree} of a set of transactions $T$ is the maximal degree of any $t\in T$.
 \end{definition}
 
-\begin{definition}[Multiagent Transition System]\label{definition:mts}
+\begin{definition}[Multiagent Transition System]\label{def:mts}
 Given agents $P \subset \Pi$ and an arbitrary set $S$ of \temph{local states} with a designated \temph{initial local state} $s0\in S$, a \temph{multiagent transition system} over $P$ and $S$ is a transition system $TS= (C,c0,T)$ with \temph{configurations} $C:= S^P$, \temph{initial configuration} $c0:= \{s0\}^P$, and \temph{transitions} $T\subseteq C^2$ being a set of transactions over $P$ and $S$, with the \temph{degree} of $TS$ being the degree of $T$.
 \end{definition}
 
 Rather than specifying a multiagent transition system over a set of agents $P$ directly, we specify it via atomic transactions, which are typically of bounded degree smaller than $|P|$.
 
-\begin{definition}[Transaction Closure]\label{definition:closure}
+\begin{definition}[Transaction Closure]\label{def:closure}
 Let $P\subset \Pi$, $S$ a set of local states, and $C:=S^P$.
 For a transaction $t=(c\rightarrow c')$ over local states $S$ with participants $Q \subseteq P$, the \temph{$P$-closure of $t$}, $t{\uparrow}P$, is the set of transitions over $P$ and $S$ defined by:
 $$
@@ -41,22 +41,22 @@ $$
 
 Namely, the closure over $P\supseteq Q$ of a transaction $t$ over $Q$ includes all transitions $t'$ over $P$ in which members of $Q$ do the same in $t$ and in $t'$, and the rest remain in their current (arbitrary) state.
 
-\begin{definition}[Transactions-Based Multiagent Transition System]\label{definition:tbmts}
+\begin{definition}[Transactions-Based Multiagent Transition System]\label{def:tbmts}
 Given agents $P \subset \Pi$, local states $S$ with initial local state $s0\in S$, and a set of transactions $R$, each $t\in R$ over some $Q\subseteq P$ and $S$, the \temph{transactions-based multiagent transition system} over $P$, $S$, and $R$ is the multiagent transition system $TS= (S^P,\{s0\}^P,R{\uparrow}P)$.
 \end{definition}
 
 In other words, one can fully specify a multiagent transition system over $S$ and $P$ simply by providing a set of atomic transactions over $S$, each with participants $Q\subseteq P$.
 
 %------------------------------------------------------------------------------
-\subsection{From GLP to Multiagent GLP}
+\subsection{From cGLP to maGLP}
 \label{sec:glp-to-maglp}
 %------------------------------------------------------------------------------
 
 In extending GLP to multiple agents, each agent maintains its own asynchronous resolvent as its local state. The key insight is that GLP's variable pairs provide natural binary communication channels: when agent $p$ assigns a writer $X$ for which the paired reader $X?$ is held by agent $q$, the assignment $X := T$ must be communicated to $q$.
 
-A key difference between single-agent GLP and multiagent GLP is in the initial state. In a multiagent transition system all agents must have the same initial local state $s0$ (Definition~\ref{definition:mts}). This precludes setting up an initial configuration in which agents share logic variables, as this would imply different initial states for different agents.
+A key difference between cGLP and maGLP is in the initial state. In a multiagent transition system all agents must have the same initial local state $s0$ (Definition~\ref{def:mts}). This precludes setting up an initial configuration in which agents share logic variables, as this would imply different initial states for different agents.
 
-We resolve this in two steps. First, we employ only anonymous logic variables ``\verb|_|'' in the initial local states of agents: Anonymous variables are, on the one hand, syntactically identical, hence allow all initial states to be syntactically identical, and on the other hand represent unique variables, hence semantically all initial goals have unique, local, non-shared variables. The initial state of all agents is the atomic goal \verb|agent(ch(_?,_),ch(_?,_))|, with the first channel serving communication with the user and the second with the network.
+We resolve this in two steps. First, we employ only anonymous logic variables ``\verb|_|'' in the initial local states of agents: Anonymous variables are, on the one hand, syntactically identical, hence allow all initial states to be syntactically identical, and on the other hand represent unique variables, hence semantically all initial goals have unique, local, non-shared variables. The initial state of all agents is the atomic goal \verb|agent(ch(_?,_),ch(_?,_))|, providing two bidirectional channels: the first to the person operating the machine, and the second to the network. The first channel is a bidirectional stream of GLP messages between the machine and the person, mediated by runtime UI support below the GLP layer and by physical UI hardware; messages flowing toward the person are rendered as UI elements, and the person's responses flow back as GLP messages. With appropriate UI runtime support, a GLP message to the user may contain a writer, in which case the runtime presents it as a question and an eventual response from the person becomes the corresponding assignment. The second channel carries communication with other agents.
 
 Second, the Cold-call transaction enables agents to bootstrap communication by establishing shared variables through the network infrastructure, realizing the cold-call protocol for connecting previously-disconnected agents.
 
@@ -66,56 +66,70 @@ Second, the Cold-call transaction enables agents to bootstrap communication by e
 %------------------------------------------------------------------------------
 
 \begin{definition}[Multiagent GLP]\label{definition:maGLP}
-Given agents $P\subset \Pi$ and GLP program $M$, the \temph{maGLP transition system} over $P$ and $M$ is the transactions-based multiagent transition system (Definition~\ref{definition:tbmts}) over $P$, local states being asynchronous resolvents over $M$, initial local state $s0 = (\{\verb|agent(ch(_?,_),ch(_?,_))|\}, \emptyset)$, and the following transactions $c\rightarrow c'$:
+Given agents $P\subset \Pi$ and GLP program $M$, the \temph{maGLP transition system} over $P$ and $M$ is the transactions-based multiagent transition system (Definition~\ref{def:tbmts}) over $P$, local states being asynchronous resolvents $(G_p, \sigma_p)$ over $M$ where each reader assignment in $\sigma_p$ is annotated with a flag $\mathit{sent} \in \{0,1\}$ (initially $0$), initial local state $s0 = (\{\verb|agent(ch(_?,_),ch(_?,_))|\}, \emptyset)$, and the following transactions $c\rightarrow c'$:
 \begin{enumerate}
-    \item \textbf{Reduce $p$:} A unary transaction with participant $p$ where $c_p\rightarrow c'_p$ is a GLP Reduce transition (Definition~\ref{def:glp-ts}).
-    
-    \item \textbf{Communicate $p$ to $q$:} A transaction with participants $p,q\in P$ where $c_p=(G_p,\sigma_p)$, $c_q=(G_q,\sigma_q)$, $\{X?:=T\} \in \sigma_p$, $X?$ occurs in $G_q$, $c'_p=(G_p,\sigma_p \setminus \{X?:=T\})$, and $c'_q=(G_q\{X?:=T\},\sigma_q)$. 
-    
+    \item \textbf{Reduce $p$:} A unary transaction with participant $p$ where $c_p \rightarrow c'_p$ is a cGLP Reduce transition (Definition~\ref{def:cglp-ts}), with new reader assignments added to $\sigma_p$ with $\mathit{sent} = 0$.
+
+    \item \textbf{Communicate $p$ to $q$:} A transaction with participants $p,q\in P$ where $(X? := T, 0) \in \sigma_p$, $X?$ occurs in $G_q$, $c'_p$ is the result of setting $\mathit{sent}(X?) := 1$ in $\sigma_p$, and $c'_q = (G_q\{X? := T\}, \sigma_q)$.
+
     \item \textbf{Cold-call $p$ to $q$:} A binary transaction with participants $p\ne q \in P$ where the network output stream in $c_p$ has a new message \verb|msg|$(q,X)$, $c'_p$ is the result of advancing the network output stream in $c_p$, and $c'_q$ is the result of adding $X$ to the network input stream in $c_q$.
 \end{enumerate}
 \end{definition}
 
 Note that Communicate may be unary or binary, depending on whether $p=q$.  Communicate transfers assignments from writers to readers between agents sharing a paired reader and writer.  Cold-call transfers a term with its variables to $q$ through the network streams established in each agent's initial configuration, enabling the creation of paired variables among previously-disconnected agents.
 Naturally, Cold-call would be the exception, as once agents share a paired variable they can use it to communicate indefinitely; moreover, an agent with two friends (with which it shares channels) may introduce them to each other, also eschewing the need for a Cold-call.
+
+\begin{remark}[Sent Assignments as Garbage]
+\label{rem:sent-gc}
+By the SRSW restriction, each reader $X?$ has exactly one paired writer $X$, so each reader assignment has exactly one recipient and need be communicated at most once. Removing sent assignments ($\mathit{sent} = 1$) from $\sigma_p$ is therefore a safe garbage collection optimization that does not affect the observable behaviour.
+\end{remark}
+
+\mypara{Transaction Equivalence for maGLP}
+Following the cGLP transition equivalence (Definition~\ref{def:transition-equivalence}), we extend the equivalence relation to maGLP transactions. Two maGLP transactions $t_1 \sim t_2$ if:
+\begin{itemize}
+\item both are Reduce transactions at the same agent $p$, reducing the same goal (by identity) with the same clause, or
+\item both are Communicate transactions from the same $p$ to the same $q$, applying the counterpart of the same writer assignment to the same goal (by identity) at $q$, or
+\item both are Cold-call transactions from the same $p$ to the same $q$, delivering the same message from $p$'s network output stream.
+\end{itemize}
+
 %------------------------------------------------------------------------------
 \subsection{The Multiagent Social Graph}
 \label{sec:ma-social-graph}
 %------------------------------------------------------------------------------
 
-The social graph agent code presented in Section~\ref{sec:social-graph} runs unchanged in maGLP. The only difference is the boot code: the GLP network switch is replaced by maGLP's Cold-call transaction, and each agent runs on a separate isolate (later --- separate smartphone). Two boot variants are presented in \ref{appendix:social-graph-complete}: a headless boot with actors (Appendix~\ref{app:maglp-boot}) and an interactive UI boot (Appendix~\ref{app:maglp-ui-boot}).
+The social graph agent code presented in Section~\ref{sec:social-graph} runs unchanged in maGLP. The only difference is the boot code: the cGLP network switch is replaced by maGLP's Cold-call transaction, and each agent runs on a separate isolate (later --- separate smartphone). Two boot variants are presented in \ref{appendix:social-graph-complete}: a headless boot with actors (Appendix~\ref{app:maglp-boot}) and an interactive UI boot (Appendix~\ref{app:maglp-ui-boot}).
 
 When Alice executes the cold-call protocol to befriend Bob, her agent sends \verb|msg(bob, intro(alice, Resp))| on the \verb|'_net'| output stream. The Cold-call transaction (Definition~\ref{definition:maGLP}) transfers this message to Bob's network input stream, adding the writer \verb|Resp| to Bob's resolvent. When Bob accepts, assigning \verb|Resp| to \verb|accept(ch(FIn?, FOut))|, the Communicate transaction transfers this assignment back to Alice.
 
 In contrast, friend-mediated introduction works solely through Communicate transactions: when Bob introduces Alice to Charlie, the channel pair he creates contains readers that are transferred to Alice and Charlie via Communicate, establishing their direct connection.
 %
-The network switch in the concurrent GLP version (Section~\ref{sec:social-graph}) is thus a faithful simulation of maGLP's Cold-call transaction, allowing single-process testing of multiagent protocols.
+The network switch in the cGLP version (Section~\ref{sec:social-graph}) is thus a faithful simulation of maGLP's Cold-call transaction, allowing single-process testing of multiagent protocols.
 
 %------------------------------------------------------------------------------
 \subsection{Safety Properties of maGLP}
 \label{sec:maglp-safety}
 %------------------------------------------------------------------------------
 
-The safety properties established for single-agent GLP in Section~\ref{sec:glp} extend to maGLP. SO preservation (cf.\ Proposition~\ref{prop:so-preservation}) generalizes directly:
+The safety properties established for cGLP in Section~\ref{sec:glp} extend to maGLP. SO preservation (cf.\ Proposition~\ref{prop:so-preservation}) generalizes directly:
 
 \begin{restatable}[maGLP SO Preservation]{proposition}{propMaGLPSOPreservation}
 \label{prop:maglp-so-preservation}
 If the initial goals of all agents satisfy SO, then every goal in every agent's resolvent throughout the run satisfies SO.
 \end{restatable}
 
-Monotonicity (cf.\ Proposition~\ref{prop:glp-monotonicity}) likewise extends:
+State growth follows directly from the sent-flag formulation of Definition~\ref{definition:maGLP}:
 
-\begin{restatable}[maGLP Monotonicity]{proposition}{propMaGLPMonotonicity}
-\label{prop:maglp-monotonicity}
-If unit goal $A$ in agent $p$'s resolvent can reduce with clause $C$ at step $i$, then at any step $j > i$, either $A$ has been reduced or there exists $A'$ in $p$'s resolvent where $A' = A\tau$ for some reader substitution $\tau$, and $A'$ can reduce with $C$.
+\begin{restatable}[maGLP State Growth]{proposition}{propMaGLPStateGrowth}
+\label{prop:maglp-state-growth}
+In any maGLP run, the local state of each agent grows monotonically under the natural ordering on $\sigma$-components: for each agent $p$, no reader assignment is ever removed from $\sigma_p$, and sent flags only transition from $0$ to $1$.
 \end{restatable}
 
 
-To relate maGLP to deduction, consider the \temph{lifted system} $L$: the GLP transition system whose resolvent is the union of all agents' local resolvents, whose initial goal includes a \texttt{network} goal with channels paired to each agent's network channels, and whose program is $M$ augmented with the GLP definition of \texttt{network}.
+To relate maGLP to deduction, consider the \temph{lifted system} $L$: the cGLP transition system whose resolvent is the union of all agents' local resolvents, whose initial goal includes a \texttt{network} goal with channels paired to each agent's network channels, and whose program is $M$ augmented with the GLP definition of \texttt{network}.
 
 \begin{restatable}{proposition}{propMaGLPDeduction}
 \label{prop:maglp-deduction}
-maGLP runs correspond to GLP runs of $L$, and their outcomes are logical consequences of the augmented program.
+maGLP runs correspond to cGLP runs of $L$, and their outcomes are logical consequences of the augmented program.
 \end{restatable}
 
 \begin{restatable}{lemma}{lemmaGLPPersistence}
@@ -125,8 +139,8 @@ maGLP is persistent.
 
 \begin{definition}[maGLP Fair Run]
 \label{def:maglp-fair-run}
-A complete maGLP run is \temph{fair} if every transaction that becomes enabled is eventually taken.
+A complete maGLP run is \temph{fair} if for every equivalence class $[t] \in T/{\sim}$: whenever $[t]$ becomes enabled, eventually some $t' \in [t]$ is taken.
 \end{definition}
 
 \mypara{Implementation}
-The implementation-ready deterministic variants of GLP and maGLP (the latter deterministic at the agent, not system, level), along with formal correctness proofs that they implement their respective specifications, are presented in a companion paper~\citep{shapiro2026implementing}.
+The implementation-ready deterministic variants of GLP and maGLP (the latter deterministic at the agent, not system, level), along with formal correctness proofs that they implement their respective specifications, are presented in a companion paper~\cite{shapiro2026implementing}.

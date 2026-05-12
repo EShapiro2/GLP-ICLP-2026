@@ -51,12 +51,6 @@ For Reduce: if a Reduce transition is enabled for goal $A$ in configuration $(G,
 Identical to single-agent GLP (Proposition~\ref{prop:so-preservation}), substituting ``agent $p$'s resolvent'' for ``resolvent'' and noting that Communicate transitions transfer only reader assignments, which do not affect SO. For Cold-call, the term $X$ in \verb|msg|$(q,X)$ is transferred from $p$'s network output stream to $q$'s network input stream. The writers in $X$ are no longer reachable from $p$'s resolvent after advancing (the resolvent has iterated past the consumed stream element), so they occur only in $q$'s resolvent. SO is preserved.
 \end{proof}
 
-\propMaGLPMonotonicity*
-
-\begin{proof}
-Identical to single-agent GLP (Proposition~\ref{prop:glp-monotonicity}), substituting ``agent $p$'s resolvent'' for ``resolvent'' and noting that Reduce transitions operate locally within each agent, Communicate transitions preserve reducibility through reader assignment transfer, and Cold-call adds to $q$'s network input stream without affecting the reducibility of existing goals.
-\end{proof}
-
 \lemmaGLPPersistence*
 
 \begin{proof}
