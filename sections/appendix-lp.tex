@@ -6,7 +6,7 @@ We recall standard Logic Programs (LP) notions of syntax, most-general unifier (
 \label{def:lp-syntax}
 We employ standard LP notions. Let $\calV$ denote the set of \temph{variables} (identifiers beginning with uppercase). A \temph{term} is a variable, a constant (numbers, strings, or the empty list \verb|[]|), or a compound term $f(T_1,\ldots,T_n)$ with functor $f$ and subterms $T_i$. Let $\calT$ denote the set of all terms. We use standard list notation: \verb=[X|Xs]= for a list cell, \verb|[X1,...,Xn]| for finite lists. A term is \temph{ground} if it contains no variables.
 
-A \temph{unit goal} is a compound term, also commonly referred to as an \temph{atom}. A \temph{goal} is a multiset of unit goals; the empty goal is written \verb|true|. A \temph{clause} $A$~\verb|:-|~$B$ has head $A$ (a unit goal) and body $B$ (a goal); a \temph{unit clause} has empty body. A \temph{logic program} is a finite set of clauses; clauses for the same predicate form a \temph{procedure}. Let $\calG(P)$ denote the set of goals over the vocabulary of the program $P$.
+A \temph{unit goal} is a compound term or a string, also commonly referred to as an \temph{atom}. A \temph{goal} is a multiset of unit goals; the empty goal is written \verb|true|. A \temph{clause} $A$~\verb|:-|~$B$ has head $A$ (a unit goal) and body $B$ (a goal); a \temph{unit clause} has empty body. A \temph{logic program} is a finite set of clauses; clauses for the same predicate form a \temph{procedure}. Let $\calG(P)$ denote the set of goals over the vocabulary of the program $P$.
 \end{definition}
 
 A \emph{substitution} $\sigma$ is an idempotent function $\sigma: \calV \to \calT$, a mapping from variables to terms applied to a fixed point. By convention, $\sigma(x)=x\sigma$. Let $\Sigma$ denote the set of all substitutions. We assume standard notions of instance, ground, renaming, renaming apart, unifier, and most-general unifier (mgu).
@@ -21,13 +21,13 @@ Given an LP unit goal $A$ and clause $C$, with $H$ \verb|:-| $B$ being the resul
 A transition system $LP(P) = (C, c_0, T)$ is a \temph{Logic Programs transition system} for a logic program $P$ and initial goal $G_0 \in \mathcal{G}(P)$, if $C=\mathcal{G}(P)\times \Sigma$, $c_0=(G_0,\emptyset)$, and $T$ is the set of all transitions $(G,\sigma) \rightarrow (G',\sigma')$ such that for some unit goal $A \in G$ and clause $C \in P$ the LP reduction of $A$ with $C$ succeeds with $(B,\hat\sigma)$, $G' = (G \setminus \{A\} \cup B)\hat\sigma$, and $\sigma'=\sigma\circ\hat\sigma$.
 \end{definition}
 
-LP has two forms of nondeterminism: the choice of $A \in G$, called \emph{and-nondeterminism}, and the choice of $C \in P$, called \emph{or-nondeterminism}, and as such are closely-related to Alternating Turing Machines~\citep{shapiro1984alternation}.
+LP has two forms of nondeterminism: the choice of $A \in G$, called \emph{and-nondeterminism}, and the choice of $C \in P$, called \emph{or-nondeterminism}, and as such are closely-related to Alternating Turing Machines~\cite{shapiro1984alternation}.
 
 \begin{definition}[Proper and Successful Run, Outcome]
 \label{def:proper-run}
 A run $\rho: (G_0,\sigma_0) \rightarrow \cdots \rightarrow (G_n, \sigma_n)$ of $LP(P)$ is \temph{proper} if for any $1\le i< n$, a variable that occurs in $G_{i+1}$ but not in $G_i$ also does not occur in any $G_j$, $j<i$. If proper, the \temph{outcome} of $\rho$ is $(G_0$ \verb|:-| $G_n)\sigma_n$. Such a run is \temph{successful} if $G_n=\emptyset$.
 \end{definition}
-The following proposition justifies the computation-as-deduction view of LP~\citep{kowalski1974predicate},
+The following proposition justifies the computation-as-deduction view of LP~\cite{kowalski1974predicate},
 calling a proper LP run a \emph{derivation} and a complete proper run ending in the empty goal a \emph{successful derivation}.
 
 \begin{restatable}[LP Computation is Deduction]{proposition}{propLPDeduction}
@@ -35,4 +35,4 @@ calling a proper LP run a \emph{derivation} and a complete proper run ending in 
 The outcome $(G_0$ \texttt{:-} $G_n)\sigma$ of a proper run of $LP(P)$ is a logical consequence of $P$.
 \end{restatable}
 
-The $LP(P)$ transition system allows defining several denotational semantic notions for a program $P$: (1) the \emph{clause semantics} is the set of all outcomes of all proper runs with an initial most-general unit goal (arguments are distinct variables), closely related to the fully-abstract compositional semantics of LP~\citep{gaifman1989fully}; (2) the \emph{atom semantics} is the set of all outcomes of all successful derivations with an initial most-general unit goal; (3) the \emph{ground atom semantics} is the standard model-theoretic semantics, the set of ground instances of the atom semantics over the Herbrand universe of $P$~\citep{lloyd1987foundations}.
+The $LP(P)$ transition system allows defining several denotational semantic notions for a program $P$: (1) the \emph{clause semantics} is the set of all outcomes of all proper runs with an initial most-general unit goal (arguments are distinct variables), closely related to the fully-abstract compositional semantics of LP~\cite{gaifman1989fully}; (2) the \emph{atom semantics} is the set of all outcomes of all successful derivations with an initial most-general unit goal; (3) the \emph{ground atom semantics} is the standard model-theoretic semantics, the set of ground instances of the atom semantics over the Herbrand universe of $P$~\cite{lloyd1987foundations}.
