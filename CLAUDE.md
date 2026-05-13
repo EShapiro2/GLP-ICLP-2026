@@ -31,7 +31,7 @@
 /Users/udi/Grassroots/GLP-ICLP-2026/
 ├── CLAUDE.md                           # ← This file
 ├── main_GLP_ICLP_2026.tex              # ← Main document
-├── main_GLP_ICLP_2026.bbl              # ← Inlined bibliography (no bib.bib)
+├── bib.bib                             # ← Bibliography (imported from Bib-Grassroots)
 │
 ├── STYLE FILES:
 │   ├── tlp.cls                         # ← TPLP document class
