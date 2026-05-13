@@ -109,7 +109,7 @@ cGLP Reduce differs from LP in (1) the use of a writer mgu instead of a regular 
 The cGLP Communicate rule realizes the use of reader/writer pairs for asynchronous communication: it communicates an assignment from its writer to its paired reader.
 
 
-\mypara{Persistence}
+\mypara{Monotonicity}
 Key differences between LP and cGLP relate to persistence. In LP, if a goal cannot be reduced, it will never be reduced. In cGLP, a goal that cannot be reduced now may be reduced in the future: if $A$ and $H$ have an mgu that writes on a reader $X? \in A$, and therefore have no writer mgu at present,  another goal that has $X$ may reduce, assigning $X$, and later $X?$, to a value that will allow $A$ and $H$ to have a writer mgu. Conversely, in LP, if a goal $A$ can be reduced now with some clause $H$\verb|:-|$B$, with a regular mgu of $A$ and $H$, it may not be reducible in the future due to variables that $A$ shares with other goals being assigned values by reductions of other goals, preventing unification between the instantiated $A$ and $H$. In cGLP, if a goal $A$ can be reduced now (with a writers mgu), it can always be reduced in the future, as the SO invariant ensures that no other goal can assign any writer in $A$.
 
 Implementation-wise, if a GLP goal $A$ cannot be reduced now, but there is a readers substitution $\sigma$ such that $A\sigma$ can be reduced, such readers are identified, the goal $A$ \emph{suspends} on these readers, and is rescheduled for another reduction attempt once any of them is assigned.
