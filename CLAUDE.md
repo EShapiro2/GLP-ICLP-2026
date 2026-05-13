@@ -63,10 +63,13 @@
 - This ensures Overleaf stays in sync via GitHub
 
 ### CRITICAL: Bibliography
-- **bib.bib has been removed** from this repo for arXiv submission (master copy is in Bib-Grassroots/)
-- Bibliography is inlined via `main_GLP_ICLP_2026.bbl`
-- If citations are missing, add them directly to the .bbl file
-- If there are bib-related errors, report them but do not attempt to fix
+- The single source of truth for bibliography is `/Users/udi/Grassroots/Bib-Grassroots/bib.bib`
+- A copy of `bib.bib` lives in this repo and is imported by Overleaf from Bib-Grassroots
+- The main file uses `\bibliographystyle{eptcs}` and `\bibliography{bib}`
+- NEVER edit the in-repo `bib.bib` directly; all changes go to `Bib-Grassroots/bib.bib`
+- NEVER read `bib.bib` (the file is large enough to crash a chat session)
+- Edits to `Bib-Grassroots/bib.bib` may be made via `edit_file` (server-side find-and-replace) with Udi's per-edit authorization and a tight known `oldText`
+- If there are bib-related errors, report the offending entry and ask Udi for authorization to fix
 
 ### Tool Permissions (Claude Code)
 - Claude Code should use commands that do not require constant user approval
