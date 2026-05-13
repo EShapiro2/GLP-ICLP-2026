@@ -30,8 +30,8 @@
 ```
 /Users/udi/Grassroots/GLP-ICLP-2026/
 ├── CLAUDE.md                           # ← This file
-├── main GLP ICLP 2026.tex              # ← Main document
-├── main GLP ICLP 2026.bbl              # ← Inlined bibliography (no bib.bib)
+├── main_GLP_ICLP_2026.tex              # ← Main document
+├── main_GLP_ICLP_2026.bbl              # ← Inlined bibliography (no bib.bib)
 │
 ├── STYLE FILES:
 │   ├── tlp.cls                         # ← TPLP document class
@@ -48,13 +48,11 @@
 │   ├── appendix-lp.tex
 │   ├── appendix-term-matching.tex
 │   ├── appendix-grassroots-defs.tex
-│   ├── appendix-mts-defs.tex
 │   ├── appendix-proofs.tex
 │   ├── appendix-guards.tex
 │   ├── appendix-additional-techniques.tex
 │   ├── appendix-social-graph-walkthrough.tex
-│   ├── appendix-social-graph-complete.tex
-│   └── appendix-denotational.tex
+│   └── appendix-social-graph-complete.tex
 ```
 
 ## Core Rules
@@ -66,7 +64,7 @@
 
 ### CRITICAL: Bibliography
 - **bib.bib has been removed** from this repo for arXiv submission (master copy is in Bib-Grassroots/)
-- Bibliography is inlined via `main GLP ICLP 2026.bbl`
+- Bibliography is inlined via `main_GLP_ICLP_2026.bbl`
 - If citations are missing, add them directly to the .bbl file
 - If there are bib-related errors, report them but do not attempt to fix
 
@@ -153,7 +151,7 @@ After pushing to GitHub, pull in Overleaf (Menu → GitHub → Pull) to see the 
 ## Related Repositories
 
 - **GLP Implementation**: `/Users/udi/Grassroots/GLP/`
-- **Moded-Types Paper**: `/Users/udi/Grassroots/Moded-Types/`
+- **TGLP**: `/Users/udi/Grassroots/TGLP/`
 - **Art-of-GLP-2025**: `/Users/udi/Grassroots/Art-of-GLP-2025/`
 
 ## Paper Structure (Agreed Jan 2026)
