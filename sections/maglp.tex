@@ -92,7 +92,7 @@ Following the cGLP transition equivalence (Definition~\ref{def:transition-equiva
 \label{sec:ma-social-graph}
 %------------------------------------------------------------------------------
 
-The social graph agent code presented in Section~\ref{sec:social-graph} runs unchanged in maGLP. The only difference is the boot code: the cGLP network switch is replaced by maGLP's Cold-call transaction, and each agent runs on a separate isolate (later --- separate smartphone). Two boot variants are presented in \ref{appendix:social-graph-complete}: a headless boot with actors (Appendix~\ref{app:maglp-boot}) and an interactive UI boot (Appendix~\ref{app:maglp-ui-boot}).
+The social graph agent code presented in Section~\ref{sec:social-graph} runs unchanged in maGLP. The only difference is the boot code: the cGLP network switch is replaced by maGLP's Cold-call transaction, and each agent runs on a separate isolate (later --- separate smartphone). Two boot variants---a headless boot with actors and an interactive UI boot---appear in \appref{appendix:social-graph-complete}{\arxivref}.
 
 When Alice executes the cold-call protocol to befriend Bob, her agent sends \verb|msg(bob, intro(alice, Resp))| on the \verb|'_net'| output stream. The Cold-call transaction (Definition~\ref{definition:maGLP}) transfers this message to Bob's network input stream, adding the writer \verb|Resp| to Bob's resolvent. When Bob accepts, assigning \verb|Resp| to \verb|accept(ch(FIn?, FOut))|, the Communicate transaction transfers this assignment back to Alice.
 

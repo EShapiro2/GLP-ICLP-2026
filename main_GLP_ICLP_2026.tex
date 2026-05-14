@@ -50,6 +50,24 @@
 % Restatable theorems (must be after amsthm)
 \usepackage{thmtools,thm-restate}
 
+% Build flag: include appendices?
+% Set \appendixtrue for arXiv (full) version, \appendixfalse for ICLP submission.
+\newif\ifappendix
+\appendixfalse
+
+% Conditional appendix reference.
+% Usage: \appref{appendix:foo}{fallback text when appendix is omitted}
+% With appendix on:  produces "Appendix~\ref{appendix:foo}"
+% With appendix off: produces the fallback text (typically a cite to the arXiv version).
+\ifappendix
+  \newcommand{\appref}[2]{Appendix~\ref{#1}}
+\else
+  \newcommand{\appref}[2]{#2}
+\fi
+
+% Convenience: standard fallback for appendix references in the ICLP build.
+\newcommand{\arxivref}{the extended (arXiv) version of this paper}
+
 % Keywords environment (TLP supplied one; EPTCS does not)
 \newenvironment{keywords}{\par\smallskip\noindent\textbf{Keywords:} }{}
 
@@ -140,6 +158,8 @@ concurrent logic programming, grassroots platforms, operational semantics, multi
 
 \bibliographystyle{eptcs}
 \bibliography{bib}
+
+\ifappendix
 \appendix
 
 \input{sections/appendix-lp}
@@ -150,5 +170,6 @@ concurrent logic programming, grassroots platforms, operational semantics, multi
 \input{sections/appendix-additional-techniques}
 \input{sections/appendix-social-graph-walkthrough}
 \input{sections/appendix-social-graph-complete}
+\fi
 
 \end{document}
