@@ -2,6 +2,7 @@
 
 A digital platform is \emph{grassroots}~\cite{shapiro2023grassrootsBA,shapiro2025atomic} if it can have multiple instances that can (1) operate independently of each other and of any global resource other than the network, and (2) coalesce into ever larger instances, possibly resulting in a single global instance.
 Grassroots platforms that have been specified (but not yet implemented) include the grassroots social graph~\cite{shapiro2025atomic}, grassroots social networks~\cite{shapiro2023gsn}, grassroots cryptocurrencies~\cite{shapiro2024gc,lewis2023grassroots}, and grassroots federation~\cite{shapiro2025GF}. The Scuttlebutt protocol and social network~\cite{kermarrec2020gossiping} is perhaps the sole example of a deployed grassroots platform.
+Grassroots platforms aim to offer an egalitarian/democratic alternative to centralised/autocratic and decentralised/plutocratic global platforms~\cite{shapiro2025characterising}.
 
 Here, we present Grassroots Logic Programs (GLP), a multiagent, concurrent, logic programming language, designed for the implementation of smartphone-based, serverless, grassroots platforms.  First we present Concurrent GLP (cGLP) as a variation on Logic Programs (LP)~\cite{lloyd1987foundations}.  Syntactically, GLP adds to LP (1) \textbf{Readers:} Each logic variable (now referred to as \emph{writer}) is paired with a \emph{reader}, which is assigned a value only once its paired writer is assigned that value;  (2) \textbf{Single-Occurrence (SO):} A variable may occur at most once in a goal or a clause; and (3) \textbf{Single-Reader Single-Writer (SRSW):} A writer occurs in a clause iff its paired reader occurs in the clause.  
 
@@ -13,7 +14,7 @@ Cold-calls allow two agents in disconnected components of the social graph to be
 %
 Lastly, we recall the definition of grassroots platforms and how to prove that a platform specified via atomic transactions is grassroots~\cite{shapiro2023grassrootsBA,shapiro2025atomic}, and apply these to prove that maGLP is indeed grassroots.
 
-The mathematical foundations presented here have enabled three companion efforts, all developed by AI: a workstation-based implementation of cGLP, based on the operational semantics of cGLP;  a distributed peer-to-peer smartphone-based implementation of multiagent GLP, based on its operational semantics~\cite{shapiro2026implementing}; and a moded type system for GLP~\cite{shapiro2026types}, facilitating the specification of GLP programs by human and AI designers for their programming by AI.
+The mathematical foundations presented here are being used by AI to derive implementations of GLP, as well as to program in GLP, as detailed in companion papers: a workstation-based implementation of cGLP in Dart was derived from the operational semantics of cGLP; a smartphone-based implementation of maGLP in Dart/Flutter is being developed based on the operational semantics of maGLP~\cite{shapiro2026implementing}. A moded type system for GLP was designed (and implemented by AI in Dart) to facilitate collaborative human-AI development of GLP programs, where AI derives working GLP programs from human-agreed type definitions and declarations~\cite{shapiro2026types}.
 Example GLP programs in this paper are typed.
 
 \mypara{Paper outline}
