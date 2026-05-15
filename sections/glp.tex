@@ -190,18 +190,18 @@ Result? := X + Y :- otherwise |
 \end{verbatim}
 \noindent The base case binds a plain number; the first addition clause guards that both operands are numbers and invokes the \verb|'_add'| body kernel; the fallback clause recursively evaluates subexpressions. The complete definitions of all system predicates and the full table of body kernels appear in \appref{appendix:guards-system}{\arxivref}.
 
-%------------------------------------------------------------------------------
-\subsection{Programming Examples}
-\label{sec:examples}
-%------------------------------------------------------------------------------
+\subsection{GLP Programming Techniques}
 
-Additional programming examples---including stream distribution, association list lookup, channel abstractions, stream tagging, cooperative production, and metainterpreters---appear in \appref{appendix:additional-techniques}{\arxivref}.
+On the one hand, GLP has no unification, only pattern-matching and single-writer variables.  On the other hand, goal reduction may write on several variables atomically.  The result is that the entire range of concurrent logic programming technique is available in GLP, including streams and their merging and distribution, messages with reply variables, network reconfiguration, and the whole range of meta-interpreters: fail-safe, termination-detecting, computation control, tracing and debugging.  The  one exception is the use of logic variables for mutual exclusion --- this functionality has to be achieved via a monitor---the standard distributed-computing solution.
+
+
+
 
 %------------------------------------------------------------------------------
 \subsection{The Grassroots Social Graph}
 \label{sec:social-graph}
 %------------------------------------------------------------------------------
-In our design,  the grassroots social graph is the infrastructure platform upon which all other grassroots platforms are built. Nodes represent cryptographically self-identified agents; edges represent authenticated bidirectional channels; connected components arise spontaneously through befriending. We present the social graph as a single-agent GLP program, using a \emph{network switch} to simulate communication between agents, before introducing multiagent GLP in Section~\ref{sec:maglp}.
+In our design,  the grassroots social graph is the foundation upon which all other grassroots platforms are built. Nodes represent cryptographically self-identified agents; edges represent authenticated bidirectional channels; connected components arise spontaneously through befriending. We present the social graph as a single-agent GLP program, using a \emph{network switch} to simulate communication between agents, before introducing multiagent GLP in Section~\ref{sec:maglp}.
 
 Each agent processes messages from user and network input streams and maintains an outputs list mapping named destinations to output streams. The program supports three protocols: (1) \emph{cold-call befriending}, where agents with no prior shared variables establish friendship by exchanging a response variable through the network; (2) \emph{text messaging} between established friends via named output streams; and (3) \emph{friend-mediated introduction}, where a mutual friend creates a channel pair and sends each half to the respective parties, establishing a direct connection.
 
