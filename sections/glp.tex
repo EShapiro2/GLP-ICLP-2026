@@ -205,4 +205,28 @@ In our design,  the grassroots social graph is the infrastructure platform upon 
 
 Each agent processes messages from user and network input streams and maintains an outputs list mapping named destinations to output streams. The program supports three protocols: (1) \emph{cold-call befriending}, where agents with no prior shared variables establish friendship by exchanging a response variable through the network; (2) \emph{text messaging} between established friends via named output streams; and (3) \emph{friend-mediated introduction}, where a mutual friend creates a channel pair and sends each half to the respective parties, establishing a direct connection.
 
-A network switch process routes messages between agents in simulation; in deployment, it is replaced by maGLP's Cold-call transaction (Section~\ref{sec:maglp}). The detailed walkthrough with code, figures, and a comprehensive scenario involving Alice, Bob, and Charlie appears in \appref{appendix:social-graph-walkthrough}{\arxivref}. The complete program---helper predicates, actor implementations, and boot variants---appears in \appref{appendix:social-graph-complete}{\arxivref}.
+The core of the program is the procedure \verb|agent/4|; three of its clauses follow. The user's \verb|connect(Target)| request triggers a cold-call: the agent sends \verb|intro(Id, Resp)| on the network and injects the paired reader \verb|Resp?| into its own user-input stream, so the eventual response surfaces locally as a normal user-side message:
+\begin{verbatim}
+agent(Id, [msg('_user', Id1, connect(Target))|UserIn], NetIn, Outs) :-
+    Id? =?= Id1?, ground(Target?) |
+    lookup_send('_net', msg(Target?, intro(Id?, Resp)), Outs?, Outs1),
+    inject_msg(Resp?, Target?, Id?, UserIn?, UserIn1),
+    agent(Id?, UserIn1?, NetIn?, Outs1?).
+\end{verbatim}
+On the recipient side, an incoming \verb|intro(From, Resp)| is forwarded to the user as a befriend prompt; the user's decision will assign \verb|Resp|, transparently transported back to the originator:
+\begin{verbatim}
+agent(Id, UserIn, [msg(Id1, intro(From, Resp))|NetIn], Outs) :-
+    Id? =?= Id1? |
+    lookup_send('_user', msg(agent, '_user', befriend(From?, Resp?)), Outs?, Outs1),
+    agent(Id?, UserIn?, NetIn?, Outs1?).
+\end{verbatim}
+Friend-mediated introduction creates a fresh channel pair via \verb|new_channel/2| and sends one half to each of the introduced parties --- a direct connection arises without a cold-call:
+\begin{verbatim}
+agent(Id, [msg('_user', Id1, introduce(P, Q))|UserIn], NetIn, Outs) :-
+    Id? =?= Id1?, ground(P?), ground(Q?), new_channel(PQCh, QPCh) |
+    lookup_send(P?, msg(Id?, P?, intro(Q?, QPCh?)), Outs?, Outs1),
+    lookup_send(Q?, msg(Id?, Q?, intro(P?, PQCh?)), Outs1?, Outs2),
+    agent(Id?, UserIn?, NetIn?, Outs2?).
+\end{verbatim}
+
+A network switch process routes messages between agents in simulation; in deployment, it is replaced by maGLP's Cold-call transaction (Section~\ref{sec:maglp}). The detailed walkthrough with figures, the complete program (helper predicates, actor implementations, and boot variants), and a comprehensive Alice/Bob/Charlie scenario appear in \appref{appendix:social-graph-walkthrough}{\arxivref} and \appref{appendix:social-graph-complete}{\arxivref}.
