@@ -77,11 +77,15 @@
 
 % --- Tighter vertical spacing (whitespace reduction) ---
 \usepackage{etoolbox}
+\usepackage{titlesec}
 \makeatletter
 \def\thm@space@setup{\thm@preskip=4pt \thm@postskip=4pt}
 \makeatother
 \BeforeBeginEnvironment{verbatim}{\vspace{-0.6\baselineskip}}
 \AfterEndEnvironment{verbatim}{\vspace{-0.4\baselineskip}}
+\titlespacing*{\section}{0pt}{8pt}{4pt}
+\titlespacing*{\subsection}{0pt}{6pt}{3pt}
+\titlespacing*{\subsubsection}{0pt}{4pt}{2pt}
 
 % Custom formatting commands
 \newcommand{\mypara}[1]{\vspace{1pt}\noindent\textbf{#1.}}
