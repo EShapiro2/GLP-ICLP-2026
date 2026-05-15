@@ -75,8 +75,16 @@
 \setlist{nosep, leftmargin=*}
 \setlist{itemsep=1pt, topsep=3pt, leftmargin=*}
 
+% --- Tighter vertical spacing (whitespace reduction) ---
+\usepackage{etoolbox}
+\makeatletter
+\def\thm@space@setup{\thm@preskip=4pt \thm@postskip=4pt}
+\makeatother
+\BeforeBeginEnvironment{verbatim}{\vspace{-0.6\baselineskip}}
+\AfterEndEnvironment{verbatim}{\vspace{-0.4\baselineskip}}
+
 % Custom formatting commands
-\newcommand{\mypara}[1]{\smallskip\noindent\textbf{#1.}}
+\newcommand{\mypara}[1]{\vspace{1pt}\noindent\textbf{#1.}}
 \newcommand{\temph}[1]{\emph{#1}}
 
 \newcommand{\remove}[1]{}
