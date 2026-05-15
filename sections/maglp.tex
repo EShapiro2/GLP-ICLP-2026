@@ -98,6 +98,18 @@ Each agent processes messages from user and network input streams and maintains 
 
 The core of the program is the procedure \verb|agent/4|; three of its clauses follow.
 
+\mypara{Channels}
+A \emph{channel} is an authenticated bidirectional communication structure \verb|ch(In, Out)|, where \verb|In| is a stream of incoming messages and \verb|Out| is a stream of outgoing messages. Two agents share a channel by holding opposite views of the same underlying stream pair: what one writes on its \verb|Out|, the other reads from its \verb|In|. The procedure \verb|new_channel/2| creates such a pair:
+\begin{verbatim}
+new_channel(ch(Xs?, Ys), ch(Ys?, Xs)).
+\end{verbatim}
+A single call \verb|new_channel(PQCh, QPCh)| binds \verb|PQCh| to \verb|ch(Xs?, Ys)| and \verb|QPCh| to \verb|ch(Ys?, Xs)|: the reader \verb|Xs?| of one channel is paired with the writer \verb|Xs| of the other (and likewise for \verb|Ys|/\verb|Ys?|), so each end's outgoing stream is the other end's incoming stream. Sending and receiving on a channel are accordingly:
+\begin{verbatim}
+send(X, ch(In, [X?|Out?]), ch(In?, Out)).
+receive(X?, ch([X|In], Out?), ch(In?, Out)).
+\end{verbatim}
+Channels are used directly in friend-mediated introduction (below) to establish a direct connection between two parties without a cold-call. They are also used internally by the cold-call protocol: when the recipient accepts, it returns a freshly-created channel half as its response, completing the bidirectional link.
+
 \mypara{Cold-call befriending}
 The user's \verb|connect(Target)| request triggers a cold-call: the agent sends \verb|intro(Id, Resp)| on the network and injects the paired reader \verb|Resp?| into its own user-input stream, so the eventual response surfaces locally as a normal user-side message:
 \begin{verbatim}
