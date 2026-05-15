@@ -1,34 +1,22 @@
 %==============================================================================
-\section{Concurrent GLP (cGLP)}
+\section{GLP}
 \label{sec:glp}
 %==============================================================================
 
-This section presents Grassroots Logic Programs (GLP), a concurrent logic programming language. We begin with transition systems, then define GLP. Standard LP definitions are recalled in \appref{appendix:lp}{\arxivref}. We illustrate GLP with programming examples and conclude with the grassroots social graph---the infrastructure platform that all other grassroots platforms build upon.
+We present GLP syntax,  operational semantics,  programming examples, and conclude with the grassroots social graph---the foundational platform on which other grassroots platforms are built.
 
 %------------------------------------------------------------------------------
-\subsection{Transition Systems}
-\label{sec:ts}
-%------------------------------------------------------------------------------
-
-\begin{definition}[Transition System]
-\label{def:ts}
-A \temph{transition system} is a tuple $TS = (C, c_0, T)$ where $C$ is an arbitrary set of \temph{configurations}, $c_0 \in C$ is a designated \temph{initial configuration}, and $T \subseteq C \times C$ is a \temph{transition relation}, with transitions written $c \rightarrow c' \in T$.
-A transition $c \rightarrow c' \in T$ is \temph{enabled} from configuration $c$. A configuration $c$ is \temph{terminal} if no transitions are enabled from $c$. A \temph{computation} is a (finite or infinite) sequence of configurations where for each two consecutive configurations $(c,c')$ in the sequence, $c \rightarrow c' \in T$. We write $c \xrightarrow{*} c'$ to denote the existence of a computation (empty if $c = c'$) from $c$ to $c'$. A \temph{run} is a computation starting from $c_0$, which is \temph{complete} if it is infinite or ends in a terminal configuration. The \temph{outcome} of a complete run is determined by a domain-specific function from complete runs to an outcome space.
-\end{definition}
-
-%------------------------------------------------------------------------------
-\subsection{GLP: Extending LP with Readers}
+\subsection{Syntax}
 \label{sec:glp-ext}
 %------------------------------------------------------------------------------
 
-Grassroots Logic Programs (GLP) extend LP by (1) adding a paired \emph{reader} $X?$ to every ``ordinary'' logic variable $X$, now called a \emph{writer}; (2) restricting variables in goals and clauses to have at most a single occurrence (SO); and (3) requiring that a variable occurs in a clause iff its paired variable also occurs in it (single-reader single-writer, SRSW). The result eschews unification in favour of simple term matching, is linear-logic-like~\cite{girard1987linear}, and is futures/promises-like~\cite{baker1977future,friedman1976impact}: each assignment $X := T$ is produced at most once via the sole occurrence of a writer (promise) $X$, and consumed at most once via the sole occurrence of its paired reader (future) $X?$.
+GLP extend LP by adding a paired \emph{reader} $X?$ to every ``ordinary'' logic variable $X$, now called a \emph{writer}.
 
 \begin{definition}[GLP Variables]
 \label{def:glp-variables}
 Let $\calV$ denote the set of LP variables (identifiers beginning with uppercase), henceforth called \temph{writers}. Define $\calV? = \{X? \mid X \in \calV\}$, called \temph{readers}. The set of all GLP variables is $\hat\calV = \calV \cup \calV?$. A writer $X$ and its reader $X?$ form a \temph{variable pair}.
 \end{definition}
-
-GLP terms, unit goals, goals, and clauses are as in standard LP but defined over the variables in $\hat\calV$.
+GLP terms, unit goals, goals, and clauses are as in LP but defined over the variables in $\hat\calV$.
 
 \begin{definition}[Single-Occurrence (SO) Invariant]
 \label{def:so-invariant}
@@ -41,15 +29,13 @@ A clause $C$ satisfies the \temph{single-reader/single-writer (SRSW) restriction
 A \temph{GLP program} is a finite sequence of clauses satisfying SRSW; clauses for the same predicate form a \temph{procedure}.
 The set of GLP goals $\hat\calG(P)$ includes all goals over $\hat\calV$ and the vocabulary of $P$ that satisfy SO.
 \end{definition}
-
-We use set notation to denote a multiset of unit goals; the same goal may occur more than once in a body.
-
+The purpose of the SRSW restriction is to prevent multiple writer occurrences racing to assign a variable; the simpler (SW) restriction is insufficient, since if a reader with multiple occurrences is assigned a term with a writer, the result is a writer with multiple occurrences.
+% We use set notation also when referring to multisets.
 \begin{example}[Fair Merge]
 \label{ex:merge}
 Consider the quintessential concurrent logic program for fairly merging two streams, written in GLP:\footnote{Mode annotations (\texttt{?} suffix) and type declarations (\texttt{procedure ...}, \texttt{T ::= ...}) used informally in examples are formally introduced in the TGLP companion paper~\cite{shapiro2026types}.}
 \begin{verbatim}
 Stream ::= [] ;[_|Stream].
-
 
 procedure merge(Stream?, Stream?, Stream).
 merge([X|Xs], Ys, [X?|Zs?]) :- merge(Ys?, Xs?, Zs).
@@ -57,16 +43,23 @@ merge(Xs, [Y|Ys], [Y?|Zs?]) :- merge(Xs?, Ys?, Zs).
 merge(Xs, [], Xs?).
 merge([], Ys, Ys?).
 \end{verbatim}
-and the goal \verb=merge([1,2,3|Xs?],[a,b|Ys?],Zs)=. Both the goal and each clause satisfy SO, and each clause satisfies SRSW. The first two clauses swap inputs in recursive calls, ensuring fairness when both streams are available.
+and the goal \verb=merge([1,2,3|Xs?],[a,b|Ys?],Zs)=. The goal satisfies SO and each clause satisfies SRSW. The first clause swaps inputs in the recursive call, ensuring fairness when both streams are available.
 \end{example}
 
 
-As we shall see (Proposition~\ref{prop:so-preservation}), the SO invariant is maintained by the SRSW restriction: reducing a goal satisfying SO with a clause satisfying SRSW results in a goal satisfying SO. The purpose of the SRSW restriction is to prevent multiple writer occurrences racing to assign a variable.
+As we shall see (Proposition~\ref{prop:so-preservation}), the SO invariant is maintained by the SRSW restriction: reducing a goal satisfying SO with a clause satisfying SRSW results in a goal satisfying SO. 
 
 %------------------------------------------------------------------------------
-\subsection{cGLP Operational Semantics}
+\subsection{Operational Semantics}
 \label{sec:glp-operational}
 %------------------------------------------------------------------------------
+
+\begin{definition}[Transition System]
+\label{def:ts}
+A \temph{transition system} is a tuple $TS = (C, c_0, T)$ where $C$ is an arbitrary set of \temph{configurations}, $c_0 \in C$ is a designated \temph{initial configuration}, and $T \subseteq C \times C$ is a \temph{transition relation}, with transitions written $c \rightarrow c' \in T$.
+A transition $c \rightarrow c' \in T$ is \temph{enabled} from configuration $c$. A configuration $c$ is \temph{terminal} if no transitions are enabled from $c$. A \temph{computation} is a (finite or infinite) sequence of configurations where for each two consecutive configurations $(c,c')$ in the sequence, $c \rightarrow c' \in T$. We write $c \xrightarrow{*} c'$ to denote the existence of a computation (empty if $c = c'$) from $c$ to $c'$. A \temph{run} is a computation starting from $c_0$, which is \temph{complete} if it is infinite or ends in a terminal configuration. The \temph{outcome} of a complete run is determined by a domain-specific function from complete runs to an outcome space.
+\end{definition}
+
 
 \begin{definition}[Substitutions and Assignments]
 \label{def:writers-assignment}
