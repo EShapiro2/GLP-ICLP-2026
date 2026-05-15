@@ -1,17 +1,5 @@
 \section{Conclusion}\label{section:conclusion}
 
-We have presented GLP, a multiagent, concurrent logic programming language designed for implementing grassroots platforms. The key contributions are:
-
-\begin{enumerate}
-\item \textbf{GLP Definition:} We defined GLP as an extension of logic programs with reader/writer variable pairs satisfying the Single-Occurrence (SO) invariant and the Single-Reader/Single-Writer (SRSW) restriction, providing asynchronous communication through term matching rather than unification.
-
-\item \textbf{Multiagent GLP:} We extended GLP to multiple agents using multiagent transition systems with atomic transactions, defining maGLP with Reduce, Communicate, and Cold-call transactions.
-
-\item \textbf{Grassroots Proof:} We proved that maGLP is grassroots, with the Cold-call transaction providing the interactive behaviour.
-
-\item \textbf{Grassroots Social Graph:} We demonstrated the expressiveness of GLP by implementing the grassroots social graph protocol, which serves as the infrastructure layer for other grassroots platforms.
-\end{enumerate}
-
-Companion papers extend this work: Shapiro~\cite{shapiro2026types} develops a moded type system for GLP enabling the typing of interactive partial computations, and Shapiro~\cite{shapiro2026implementing} derives a deterministic implementation madGLP from maGLP and proves madGLP grassroots, supporting the Dart/Flutter implementation for smartphone deployment.
-
 While concurrent logic programming and its powerful programming techniques have been known for four decades~\cite{shapiro1989family}, adoption has been hampered by their inaccessibility to the average programmer; with AI as a hyper-programmer this limitation is removed. Our experience to date is that AI is highly effective and productive at programming from mathematical specifications, particularly when the target is a typed high-level language such as GLP, where types constrain the space of legal programs and provide a checkable specification at the human-AI interface~\cite{shapiro2026types}. Moreover, our experience suggests that the abstract nature of concurrent logic programming renders it a more powerful and productive language than mainstream languages for collaborative human-AI abstract specifications-based program development.
+
+Constitutional governance of grassroots communities and federations builds on Constitutional Consensus~\cite{keidar2025constitutional,lewis2025morpheus} and digital social contracts~\cite{cardelli2020digital,shapiro2022foundations}, both realisable in GLP. A textbook on GLP and programming in it is in preparation. The GLP runtime and example programs are open-source at \url{https://github.com/EShapiro2/GLP}.
