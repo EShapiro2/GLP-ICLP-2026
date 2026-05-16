@@ -49,7 +49,7 @@ In other words, one can fully specify a multiagent transition system over $S$ an
 
 %------------------------------------------------------------------------------
 \subsection{From cGLP to maGLP}
-\label{sec:glp-to-maglp}
+\label{sec:glp-to-maglp}\label{sec:maglp-def}
 %------------------------------------------------------------------------------
 
 In extending GLP to multiple agents, each agent maintains its own asynchronous resolvent as its local state. The key insight is that GLP's variable pairs provide natural binary communication channels: when agent $p$ assigns a writer $X$ for which the paired reader $X?$ is held by agent $q$, the assignment $X := T$ must be communicated to $q$.
@@ -60,10 +60,6 @@ We resolve this in two steps. First, we employ only anonymous logic variables ``
 
 Second, the Cold-call transaction enables agents to bootstrap communication by establishing shared variables through the network infrastructure, realizing the cold-call protocol for connecting previously-disconnected agents.
 
-%------------------------------------------------------------------------------
-\subsection{Multiagent GLP Definition}
-\label{sec:maglp-def}
-%------------------------------------------------------------------------------
 
 \begin{definition}[Multiagent GLP]\label{definition:maGLP}
 Given agents $P\subset \Pi$ and GLP program $M$, the \temph{maGLP transition system} over $P$ and $M$ is the transactions-based multiagent transition system (Definition~\ref{def:tbmts}) over $P$, local states being asynchronous resolvents $(G_p, \sigma_p)$ over $M$, initial local state $s0 = (\{\verb|agent(ch(_?,_),ch(_?,_))|\}, \emptyset)$, and the following transactions $c\rightarrow c'$:
