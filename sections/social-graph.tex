@@ -78,6 +78,6 @@ agent(Id, UserIn, [msg(From, Id1, text(Text))|NetIn], Outs) :-
 No Cold-call transaction is involved: text messages flow entirely through Communicate over the previously-established channels.
 
 \mypara{Boot and deployment}
-Each agent runs on a separate isolate (later --- separate smartphone). Two boot variants --- a headless boot with actors and an interactive UI boot --- appear in \appref{appendix:social-graph-complete}{\arxivref}, along with the complete program (helper predicates, actor implementations) and a comprehensive Alice/Bob/Charlie scenario in \appref{appendix:social-graph-walkthrough}{\arxivref}.
+Each agent runs on a separate isolate (later --- separate smartphone). A boot clause reduces the universal initial state \verb|agent(ch(_?,_),ch(_?,_))| (Definition~\ref{definition:maGLP}) to the four-argument form used in the clauses above. Two boot variants --- a headless boot with actors and an interactive UI boot --- appear in \appref{appendix:social-graph-complete}{\arxivref}, along with the complete program (helper predicates, actor implementations) and a comprehensive Alice/Bob/Charlie scenario in \appref{appendix:social-graph-walkthrough}{\arxivref}.
 
 The social graph specified above, run as a maGLP program, is itself a grassroots platform: it inherits the grassroots property of maGLP (Corollary~\ref{corollary:social-graph-grassroots}).

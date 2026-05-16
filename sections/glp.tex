@@ -33,7 +33,7 @@ The purpose of the SRSW restriction is to prevent multiple writer occurrences ra
 % We use set notation also when referring to multisets.
 \begin{example}[Fair Merge]
 \label{ex:merge}
-Consider the quintessential concurrent logic program for fairly merging two streams, written in GLP:\footnote{Mode annotations (\texttt{?} suffix) and type declarations (\texttt{procedure ...}, \texttt{T ::= ...}) used informally in examples are formally introduced in the Typed GLP companion paper~\cite{shapiro2026types}.}
+Consider the quintessential concurrent logic program for fairly merging two streams, written in GLP:\footnote{Moded-type definitions (\texttt{T ::= ...}) and declarations (\texttt{procedure ...}) used informally in examples are formally introduced in the Typed GLP companion paper~\cite{shapiro2026types}.}
 \begin{verbatim}
 Stream ::= [] ;[_|Stream].
 
