@@ -132,11 +132,15 @@ Each unit goal in a cGLP computation carries a unique \temph{identifier} assigne
 \label{def:transition-equivalence}
 Given a set of transitions $T$, a \temph{transition equivalence}~\cite{lewis2026volitional} is an equivalence relation $\sim$ on $T$. We write $[t]$ for the equivalence class of $t$ under $\sim$. An equivalence class $[t]$ is \temph{enabled} in configuration $c$ if some $t' \in [t]$ is enabled in $c$.
 
-For cGLP, $t_1 \sim t_2$ if:
-\begin{itemize}
-\item both are Reduce transitions that reduce the same goal (by identity) with the same clause, or
-\item both are Communicate transitions that apply the counterpart of the same writer assignment to the same goal (by identity).
-\end{itemize}
+Define the labelling function $\ell: \calT \to L$ on cGLP transitions by:
+\[
+\ell(t) :=
+\begin{cases}
+\langle \mathsf{Reduce},\, \mathit{id}(A),\, C \rangle & \text{if $t$ is a Reduce of unit goal $A$ with clause $C$,} \\[2pt]
+\langle \mathsf{Communicate},\, X := T \rangle & \text{if $t$ is a Communicate of $X? := T$,}
+\end{cases}
+\]
+where $\mathit{id}(A)$ is the identifier of $A$ (Definition~\ref{def:goal-identity}). The \temph{cGLP transition equivalence} is the relation $\sim\,\subseteq\,\calT\times\calT$ defined by $t_1 \sim t_2 \iff \ell(t_1) = \ell(t_2)$.
 \end{definition}
 
 Two equivalent Reduce transitions may operate on different instantiations of the same goal---with different reader substitutions applied---but produce the same writer mgu (since the writer mgu assigns only writers and is unaffected by reader substitutions).

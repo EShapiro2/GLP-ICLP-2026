@@ -79,13 +79,19 @@ Given agents $P\subset \Pi$ and GLP program $M$, the \temph{maGLP transition sys
 Note that Communicate may be unary or binary, depending on whether $p=q$.  Communicate transfers assignments from writers to readers between agents sharing a paired reader and writer.  Cold-call transfers a term with its variables to $q$ through the network streams established in each agent's initial configuration, enabling the creation of paired variables among previously-disconnected agents.
 Naturally, Cold-call would be the exception, as once agents share a paired variable they can use it to communicate indefinitely; moreover, an agent with two friends (with which it shares channels) may introduce them to each other, also eschewing the need for a Cold-call.
 
-\mypara{Transaction Equivalence for maGLP}
-Following the cGLP transition equivalence (Definition~\ref{def:transition-equivalence}), we extend the equivalence relation to maGLP transactions. Two maGLP transactions $t_1 \sim t_2$ if:
-\begin{itemize}
-\item both are Reduce transactions at the same agent $p$, reducing the same goal (by identity) with the same clause, or
-\item both are Communicate transactions from the same $p$ to the same $q$, applying the counterpart of the same writer assignment to the same goal (by identity) at $q$, or
-\item both are Cold-call transactions from the same $p$ to the same $q$, delivering the same message from $p$'s network output stream.
-\end{itemize}
+\begin{definition}[maGLP Transaction Equivalence]
+\label{def:maglp-transaction-equivalence}
+Define the labelling function $\ell: \calT \to L$ on maGLP transactions by:
+\[
+\ell(t) :=
+\begin{cases}
+\langle \mathsf{Reduce},\, p,\, \mathit{id}(A),\, C \rangle & \text{Reduce at agent $p$ of unit goal $A$ with clause $C$,} \\[2pt]
+\langle \mathsf{Communicate},\, p,\, q,\, X := T \rangle & \text{Communicate from $p$ to $q$ of $X? := T$,} \\[2pt]
+\langle \mathsf{Cold\text{-}call},\, p,\, q,\, m \rangle & \text{Cold-call from $p$ to $q$ of message $m$.}
+\end{cases}
+\]
+The \temph{maGLP transaction equivalence} is the relation $\sim\,\subseteq\,\calT\times\calT$ defined by $t_1 \sim t_2 \iff \ell(t_1) = \ell(t_2)$.
+\end{definition}
 
 %------------------------------------------------------------------------------
 \subsection{The Grassroots Social Graph}
