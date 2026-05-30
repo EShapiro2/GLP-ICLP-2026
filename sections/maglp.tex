@@ -54,8 +54,8 @@ Given agents $P \subset \Pi$, local states $S$ with initial local state $s0\in S
 
 In extending GLP to multiple agents, each agent maintains its own asynchronous resolvent as its local state. The key insight is that GLP's variable pairs provide natural binary communication channels: when agent $p$ assigns a writer $X$ for which the paired reader $X?$ is held by agent $q$, the assignment $X := T$ must be communicated to $q$.
 
-A key difference between cGLP and maGLP is in the initial state. In a multiagent transition system all agents must have the same initial local state $s0$ (Definition~\ref{def:mts}). This precludes setting up an initial configuration in which agents share logic variables, as this would imply different initial states for different agents.
-
+A key difference between cGLP and maGLP is in the initial state. In a multiagent transition system all agents must have the same initial local state $s0$ (Definition~\ref{def:mts}),  precluding the initial sharing of logic variables, as this would imply different initial states for different agents.
+%
 We resolve this in two steps. First, we employ only anonymous logic variables ``\verb|_|'' in the initial local states of agents: Anonymous variables are, on the one hand, syntactically identical, hence allow all initial states to be syntactically identical, and on the other hand represent unique variables, hence semantically all initial goals have unique, local, non-shared variables. The initial state of all agents is the atomic goal \verb|agent(ch(_?,_),ch(_?,_))|, providing two bidirectional channels: the first to the person operating the machine, and the second to the network. The first channel is a bidirectional stream of GLP messages between the machine and the person, mediated by runtime UI support below the GLP layer and by physical UI hardware; messages flowing toward the person are rendered as UI elements, and the person's responses flow back as GLP messages. With appropriate UI runtime support, a GLP message to the user may contain a writer, in which case the runtime presents it as a question and an eventual response from the person becomes the corresponding assignment. The second channel carries communication with other agents.
 
 Second, the Cold-call transaction enables agents to bootstrap communication by establishing shared variables through the network infrastructure, realising the cold-call protocol for connecting previously-disconnected agents.
@@ -64,9 +64,9 @@ Second, the Cold-call transaction enables agents to bootstrap communication by e
 \begin{definition}[Multiagent GLP]\label{definition:maGLP}
 Given agents $P\subset \Pi$ and GLP program $M$, the \temph{maGLP transition system} over $P$ and $M$ is the transactions-based multiagent transition system (Definition~\ref{def:tbmts}) over $P$, local states being asynchronous resolvents $(G_p, \sigma_p)$ over $M$, initial local state $s0 = (\{\verb|agent(ch(_?,_),ch(_?,_))|\}, \emptyset)$, and the following transactions $c\rightarrow c'$:
 \begin{enumerate}
-    \item \textbf{Reduce $p$:} A unary transaction with participant $p$ where $c_p \rightarrow c'_p$ is a cGLP Reduce transition (Definition~\ref{def:cglp-ts}).
+    \item \textbf{Reduce $p$:} A unary $p$-transaction $p$ where $c_p \rightarrow c'_p$ is a cGLP Reduce transition (Definition~\ref{def:cglp-ts}).
 
-    \item \textbf{Communicate $p$ to $q$:} A transaction with participants $p,q\in P$ where $\{X? := T\} \in \sigma_p$, $X?$ occurs in $G_q$, $\sigma'_p = \sigma_p \setminus \{X? := T\}$, and $c'_q = (G_q\{X? := T\}, \sigma_q)$.
+    \item \textbf{Communicate $p$ to $q$:} A binary transaction with participants $p,q\in P$ where $\{X? := T\} \in \sigma_p$, $X?$ occurs in $G_q$, $\sigma'_p = \sigma_p \setminus \{X? := T\}$, and $c'_q = (G_q\{X? := T\}, \sigma_q)$.
 
     \item \textbf{Cold-call $p$ to $q$:} A binary transaction with participants $p\ne q \in P$ where the network output stream in $c_p$ has a new message \verb|msg|$(q,X)$, $c'_p$ is the result of advancing the network output stream in $c_p$, and $c'_q$ is the result of adding $X$ to the network input stream in $c_q$.
 \end{enumerate}
