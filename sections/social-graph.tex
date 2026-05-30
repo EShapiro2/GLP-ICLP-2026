@@ -14,12 +14,12 @@ A \emph{channel} is an authenticated bidirectional communication structure \verb
 \begin{verbatim}
 new_channel(ch(Xs?, Ys), ch(Ys?, Xs)).
 \end{verbatim}
-A single call \verb|new_channel(PQCh, QPCh)| binds \verb|PQCh| to \verb|ch(Xs?, Ys)| and \verb|QPCh| to \verb|ch(Ys?, Xs)|: the reader \verb|Xs?| of one channel is paired with the writer \verb|Xs| of the other (and likewise for \verb|Ys|/\verb|Ys?|), so each end's outgoing stream is the other end's incoming stream. Sending and receiving on a channel are accordingly:
+A single call \verb|new_channel(PQCh, QPCh)| binds \verb|PQCh| to \verb|ch(Xs?, Ys)| and \verb|QPCh| to \verb|ch(Ys?, Xs)|: the reader \verb|Xs?| of one channel is paired with the writer \verb|Xs| of the other (and likewise for \verb|Ys|/\verb|Ys?|), so each end's outgoing stream is the other end's incoming stream. Sending and receiving on a channel are:
 \begin{verbatim}
 send(X, ch(In, [X?|Out?]), ch(In?, Out)).
 receive(X?, ch([X|In], Out?), ch(In?, Out)).
 \end{verbatim}
-Channels are used directly in friend-mediated introduction (below) to establish a direct connection between two parties without a cold-call. They are also used internally by the cold-call protocol: when the recipient accepts, it returns a freshly-created channel half as its response, completing the bidirectional link.
+Channels are used in friend-mediated introduction (below) to establish a direct connection between two parties without a cold-call. They are also used by the cold-call protocol: when the recipient accepts, it returns a freshly-created channel half as its response, completing the bidirectional link.
 
 \mypara{Cold-call befriending}
 The user's \verb|connect(Target)| request triggers a cold-call: the agent sends \verb|intro(Id, Resp)| on the network and injects the paired reader \verb|Resp?| into its own user-input stream, so the eventual response surfaces locally as a normal user-side message:
@@ -61,7 +61,7 @@ agent(Id, [msg('_user', Id1, introduce(P, Q))|UserIn], NetIn, Outs) :-
 When Bob introduces Alice to Charlie, the channel pair he creates contains readers that are transferred to Alice and Charlie via Communicate, establishing their direct connection without any Cold-call.
 
 \mypara{Text messaging}
-Once two agents are friends, messages flow directly along their shared channel via the Communicate transaction.  The user's \verb|send(Target, Text)| request is dispatched on the channel registered under \verb|Target| in \verb|Outs|:
+Once two agents are friends, messages flow directly along their shared channel via the Communicate transaction, without cold-calls.  The user's \verb|send(Target, Text)| request is dispatched on the channel registered under \verb|Target| in \verb|Outs|:
 \begin{verbatim}
 agent(Id, [msg('_user', Id1, send(Target, Text))|UserIn], NetIn, Outs) :-
     Id? =?= Id1?, ground(Target?) |
@@ -75,7 +75,7 @@ agent(Id, UserIn, [msg(From, Id1, text(Text))|NetIn], Outs) :-
     lookup_send('_user', msg(agent, '_user', received(From?, Text?)), Outs?, Outs1),
     agent(Id?, UserIn?, NetIn?, Outs1?).
 \end{verbatim}
-No Cold-call transaction is involved: text messages flow entirely through Communicate over the previously-established channels.
+
 
 \mypara{Boot and deployment}
 Each agent runs on a separate isolate (later --- separate smartphone). A boot clause reduces the universal initial state \verb|agent(ch(_?,_),ch(_?,_))| (Definition~\ref{definition:maGLP}) to the four-argument form used in the clauses above. Two boot variants --- a headless boot with actors and an interactive UI boot --- appear in \appref{appendix:social-graph-complete}{\arxivref}, along with the complete program (helper predicates, actor implementations) and a comprehensive Alice/Bob/Charlie scenario in \appref{appendix:social-graph-walkthrough}{\arxivref}.
