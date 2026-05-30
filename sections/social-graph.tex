@@ -5,7 +5,7 @@
 
 The grassroots social graph is the foundation upon which all other grassroots platforms are built. Nodes represent cryptographically self-identified agents; edges represent authenticated bidirectional channels; connected components arise spontaneously through befriending.
 
-Each agent processes messages from user and network input streams and maintains an outputs list mapping named destinations to output streams. The program supports three protocols: (1) \emph{cold-call befriending}, where agents with no prior shared variables establish friendship by exchanging a response variable through the network; (2) \emph{text messaging} between established friends via named output streams; and (3) \emph{friend-mediated introduction}, where a mutual friend creates a channel pair and sends each half to the respective parties, establishing a direct connection.
+Each agent processes messages from user and network input streams and maintains an outputs list mapping named destinations to output streams. The program supports three protocols: (1) \emph{cold-call befriending}, where agents with no prior shared variables establish friendship by exchanging a response variable through the network; (2) \emph{friend-mediated introduction}, where a mutual friend creates a channel pair and sends each half to the respective parties, establishing a direct connection; and (3) \emph{text messaging} between established friends via named output streams.
 
 The core of the program is the procedure \verb|agent/4|; the key clauses follow.
 
@@ -75,7 +75,7 @@ agent(Id, UserIn, [msg(From, Id1, text(Text))|NetIn], Outs) :-
     lookup_send('_user', msg(agent, '_user', received(From?, Text?)), Outs?, Outs1),
     agent(Id?, UserIn?, NetIn?, Outs1?).
 \end{verbatim}
-No Cold-call transaction is involved: text messages flow entirely through Communicate over the previously-established channels.
+No Cold-call transaction is involved.
 
 \mypara{Boot and deployment}
 Each agent runs on a separate isolate (later --- separate smartphone). A boot clause reduces the universal initial state \verb|agent(ch(_?,_),ch(_?,_))| (Definition~\ref{definition:maGLP}) to the four-argument form used in the clauses above. Two boot variants --- a headless boot with actors and an interactive UI boot --- appear in \appref{appendix:social-graph-complete}{\arxivref}, along with the complete program (helper predicates, actor implementations) and a comprehensive Alice/Bob/Charlie scenario in \appref{appendix:social-graph-walkthrough}{\arxivref}.
