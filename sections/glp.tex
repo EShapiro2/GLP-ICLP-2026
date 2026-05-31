@@ -63,7 +63,7 @@ A transition $c \rightarrow c' \in T$ is \temph{enabled} from configuration $c$.
 
 \begin{definition}[Substitutions and Assignments]
 \label{def:writers-assignment}
-A GLP \temph{writer assignment} is a term of the form $X := T$, $X\in\calV$, $T\notin\calV$, satisfying SO. Similarly, a GLP \temph{reader assignment} is a term of the form $X? := T$, $X?\in\calV?$, $T\notin\calV$, satisfying SO. A \temph{writers (readers) substitution} $\sigma$ is the substitution implied by a set of writer (reader) assignments that jointly satisfy SO. Given a writers assignment $X := T$, its \temph{readers counterpart} is $X? := T$, and given a writers substitution $\sigma$, its \temph{readers counterpart} $\sigma?$ is the readers substitution defined by $X?\sigma? = X\sigma$.
+A GLP \temph{writer assignment} is a term of the form $X := T$, $X\in\calV$, $T\notin\calV$, satisfying SO. Similarly, a GLP \temph{reader assignment} is a term of the form $X? := T$, $X?\in\calV?$, $T\notin\calV$, satisfying SO. A \temph{writers (readers) substitution} $\sigma$ is the substitution implied by a set of writer (reader) assignments that jointly satisfy SO. Given a writers assignment $X := T$, its \temph{readers counterpart} is $X? := T$, and given a writers substitution $\sigma$, its \temph{readers counterpart} $\sigma?$ is the readers substitution defined by $X?\sigma? = X\sigma$. Given a reader assignment $X? := T$, its \temph{writers counterpart} is $X := T$, and given a readers substitution $\tau$, its \temph{writers counterpart} $\tau!$ is the writers substitution defined by $X\tau! = X?\tau$.
 \end{definition}
 
 \begin{definition}[GLP Renaming, Renaming Apart]
@@ -107,11 +107,11 @@ In LP, if a goal cannot be reduced, it will never be reduced. In cGLP, a goal th
 
 Implementation-wise, if a GLP goal $A$ cannot be reduced now, but there is a readers substitution $\sigma$ such that $A\sigma$ can be reduced, such readers are identified, the goal $A$ \emph{suspends} on these readers, and is rescheduled for another reduction attempt once any of them is assigned.
 
-Despite these differences, cGLP adopts the same notions of proper run, successful run, and outcome as LP\ifappendix{} (Definition~\ref{def:proper-run}, Appendix~\ref{appendix:lp})\fi, and has the same notion of logical consequence as LP. Let $/?$ be an operator that replaces every reader by its paired writer.
+Despite these differences, cGLP adopts the same notions of proper run and successful run as LP\ifappendix{} (Definition~\ref{def:proper-run}, Appendix~\ref{appendix:lp})\fi, and has the same notion of logical consequence as LP. The cGLP outcome differs from LP's: $\sigma_n$ accumulates only readers counterparts and so leaves the writers of $G_0$ unbound, which the writers counterpart restores. Let $/?$ be an operator that replaces every reader by its paired writer.
 
 \begin{restatable}[cGLP Computation is Deduction]{proposition}{propGLPDeduction}
 \label{prop:cglp-deduction}
-Let $(G_0$ \texttt{:-} $G_n)\sigma$ be the outcome of a proper cGLP run $\rho: (G_0,\sigma_0) \rightarrow \cdots \rightarrow (G_n, \sigma_n)$ of $cGLP$. Then $(G_0$ \texttt{:-} $G_n)\sigma/?$ is a logical consequence of $P/?$.
+Let $(G_0$ \texttt{:-} $G_n)\sigma_n^\star$ be the outcome of a proper cGLP run $\rho: (G_0,\sigma_0) \rightarrow \cdots \rightarrow (G_n, \sigma_n)$ of $cGLP$, where $\sigma_n^\star$ is $\sigma_n \cup \sigma_n!$ applied to a fixed point. Then $(G_0$ \texttt{:-} $G_n)\sigma_n^\star/?$ is a logical consequence of $P/?$.
 \end{restatable}
 
 We note an additional safety property of cGLP runs.
