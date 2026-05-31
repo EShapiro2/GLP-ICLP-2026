@@ -75,11 +75,6 @@ agent(Id, UserIn, [msg(From, Id1, text(Text))|NetIn], Outs) :-
     lookup_send('_user', msg(agent, '_user', received(From?, Text?)), Outs?, Outs1),
     agent(Id?, UserIn?, NetIn?, Outs1?).
 \end{verbatim}
-<<<<<<< HEAD
-No Cold-call transaction is involved.
-=======
-
->>>>>>> 6d71efd0eed22e3eb7831c4f2d317286535bc98b
 
 \mypara{Boot and deployment}
 Each agent runs on a separate isolate (later --- separate smartphone). A boot clause reduces the universal initial state \verb|agent(ch(_?,_),ch(_?,_))| (Definition~\ref{definition:maGLP}) to the four-argument form used in the clauses above. Two boot variants --- a headless boot with actors and an interactive UI boot --- appear in \appref{appendix:social-graph-complete}{\arxivref}, along with the complete program (helper predicates, actor implementations) and a comprehensive Alice/Bob/Charlie scenario in \appref{appendix:social-graph-walkthrough}{\arxivref}.
