@@ -157,7 +157,7 @@ Definition~\ref{def:glp-reduction} of a GLP goal/clause reduction is augmented t
 
 \begin{remark}[Guards and SRSW]
 \label{rem:guards-srsw}
-Guard occurrences count toward SRSW satisfaction: if $X?$ occurs in a guard, its paired writer $X$ must occur in the head and $X?$ may additionally occur once in the body.
+Guard occurrences count toward SRSW satisfaction: a guard reader $X?$ counts as the paired-reader occurrence SRSW requires, so a variable whose writer $X$ occurs in the head and whose reader $X?$ occurs in a guard satisfies SRSW with one occurrence of each.
 %
 Furthermore, if the success of a guard implies that $X?$ is bound to a ground term, then both $X$ and $X?$ may occur multiple times in the clause. Groundness-implying guards include \verb|ground|, \verb|integer|, \verb|number|, \verb|string|, \verb|constant|, arithmetic comparisons (\verb|<|, \verb|>|, \verb|=<|, \verb|>=|, \verb|=:=|, \verb|=\=|), and ground equality (\verb|=?=|). However,  \verb|known| and \verb|compound| do not imply groundness.
 \end{remark}
