@@ -15,10 +15,10 @@ A \temph{local-states function} $S: 2^\Pi \to 2^\calS$ maps every finite set of 
 Given a local-states function $S$, we use $C(P) := S(P)^P$ for configurations over $P$ and $c0(P) := \{s0\}^P$ for the initial configuration.
 
 \begin{definition}[Protocol]\label{definition:protocol}
-A \temph{protocol} $\calF$ over a local-states function $S$ is a family of multiagent transition systems with exactly one transition system $\calF(P) = (C(P), c0(P), T(P))$ for every finite $P \subset \Pi$.
+A \temph{protocol} $\calF$ over a local-states function $S$ is a family of multiagent transition systems with exactly one transition system $\calF(P) = (C(P), c0(P), T(P), {\sim(P)})$ for every finite $P \subset \Pi$.
 \end{definition}
 
-A \emph{correct} run of a transition system is a complete fair run.
+A \emph{correct} run of a transition system is safe and live (Definition~\ref{def:ts}); the runs here are safe by construction, so correctness coincides with liveness.
 
 Informally, in a grassroots protocol two disjoint groups of agents can each operate independently---their interleaved correct runs are correct runs of the combined system---yet the combined system offers genuinely new behaviours that neither group could produce on its own. To define this formally, we first define the interleaving of runs of two disjoint groups.
 
@@ -45,7 +45,7 @@ A protocol $\calF$ is:
 \end{enumerate}
 \end{definition}
 
-Being oblivious means that two disjoint groups of agents, each running the protocol independently and correctly, do not interfere with each other: any interleaving of their independent correct runs is a correct run of the combined system. Being interactive means that two disjoint groups, when brought together, can do something genuinely new: there exists a correct run of the combined system that could not arise from the two groups operating independently. In an interleaving, each step changes the local states of agents in only one group; therefore, any transaction whose active participants span both groups yields a step that cannot occur in any interleaving.
+Being oblivious means that two disjoint groups of agents, each running the protocol independently and correctly, do not interfere with each other: any interleaving of their independent correct runs is a correct run of the combined system. Being interactive means that two disjoint groups, when brought together, can do something genuinely new: there exists a correct run of the combined system that could not arise from the two groups operating independently. In an interleaving, each step changes the local states of agents in only one group; therefore, any transaction whose active participants span both groups yields a step that cannot occur in any interleaving. These definitions are the machine-layer specialisation, without guards, of the volitional grassroots framework of~\cite{lewis2026volitional}.
 
 %------------------------------------------------------------------------------
 \subsection{Transactions-Based Protocols}
@@ -57,7 +57,7 @@ $$R(P) := \{t \in R : t \text{ has participants } Q \subseteq P \text{ and is ov
 \end{definition}
 
 \begin{definition}[Transactions-Based Protocol]\label{definition:tb-protocol}
-Let $S$ be a local-states function and $R$ a set of transactions over $S$ with equivalence $\sim$. The \temph{protocol $\calF$ over $R$, $S$, and $\sim$} is defined by $\calF(P) := (C(P), c0(P), R(P){\uparrow}P)$ for each $P \subset \Pi$.
+Let $S$ be a local-states function and $R$ a set of transactions over $S$ with equivalence $\sim$. The \temph{protocol $\calF$ over $R$, $S$, and $\sim$} is defined by $\calF(P) := (C(P), c0(P), R(P){\uparrow}P, {\sim})$ for each $P \subset \Pi$.
 \end{definition}
 
 Since liveness applies to all equivalence classes, any class $[t]$ in $R(P \cup P')/{\sim}$ whose transactions have participants spanning both $P$ and $P'$ could obstruct obliviousness if enabled in an interleaving. The following proposition identifies the condition under which this does not occur.
