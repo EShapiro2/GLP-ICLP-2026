@@ -6,14 +6,7 @@ This appendix presents the detailed walkthrough of the grassroots social graph p
 \subsection{Types and Channels}
 %------------------------------------------------------------------------------
 
-The social graph uses the following type definitions:
-\begin{verbatim}
-Response ::= accept(Channel) ; no.
-Decision ::= yes ; no.
-PendingValue ::= response(Response?) ; channel(Channel?) ; error.
-OutputEntry ::= output(String, Stream?).
-OutputsList ::= [] ; [OutputEntry|OutputsList].
-\end{verbatim}
+The social graph's type definitions are listed with the complete program (Appendix~\ref{appendix:social-graph-complete}).
 
 A \verb|Channel| is a pair of streams for bidirectional communication. The \verb|new_channel| guard creates complementary channel endpoints:
 \begin{verbatim}
@@ -224,75 +217,7 @@ Note the distinction between cold-call messages and friend-mediated messages: co
 \subsection{Network Switch Simulation}
 %------------------------------------------------------------------------------
 
-In deployment, agents communicate through a physical network. In simulation, a \verb|network3| process routes messages between three agents (Figure~\ref{fig:network-switch}).
-
-\newpage
-\begin{figure*}[t]
-\begin{multicols}{2}
-\begin{verbatim}
-procedure network3(
-  Channel?, Channel?, Channel?).
-
-%% Cold-call routing (2-arg msg)
-
-%% Alice cold-calls Bob
-network3(
-  ch([msg(bob, X)|AliceIn],
-     AliceOut?),
-  ch(BobIn,
-     [msg(bob, X?)|BobOut?]),
-  ch(CharlieIn, CharlieOut?)) :-
-    network3(
-      ch(AliceIn?, AliceOut),
-      ch(BobIn?, BobOut),
-      ch(CharlieIn?, CharlieOut)).
-
-%% (Five more 2-arg clauses for
-%%  other sender/receiver pairs)
-
-%% Friend-to-friend (3-arg msg)
-
-%% Alice -> Bob
-network3(
-  ch([msg(alice, bob, X)|AliceIn],
-     AliceOut?),
-  ch(BobIn,
-     [msg(alice, bob, X?)
-      |BobOut?]),
-  ch(CharlieIn, CharlieOut?)) :-
-    network3(
-      ch(AliceIn?, AliceOut),
-      ch(BobIn?, BobOut),
-      ch(CharlieIn?, CharlieOut)).
-\end{verbatim}
-\columnbreak
-\begin{verbatim}
-%% Bob -> Charlie
-network3(
-  ch(AliceIn, AliceOut?),
-  ch([msg(bob, charlie, X)|BobIn],
-     BobOut?),
-  ch(CharlieIn,
-     [msg(bob, charlie, X?)
-      |CharlieOut?])) :-
-    network3(
-      ch(AliceIn?, AliceOut),
-      ch(BobIn?, BobOut),
-      ch(CharlieIn?, CharlieOut)).
-
-%% (Four more 3-arg clauses for
-%%  other sender/receiver pairs)
-
-%% Termination
-network3(
-  ch([], []),
-  ch([], []),
-  ch([], [])).
-\end{verbatim}
-\end{multicols}
-\caption{Network switch simulation for three agents}
-\label{fig:network-switch}
-\end{figure*}
+In deployment, agents communicate through a physical network. In simulation, a \verb|network3| process routes messages between three agents; it is listed in full with the complete program (Appendix~\ref{app:network-switch}).
 
 The network switch routes both 2-argument cold-call messages (where \verb|msg(Target, Content)| is addressed by target name) and 3-argument friend-to-friend messages (where \verb|msg(From, To, Content)| carries both sender and receiver identities). In deployment, the network switch is replaced by maGLP's Cold-call transaction (Section~\ref{sec:maglp}).
 
