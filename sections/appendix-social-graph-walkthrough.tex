@@ -148,60 +148,7 @@ agent(Id, UserIn,
 \end{figure*}
 
 
-%------------------------------------------------------------------------------
-\subsection{Ending Friendship}
-%------------------------------------------------------------------------------
 
-\textcolor{red}{Once two agents are connected as friends, either agent may initiate a unilateral termination of the relationship. Upon initiation, the initiating agent immediately removes the other agent from its friend list. The counterpart agent subsequently updates its own friend list by removing the initiator. }
-
-(Figure~\ref{fig:end-friendship}).
-
-\begin{figure*}[t]
-\begin{multicols}{2}
-\begin{verbatim}
-procedure remove_output(OutputKey?, 
-OutputsList?, OutputsList).
-remove_output(Key, [output(K, [])|Rest],
-Rest?) :-
-    Key? =?= K? | true.
-remove_output(Key, [O|Rest], [O?|Rest1?])
-:-
-    otherwise |
-    remove_output(Key?, Rest?, Rest1).
-remove_output(_, [], []).
-\end{verbatim}
-
-\begin{verbatim}
-procedure agent(Constant?, UserInStream?,
-NetInStream?, OutputsList?).
-agent(Id, [msg('_user', Id1, unfriend
-(Target))|UserIn], NetIn, Outs) :-
-    Id? =?= Id1?, ground(Target?) |
-    lookup_send(friend(Target?), msg(Id?,
-    Target?, unfriend(Id?)), Outs?, Outs1),
-    remove_output(friend(Target?), Outs1?,
-    Outs2),
-    lookup_send('_user', msg(agent, '_user',
-    unfriended(Target?)), Outs2?, Outs3),
-    agent(Id?, UserIn?, NetIn?, Outs3?).
-
-
-\end{verbatim}
-\columnbreak
-\begin{verbatim}
-agent(Id, UserIn, [msg(From, Id1, 
-unfriend(_))|NetIn], Outs) :-
-    Id? =?= Id1?, ground(From?) |
-    remove_output(friend(From?), Outs?,
-    Outs1),
-    lookup_send('_user', msg(agent, '_user', 
-    unfriended(From?)), Outs1?, Outs2),
-    agent(Id?, UserIn?, NetIn?, Outs2?).
-\end{verbatim}
-\end{multicols}
-\caption{Agent unfriend mechanism}
-\label{fig:end-friendship}
-\end{figure*}
 
 
 %------------------------------------------------------------------------------
