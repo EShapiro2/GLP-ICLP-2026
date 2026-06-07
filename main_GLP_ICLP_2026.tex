@@ -53,8 +53,8 @@
 % Build flag: include appendices?
 % Set \appendixtrue for arXiv (full) version, \appendixfalse for ICLP submission.
 \newif\ifappendix
-\appendixfalse
-
+%\appendixfalse
+\appendixtrue
 % Conditional appendix reference.
 % Usage: \appref{appendix:foo}{fallback text when appendix is omitted}
 % With appendix on:  produces "Appendix~\ref{appendix:foo}"
@@ -136,9 +136,11 @@
 % EPTCS volume cross-reference placeholder (per EPTCS instructions)
 \providecommand{\thisvolume}[1]{this volume of EPTCS, Open Publishing Association}
 
-\title{GLP: A Grassroots, Multiagent, Concurrent,\\ Logic Programming Language for AI}
+\title{GLP: A Grassroots, Multiagent, Concurrent,\\ Logic Programming Language for AI
+\ifappendix\texorpdfstring{\\}{ }(Full Version)\fi}
+
 \author{Ehud Shapiro
-\institute{London School of Economics\\ and Weizmann Institute of Science}
+\institute{London School of Economics and Weizmann Institute of Science}
 }
 
 \begin{document}
