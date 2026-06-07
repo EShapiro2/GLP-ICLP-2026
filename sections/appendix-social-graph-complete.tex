@@ -424,8 +424,6 @@ The UI mediator sits between \verb|agent/4| and the user (whether a human or an 
 
 \begin{verbatim}
 ReqId       ::= req(Constant).
-PendingValue ::= response(Response?)
-               ; channel(Channel?) ; error.
 PendingEntry ::= pending(ReqId, PendingValue).
 PendingList  ::= [] ; [PendingEntry|PendingList].
 
