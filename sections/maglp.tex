@@ -69,7 +69,7 @@ Given agents $P\subset \Pi$ and GLP program $M$, the \temph{maGLP transition sys
 
     \item \textbf{Communicate $p$ to $q$:} A binary transaction with participants $p,q\in P$ where $\{X? := T\} \in \sigma_p$, $X?$ occurs in $G_q$, $\sigma'_p = \sigma_p \setminus \{X? := T\}$, and $c'_q = (G_q\{X? := T\}, \sigma_q)$.
 
-    \item \textbf{Cold-call $p$ to $q$:} A binary transaction with participants $p\ne q \in P$ where the network output stream in $c_p$ has a new message \verb|msg|$(q,X)$, $c'_p$ is the result of advancing the network output stream in $c_p$, and $c'_q$ is the result of adding $X$ to the network input stream in $c_q$.
+    \item \textbf{Cold-call $p$ to $q$:} A binary transaction with participants $p\ne q \in P$ where the network output stream in $c_p$ has a new message \verb|msg|$(q,X)$, $c'_p$ is the result of advancing the network output stream in $c_p$, and $c'_q$ is the result of adding \verb|msg|$(q,X)$ to the network input stream in $c_q$.
 
     \item ${\sim}$, the \temph{maGLP transaction equivalence} on the transactions above, relates $t_1 \sim t_2$ iff both are Reduce transactions at the same agent $p$ reducing the same goal (by identity, Definition~\ref{def:goal-identity}) with the same clause, both are Communicate transactions from the same $p$ to the same $q$ applying the counterpart of the same writer assignment to the same goal (by identity), or both are Cold-call transactions from the same $p$ to the same $q$ delivering the same message. The maGLP transition system carries the closure ${\sim}{\uparrow}P$ (Definition~\ref{def:closure}).
 \end{enumerate}
