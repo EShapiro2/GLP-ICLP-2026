@@ -1,5 +1,9 @@
 # Instructions for Claude
 
+## Code ownership
+
+This project is **GLP-ICLP**.  Owns under `/GLP/`: the GLP stdlib `lib/*`, the language examples (`examples/{basics, concurrency, concurrent_prolog, io}`, `paper/`, `plays/`), and the legacy corpus `book` / `exercises` / `misc` (prune candidates) — its **paper → code authority**.  Does **not** own the madGLP kernels/harness or the Dart implementation (→ IGLP), types/module fixtures (→ TGLP), or UI (→ UIVE); the shared graph base `social/graph` it uses as a running example is owned by GSG.  Implementation decisions go in this paper's arXiv "Implementation Notes" appendix, not a separate spec doc.  **Authoritative map + policy:** `/Grassroots/docs/glp-paper-code-map.md`.
+
 ## Division of Labor
 
 ### Claude Web (Chat Interface)
