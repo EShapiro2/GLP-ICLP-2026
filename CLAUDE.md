@@ -2,7 +2,7 @@
 
 ## Code ownership
 
-This project is **GLP-ICLP**.  Owns under `/GLP/`: the GLP stdlib `lib/*`, the language examples (`examples/{basics, concurrency, concurrent_prolog, io}`, `paper/`, `plays/`), and the legacy corpus `book` / `exercises` / `misc` (prune candidates) — its **paper → code authority**.  Does **not** own the madGLP kernels/harness or the Dart implementation (→ IGLP), types/module fixtures (→ TGLP), or UI (→ UIVE); the shared graph base `social/graph` it uses as a running example is owned by GSG.  Implementation decisions go in this paper's arXiv "Implementation Notes" appendix, not a separate spec doc.  **At session start, before any work, read `/Grassroots/docs/glp-paper-code-map.md` in full and state that you have done so** — it is the authoritative map, ownership policy, project roster, and the procedure for requesting changes to code you do not own.
+This project is **GLP-ICLP**.  Ownership and authority are not restated here — they live in the map, `/Grassroots/docs/glp-paper-code-map.md`, the single source of truth.  **At session start, before any work, read the map in full and state that you have done so** — it gives what this project owns, the ownership policy, the project roster, and the procedure for requesting changes to code you do not own.  Implementation decisions go in this paper's arXiv "Implementation Notes" appendix, not a separate spec doc.
 
 ## Division of Labor
 
