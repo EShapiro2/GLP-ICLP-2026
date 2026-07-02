@@ -40,8 +40,8 @@ Stream ::= [] ;[_|Stream].
 procedure merge(Stream?, Stream?, Stream).
 merge([X|Xs], Ys, [X?|Zs?]) :- merge(Ys?, Xs?, Zs).
 merge(Xs, [Y|Ys], [Y?|Zs?]) :- merge(Xs?, Ys?, Zs).
-merge(Xs, [], Xs?).
 merge([], Ys, Ys?).
+merge(Xs, [], Xs?).
 \end{verbatim}
 and the goal \verb=merge([1,2,3|Xs?],[a,b|Ys?],Zs)=. The goal satisfies SO and each clause satisfies SRSW. The first clause swaps inputs in the recursive call, ensuring fairness when both streams are available.
 \end{example}
@@ -190,11 +190,11 @@ Result? := X + Y :- number(X?), number(Y?) |
 Result? := X + Y :- otherwise |
     X1 := X?, Y1 := Y?, Result := X1? + Y1?.
 \end{verbatim}
-\noindent The base case binds a plain number; the first addition clause guards that both operands are numbers and invokes the \verb|'_add'| body kernel; the fallback clause recursively evaluates subexpressions. The complete definitions of all system predicates and the full table of body kernels appear in \appref{appendix:guards-system}{\arxivref}.
+\noindent The base case binds a plain number; the first addition clause guards that both operands are numbers and invokes the \verb|'_add'| body kernel; the fallback clause recursively evaluates subexpressions. The full table of body kernels and the guard reference appear in \appref{appendix:guards-system}{\arxivref}; the complete system-predicate definitions are in \verb|programs/self.glp| of the repository.
 
 \subsection{GLP Programming Techniques}
 
-On the one hand, GLP has no unification, only pattern-matching and single-writer variables. On the other hand, goal reduction may write on several variables atomically. The result is that almost the entire range of concurrent logic programming techniques developed since the 1980s~\cite{shapiro1989family,shapiro1987concurrent} is available in GLP, including: streams and their fair, biased, and self-balancing merge~\cite{shapiro1984fair,shapiro1986multiway}; channels as generalised streams~\cite{tribble1988channels}; messages with reply variables and bounded buffers~\cite{takeuchi1988bounded}; network reconfiguration and distributed programming~\cite{shafrir1988distributed}; object-oriented programming with mutable state via stream-recursion~\cite{shapiro1983object}; systems programming and computation control~\cite{shapiro1984systems,silverman1988logix}; and the full range of meta-interpreters --- fail-safe, termination-detecting, tracing, and algorithmic debugging~\cite{safra1988meta,lichtenstein1988concurrent}.
+On the one hand, GLP has no unification, only pattern-matching and single-writer variables. On the other hand, goal reduction may write on several variables atomically. The result is that almost the entire range of concurrent logic programming techniques developed since the 1980s~\cite{shapiro1989family,shapiro1987concurrent} is available in GLP, including: streams and their fair, biased, and self-balancing merge~\cite{shapiro1984fair,shapiro1986multiway}; channels as generalised streams~\cite{tribble1988channels}; messages with reply variables and bounded buffers~\cite{takeuchi1988bounded}; network reconfiguration and distributed programming~\cite{shafrir1988distributed}; object-oriented programming with mutable state via stream-recursion~\cite{shapiro1983object}; systems programming and computation control~\cite{shapiro1984systems,silverman1988logix}; and the full range of meta-interpreters --- fail-safe, termination-detecting, tracing, and algorithmic debugging~\cite{safra1988meta,lichtenstein1988concurrent}. Tested GLP renditions of these and further techniques --- monitors, distributors, network switches, replicators, and the metainterpreter family --- are in the \verb|programs| directory of the public GLP repository.\footnote{\url{https://github.com/EShapiro2/GLP}}
 
 Two techniques require workarounds. The use of logic variables for mutual exclusion --- standard in concurrent logic languages with atomic unification~\cite{shapiro1989family} --- must be achieved in GLP via a monitor~\cite{hoare1974monitors,hansen1973operating}, the standard distributed-computing solution. Similarly, general broadcast --- distributing a value to multiple consumers --- is not directly supported by GLP, since it would require multiple occurrences of the same reader, in violation of SO; it must be achieved by explicit \emph{distributors}.  We note that if moded-type checking can determine that the values to be distributed never contain writers, then the SO restriction on readers may safely be relaxed allowing broadcast natively; a future upgrade of the language.  Excluded is the encoding of logic programs or-parallel by the and-parallelism of Concurrent Prolog~\cite{codish1986compiling,shapiro1989or}, which depends on general unification in a fundamental way.
 

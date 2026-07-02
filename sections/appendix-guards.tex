@@ -3,19 +3,7 @@
 Guards and system predicates extend GLP programs with access to the GLP runtime state, operating system and hardware capabilities.
 
 \mypara{Predefined types}
-The following types are predefined and available in every GLP program:
-
-\begin{verbatim}
-Stream ::= [] ; [_|Stream].
-OpenStream ::= [_|Stream].
-DiffList ::= Stream \ Stream?.
-Channel ::= ch(Stream, Stream?).
-Constant ::= Number ; String.
-Exp ::= Number ; +(Exp, Exp) ; -(Exp, Exp) ; *(Exp, Exp) ;
-        /(Exp, Exp) ; //(Exp, Exp) ; mod(Exp, Exp) ; neg(Exp).
-\end{verbatim}
-
-\noindent \verb|Number|, \verb|Integer|, \verb|Real|, and \verb|String| are primitive types built into the runtime.
+The predefined types, available in every GLP program, are \verb|Stream(X)|, \verb|OpenStream(X)|, \verb|DiffList(X)|, \verb|Channel(In, Out)|, \verb|Constant|, and the arithmetic-expression type \verb|Exp|; their definitions are in \verb|programs/self.glp| of the public GLP repository. \verb|Number|, \verb|Integer|, \verb|Real|, and \verb|String| are primitive types built into the runtime.
 
 \mypara{Guard predicates}
 Guards provide read-only access to the runtime state of GLP computation. A guard appears after the clause head, separated by \verb=|=, and must be satisfied for the clause to be selected. The ``Ground'' column indicates whether success of the guard implies that the argument is ground; such guards permit multiple occurrences of the reader in the clause body (Remark~\ref{rem:guards-srsw}). Built-in guards can be negated: \verb|~G| succeeds if \verb|G| fails and vice versa, while suspension is unchanged; negation applies only to atomic built-in guards, not to defined guards or conjunctions.
@@ -34,7 +22,8 @@ Guards provide read-only access to the runtime state of GLP computation. A guard
 \verb|known| & \verb|procedure known(_?).| & no \\
 \verb|unknown| & \verb|procedure unknown(_?).| & no \\
 \verb|no_readers| & \verb|procedure no_readers(_?).| & no \\
-\verb|module| & \verb|procedure module(Module?).| & yes \\
+\verb|module| & \verb|procedure module(_?).| & yes \\
+\verb|@<| & \verb|procedure @<(Constant?, Constant?).| & yes \\
 \verb|is_mutual_ref| & \verb|procedure is_mutual_ref(_?).| & no \\
 \verb|otherwise| & (no arguments) & --- \\
 \verb|=?=| & \verb|procedure =?=(_?, _?).| & yes (both) \\
@@ -94,8 +83,6 @@ The following defined guard predicates are shipped with the runtime:
 \verb|dl_to_list| & \verb|dl_to_list(L\[], L?).| \\
 \end{tabular}
 \end{center}
-
-\noindent Channel operations are described further in Appendix~\ref{appendix:additional-techniques}.
 
 \mypara{Body kernel predicates}
 \temph{Body kernel predicates} are runtime-implemented primitives that execute in the clause body with two-valued semantics: they either succeed or abort. Body kernels are not directly accessible to user programs. They are invoked only by \emph{system predicates}---predicates defined by GLP clauses that are shipped with the runtime and have privileged access to the body kernel registry. The system predicate's own guards ensure that a body kernel's preconditions are met before invocation.
@@ -166,168 +153,13 @@ System predicates are predicates defined by GLP clauses whose bodies may invoke 
 \end{center}
 
 \mypara{Term composition and decomposition (\texttt{=..})}
-The \verb|=..| predicate is bidirectional: when the right-hand side is a list, it composes a compound term; when the left-hand side is a compound term, it decomposes it into a list. The reader/writer positions of the arguments determine the direction:
-\begin{verbatim}
-X? =.. [Y|Ys] :- list(Ys?) | '_list_to_tuple'([Y?|Ys?], X).
-X =.. Y? :- compound(X?) | '_tuple_to_list'(X?, Y).
-\end{verbatim}
-\noindent For example, \verb|T =.. [foo, a, b]?| constructs \verb|T = foo(a, b)|, and \verb|foo(a, b) =.. L| produces \verb|L = [foo, a, b]|.
+The \verb|=..| predicate is bidirectional: when the right-hand side is a list, it composes a compound term; when the left-hand side is a compound term, it decomposes it into a list. The reader/writer positions of the arguments determine the direction. For example, \verb|T =.. [foo, a, b]?| constructs \verb|T = foo(a, b)|, and \verb|foo(a, b) =.. L| produces \verb|L = [foo, a, b]|.
 
 \mypara{Clock access (\texttt{now/1})}
-\begin{verbatim}
-procedure now(Integer).
-now(T?) :- '_now'(T).
-\end{verbatim}
-\noindent Binds the argument to the current Unix timestamp in milliseconds since the epoch.
+Binds the argument to the current Unix timestamp in milliseconds since the epoch.
 
 \mypara{Arithmetic evaluation and assignment (\texttt{:=})}
 Arithmetic assignment is defined recursively: each clause pattern-matches on an arithmetic operator, guards verify that operands are of the required type, and the body invokes the corresponding body kernel. An \verb|otherwise| clause handles the case where operands are themselves expressions, evaluating them recursively before retrying.
 
-\begin{verbatim}
-procedure :=(Number, Exp?).
-
-%% Base case: plain number
-Result? := N :- number(N?) | Result = N?.
-
-%% Addition
-Result? := X + Y :- number(X?), number(Y?) |
-    '_add'(X?, Y?, Result).
-Result? := X + Y :- otherwise |
-    X1 := X?, Y1 := Y?, Result := X1? + Y1?.
-
-%% Subtraction
-Result? := X - Y :- number(X?), number(Y?) |
-    '_sub'(X?, Y?, Result).
-Result? := X - Y :- otherwise |
-    X1 := X?, Y1 := Y?, Result := X1? - Y1?.
-
-%% Multiplication
-Result? := X * Y :- number(X?), number(Y?) |
-    '_mul'(X?, Y?, Result).
-Result? := X * Y :- otherwise |
-    X1 := X?, Y1 := Y?, Result := X1? * Y1?.
-
-%% Division (real result)
-Result? := X / Y :- number(X?), number(Y?), Y? =\= 0 |
-    '_div'(X?, Y?, Result).
-_ := X / Y :- number(X?), number(Y?), Y? =:= 0 |
-    abort("Division by zero").
-Result? := X / Y :- otherwise |
-    X1 := X?, Y1 := Y?, Result := X1? / Y1?.
-
-%% Integer division
-Result? := X // Y :- integer(X?), integer(Y?), Y? =\= 0 |
-    '_idiv'(X?, Y?, Result).
-_ := X // Y :- integer(X?), integer(Y?), Y? =:= 0 |
-    abort("Integer division by zero").
-Result? := X // Y :- otherwise |
-    X1 := X?, Y1 := Y?, Result := X1? // Y1?.
-
-%% Modulo
-Result? := X mod Y :- integer(X?), integer(Y?), Y? =\= 0 |
-    '_mod'(X?, Y?, Result).
-_ := X mod Y :- integer(X?), integer(Y?), Y? =:= 0 |
-    abort("Modulo by zero").
-Result? := X mod Y :- otherwise |
-    X1 := X?, Y1 := Y?, Result := X1? mod Y1?.
-
-%% Unary negation
-Result? := -X :- number(X?) | '_neg'(X?, Result).
-Result? := -X :- otherwise | X1 := X?, Result := -X1?.
-
-%% Absolute value
-Result? := abs(X) :- number(X?) | '_abs'(X?, Result).
-Result? := abs(X) :- otherwise | X1 := X?, Result := abs(X1?).
-
-%% Square root
-Result? := sqrt(X) :- number(X?), X? >= 0 |
-    '_sqrt'(X?, Result).
-_ := sqrt(X) :- number(X?), X? < 0 |
-    abort("Square root of negative number").
-Result? := sqrt(X) :- otherwise |
-    X1 := X?, Result := sqrt(X1?).
-
-%% Sine
-Result? := sin(X) :- number(X?) | '_sin'(X?, Result).
-Result? := sin(X) :- otherwise | X1 := X?, Result := sin(X1?).
-
-%% Cosine
-Result? := cos(X) :- number(X?) | '_cos'(X?, Result).
-Result? := cos(X) :- otherwise | X1 := X?, Result := cos(X1?).
-
-%% Tangent
-Result? := tan(X) :- number(X?) | '_tan'(X?, Result).
-Result? := tan(X) :- otherwise | X1 := X?, Result := tan(X1?).
-
-%% Exponential
-Result? := exp(X) :- number(X?) | '_exp'(X?, Result).
-Result? := exp(X) :- otherwise | X1 := X?, Result := exp(X1?).
-
-%% Natural logarithm
-Result? := ln(X) :- number(X?), X? > 0 |
-    '_ln'(X?, Result).
-_ := ln(X) :- number(X?), X? =< 0 |
-    abort("Natural logarithm of non-positive number").
-Result? := ln(X) :- otherwise |
-    X1 := X?, Result := ln(X1?).
-
-%% Base-10 logarithm
-Result? := log(X) :- number(X?), X? > 0 |
-    '_log10'(X?, Result).
-_ := log(X) :- number(X?), X? =< 0 |
-    abort("Logarithm of non-positive number").
-Result? := log(X) :- otherwise |
-    X1 := X?, Result := log(X1?).
-
-%% Power
-Result? := pow(X, Y) :- number(X?), number(Y?) |
-    '_pow'(X?, Y?, Result).
-Result? := pow(X, Y) :- otherwise |
-    X1 := X?, Y1 := Y?, Result := pow(X1?, Y1?).
-
-%% Arc sine
-Result? := asin(X) :- number(X?), X? >= -1, X? =< 1 |
-    '_asin'(X?, Result).
-_ := asin(X) :- number(X?), (X? < -1 ; X? > 1) |
-    abort("Arc sine domain error").
-Result? := asin(X) :- otherwise |
-    X1 := X?, Result := asin(X1?).
-
-%% Arc cosine
-Result? := acos(X) :- number(X?), X? >= -1, X? =< 1 |
-    '_acos'(X?, Result).
-_ := acos(X) :- number(X?), (X? < -1 ; X? > 1) |
-    abort("Arc cosine domain error").
-Result? := acos(X) :- otherwise |
-    X1 := X?, Result := acos(X1?).
-
-%% Arc tangent
-Result? := atan(X) :- number(X?) | '_atan'(X?, Result).
-Result? := atan(X) :- otherwise | X1 := X?, Result := atan(X1?).
-
-%% Convert to integer
-Result? := integer(X) :- number(X?) | '_integer'(X?, Result).
-Result? := integer(X) :- otherwise |
-    X1 := X?, Result := integer(X1?).
-
-%% Convert to real/float
-Result? := real(X) :- number(X?) | '_real'(X?, Result).
-Result? := real(X) :- otherwise |
-    X1 := X?, Result := real(X1?).
-
-%% Round
-Result? := round(X) :- number(X?) | '_round'(X?, Result).
-Result? := round(X) :- otherwise |
-    X1 := X?, Result := round(X1?).
-
-%% Floor
-Result? := floor(X) :- number(X?) | '_floor'(X?, Result).
-Result? := floor(X) :- otherwise |
-    X1 := X?, Result := floor(X1?).
-
-%% Ceiling
-Result? := ceil(X) :- number(X?) | '_ceil'(X?, Result).
-Result? := ceil(X) :- otherwise |
-    X1 := X?, Result := ceil(X1?).
-\end{verbatim}
+The complete definitions of \verb|:=|, \verb|now|, and \verb|=..| are in \verb|programs/self.glp| of the public GLP repository.
 
