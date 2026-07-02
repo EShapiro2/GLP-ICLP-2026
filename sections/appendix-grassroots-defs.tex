@@ -9,13 +9,13 @@ This appendix contains the full definitions for protocols and the grassroots pro
 A protocol is a family of multiagent transition systems, one for each finite set of agents $P \subset \Pi$, sharing an underlying set of local states with a designated initial state.
 
 \begin{definition}[Local-States Function]\label{definition:local-states-function}
-A \temph{local-states function} $S: 2^\Pi \to 2^\calS$ maps every finite set of agents $P \subset \Pi$ to a set of local states $S(P) \subset \calS$ that includes $s0$ and satisfies $P \subset P' \implies S(P) \subset S(P')$.
+A \temph{local-states function} $S: 2^\Pi \to 2^\calS$ maps every finite set of agents $P \subset \Pi$ to a set of local states $S(P) \subset \calS$ that includes $s_0$ and satisfies $P \subset P' \implies S(P) \subset S(P')$.
 \end{definition}
 
-Given a local-states function $S$, we use $C(P) := S(P)^P$ for configurations over $P$ and $c0(P) := \{s0\}^P$ for the initial configuration.
+Given a local-states function $S$, we use $C(P) := S(P)^P$ for configurations over $P$ and $c_0(P) := \{s_0\}^P$ for the initial configuration.
 
 \begin{definition}[Protocol]\label{definition:protocol}
-A \temph{protocol} $\calF$ over a local-states function $S$ is a family of multiagent transition systems with exactly one transition system $\calF(P) = (C(P), c0(P), T(P), {\sim(P)})$ for every finite $P \subset \Pi$.
+A \temph{protocol} $\calF$ over a local-states function $S$ is a family of multiagent transition systems with exactly one transition system $\calF(P) = (C(P), c_0(P), T(P), {\sim(P)})$ for every finite $P \subset \Pi$.
 \end{definition}
 
 A \emph{correct} run of a transition system is safe and live (Definition~\ref{def:ts}); the runs here are safe by construction, so correctness coincides with liveness.
@@ -33,7 +33,7 @@ Let $P, P' \subset \Pi$ be disjoint nonempty sets of agents, $r = c_0, c_1, \ldo
 \end{enumerate}
 \end{definition}
 
-Note that an interleaving is well-defined: since $P \subset P \cup P'$, the local-states function ensures $S(P) \subset S(P \cup P')$, and similarly for $P'$, so each $e_k$ is a valid configuration in $C(P \cup P')$. Also, $e_0 = c0(P \cup P')$, since $(e_0)_p = (c_0)_p = s0$ for all $p \in P$ and $(e_0)_q = (d_0)_q = s0$ for all $q \in P'$.
+Note that an interleaving is well-defined: since $P \subset P \cup P'$, the local-states function ensures $S(P) \subset S(P \cup P')$, and similarly for $P'$, so each $e_k$ is a valid configuration in $C(P \cup P')$. Also, $e_0 = c_0(P \cup P')$, since $(e_0)_p = (c_0)_p = s_0$ for all $p \in P$ and $(e_0)_q = (d_0)_q = s_0$ for all $q \in P'$.
 
 \begin{definition}[Oblivious, Interactive, Grassroots]\label{definition:grassroots}
 A protocol $\calF$ is:
@@ -57,7 +57,7 @@ $$R(P) := \{t \in R : t \text{ has participants } Q \subseteq P \text{ and is ov
 \end{definition}
 
 \begin{definition}[Transactions-Based Protocol]\label{definition:tb-protocol}
-Let $S$ be a local-states function and $R$ a set of transactions over $S$ with equivalence $\sim$. The \temph{protocol $\calF$ over $R$, $S$, and $\sim$} is defined by $\calF(P) := (C(P), c0(P), R(P){\uparrow}P, {\sim})$ for each $P \subset \Pi$.
+Let $S$ be a local-states function and $R$ a set of transactions over $S$ with equivalence $\sim$. The \temph{protocol $\calF$ over $R$, $S$, and $\sim$} is defined by $\calF(P) := (C(P), c_0(P), R(P){\uparrow}P, {\sim})$ for each $P \subset \Pi$.
 \end{definition}
 
 Since liveness applies to all equivalence classes, any class $[t]$ in $R(P \cup P')/{\sim}$ whose transactions have participants spanning both $P$ and $P'$ could obstruct obliviousness if enabled in an interleaving. The following proposition identifies the condition under which this does not occur.

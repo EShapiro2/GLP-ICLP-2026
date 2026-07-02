@@ -82,7 +82,7 @@ observe(Xs, [Y1?|Ys1?], [Y2?|Ys2?]) :-
 
 \subsection{Cooperative Stream Production}
 
-While the single-writer constraint prevents competitive concurrent updates, GLP enables sophisticated cooperative techniques where multiple producers coordinate through explicit handover:
+While the single-writer constraint prevents competitive concurrent updates, GLP enables cooperative techniques where multiple producers coordinate through explicit handover:
 
 \Program{Cooperative Producers}\label{program:cooperative}
 \begin{verbatim}
@@ -162,7 +162,7 @@ The replicator operates recursively on list structures, creating multiple copies
 
 \subsection{Interlaced Streams as Distributed Blocklace}
 
-A blocklace represents a partially-ordered generalization of the blockchain where each block contains references to multiple preceding blocks, forming a directed acyclic graph. This structure maintains the essential properties of blockchains while enabling concurrent block creation without consensus. GLP's concurrent programming model naturally realizes blocklace structures through interlaced streams, where multiple concurrent processes maintain individual streams while observing and referencing each other's progress.
+A blocklace represents a partially-ordered generalization of the blockchain where each block contains references to multiple preceding blocks, forming a directed acyclic graph. This structure maintains the essential properties of blockchains while enabling concurrent block creation without consensus. GLP's concurrent programming model realizes blocklace structures through interlaced streams, where multiple concurrent processes maintain individual streams while observing and referencing each other's progress.
 
 \Program{Interlaced Streams (Blocklace)}\label{program:interlaced-streams}
 \begin{verbatim}
@@ -188,7 +188,7 @@ Each concurrent process maintains its own stream of blocks containing applicatio
 
 \subsection{Metainterpreters}
 
-Program development is essentially a single-agent endeavour:  The programmer trying to write and debug a GLP program.  As in Concurrent Prolog, a key strength of GLP is metainterpretation:  The ability to write GLP interpreters with various functions in GLP.  This allows writing a GLP program development environment and a GLP operating system within GLP itself~\cite{sterling1994art,safra1988meta,shapiro1982algorithmic,lichtenstein1988concurrent,silverman1988logix}, as well as writing a GLP operating system in GLP~\cite{shapiro1984systems}. These two scenarios are the focus of this section:
+Program development is essentially a single-agent endeavour:  The programmer trying to write and debug a GLP program.  As in Concurrent Prolog, GLP supports metainterpretation:  The ability to write GLP interpreters with various functions in GLP.  This allows writing a GLP program development environment and a GLP operating system within GLP itself~\cite{sterling1994art,safra1988meta,shapiro1982algorithmic,lichtenstein1988concurrent,silverman1988logix}, as well as writing a GLP operating system in GLP~\cite{shapiro1984systems}. These two scenarios are the focus of this section:
 a programmer developing a program and running it with enhanced metainterpreters that support the various needs of program development, and an operating system written in GLP that supports the execution, monitoring and control of GLP programs.
 
 \mypara{Plain metainterpreter}

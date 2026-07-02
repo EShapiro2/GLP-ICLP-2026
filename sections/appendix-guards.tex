@@ -95,7 +95,7 @@ The following defined guard predicates are shipped with the runtime:
 \end{tabular}
 \end{center}
 
-\noindent Channel operations are described further in \ref{appendix:additional-techniques}.
+\noindent Channel operations are described further in Appendix~\ref{appendix:additional-techniques}.
 
 \mypara{Body kernel predicates}
 \temph{Body kernel predicates} are runtime-implemented primitives that execute in the clause body with two-valued semantics: they either succeed or abort. Body kernels are not directly accessible to user programs. They are invoked only by \emph{system predicates}---predicates defined by GLP clauses that are shipped with the runtime and have privileged access to the body kernel registry. The system predicate's own guards ensure that a body kernel's preconditions are met before invocation.

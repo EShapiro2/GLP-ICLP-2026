@@ -30,7 +30,7 @@ A \temph{GLP program} is a finite sequence of clauses satisfying SRSW; clauses f
 The set of GLP goals $\hat\calG(P)$ includes all goals over $\hat\calV$ and the vocabulary of $P$ that satisfy SO.
 \end{definition}
 The purpose of the SRSW restriction is to prevent multiple writer occurrences racing to assign a variable; the simpler (SW) restriction is insufficient, since if a reader with multiple occurrences is assigned a term with a writer, the result is a writer with multiple occurrences.
-% We use set notation also when referring to multisets.
+We use set notation also when referring to multisets.
 \begin{example}[Fair Merge]
 \label{ex:merge}
 Consider the quintessential concurrent logic program for fairly merging two streams, written in GLP:\footnote{Moded-type definitions (\texttt{T ::= ...}) and declarations (\texttt{procedure ...}) used informally in examples are formally introduced in the Typed GLP companion paper~\cite{shapiro2026types}.}
@@ -64,7 +64,7 @@ A \temph{computation} is a (nonempty, finite or infinite) sequence of configurat
 
 \begin{definition}[Substitutions and Assignments]
 \label{def:writers-assignment}
-A GLP \temph{writer assignment} is a term of the form $X := T$, $X\in\calV$, $T\notin\calV$, satisfying SO. Similarly, a GLP \temph{reader assignment} is a term of the form $X? := T$, $X?\in\calV?$, $T\notin\calV$, satisfying SO. A \temph{writers (readers) substitution} $\sigma$ is the substitution implied by a set of writer (reader) assignments that jointly satisfy SO. Given a writers assignment $X := T$, its \temph{readers counterpart} is $X? := T$, and given a writers substitution $\sigma$, its \temph{readers counterpart} $\sigma?$ is the readers substitution defined by $X?\sigma? = X\sigma$. Given a reader assignment $X? := T$, its \temph{writers counterpart} is $X := T$, and given a readers substitution $\tau$, its \temph{writers counterpart} $\tau!$ is the writers substitution defined by $X\tau! = X?\tau$.
+A GLP \temph{writer assignment} is a term of the form $X := T$, $X\in\calV$, $T\notin\calV$, satisfying SO. Similarly, a GLP \temph{reader assignment} is a term of the form $X? := T$, $X?\in\calV?$, $T\notin\calV$, satisfying SO. A \temph{writers (readers) substitution} $\sigma$ is the substitution implied by a set of writer (reader) assignments that jointly satisfy SO. Given a writers assignment $X := T$, its \temph{readers counterpart} is $X? := T$, and given a writers substitution $\sigma$, its \temph{readers counterpart} $\sigma?$ is the readers substitution defined by $X?\sigma? = X\sigma$. Given a reader assignment $X? := T$, its \temph{writers counterpart} is $X := T$, and given a readers substitution $\tau$, its \temph{writers counterpart} $\tau!$ is the writers substitution defined by $X\tau! = X?\tau$. The \temph{pair completion} of a readers substitution $\sigma$ is $\sigma^\star = \sigma \cup \sigma!$, applied to a fixed point.
 \end{definition}
 
 \begin{definition}[GLP Renaming, Renaming Apart]
@@ -111,23 +111,34 @@ cGLP Reduce differs from LP in (1) the use of a writer mgu instead of a regular 
 The cGLP Communicate rule realises the use of reader/writer pairs for asynchronous communication: it communicates an assignment from its writer to its paired reader.
 
 
-\mypara{Persistence of Reducibility}
+\mypara{Monotonicity}
 In LP, if a goal cannot be reduced, it will never be reduced. In cGLP, a goal that cannot be reduced now may be reduced in the future: if $A$ and $H$ have an mgu that writes on a reader $X? \in A$, and therefore have no writer mgu at present,  another goal that has $X$ may reduce, assigning $X$, and later $X?$, to a value that will allow $A$ and $H$ to have a writer mgu. Conversely, in LP, if a goal $A$ can be reduced now with some clause $H$\verb|:-|$B$, with a regular mgu of $A$ and $H$, it may not be reducible in the future due to variables that $A$ shares with other goals being assigned values by reductions of other goals, preventing unification between the instantiated $A$ and $H$. In cGLP, if a goal $A$ can be reduced now (with a writers mgu), it can always be reduced in the future, as the SO invariant ensures that no other goal can assign any writer in $A$.
 
 Implementation-wise, if a GLP goal $A$ cannot be reduced now, but there is a readers substitution $\sigma$ such that $A\sigma$ can be reduced, such readers are identified, the goal $A$ \emph{suspends} on these readers, and is rescheduled for another reduction attempt once any of them is assigned.
 
-Despite these differences, cGLP adopts the same notions of proper run and successful run as LP\ifappendix{} (Definition~\ref{def:proper-run}, Appendix~\ref{appendix:lp})\fi, and has the same notion of logical consequence as LP. The cGLP outcome differs from LP's: $\sigma_n$ accumulates only readers counterparts and so leaves the writers of $G_0$ unbound, which the writers counterpart restores. Let $/?$ be an operator that replaces every reader by its paired writer.
+Despite these differences, cGLP has the same notion of logical consequence as LP.
+
+\begin{definition}[cGLP Proper Run, Outcome]
+\label{def:cglp-proper-run}
+A cGLP run $\rho: (G_0,\sigma_0) \rightarrow \cdots \rightarrow (G_n, \sigma_n)$ is \temph{proper} if for any $1\le i< n$, a variable that occurs in $G_{i+1}$ but not in $G_i$ also does not occur in any $G_j$, $j<i$; the \temph{outcome} of a proper run is $(G_0$ \texttt{:-} $G_n)\sigma_n^\star$; and the run is \temph{successful} if $G_n=\emptyset$.
+\end{definition}
+The outcome employs pair completion (Definition~\ref{def:writers-assignment}) since $\sigma_n$ accumulates only readers counterparts, leaving the writers of $G_0$ unbound. Let $/?$ be an operator that replaces every reader by its paired writer.
 
 \begin{restatable}[cGLP Computation is Deduction]{proposition}{propGLPDeduction}
 \label{prop:cglp-deduction}
-Let $(G_0$ \texttt{:-} $G_n)\sigma_n^\star$ be the outcome of a proper cGLP run $\rho: (G_0,\sigma_0) \rightarrow \cdots \rightarrow (G_n, \sigma_n)$ of $cGLP$, where $\sigma_n^\star$ is $\sigma_n \cup \sigma_n!$ applied to a fixed point. Then $(G_0$ \texttt{:-} $G_n)\sigma_n^\star/?$ is a logical consequence of $P/?$.
+Let $(G_0$ \texttt{:-} $G_n)\sigma_n^\star$ be the outcome of a proper cGLP run $\rho: (G_0,\sigma_0) \rightarrow \cdots \rightarrow (G_n, \sigma_n)$. Then $(G_0$ \texttt{:-} $G_n)\sigma_n^\star/?$ is a logical consequence of $P/?$.
 \end{restatable}
 
-We note an additional safety property of cGLP runs.
+We note two additional safety properties of cGLP runs.
 
 \begin{restatable}[SO Preservation]{proposition}{propSOPreservation}
 \label{prop:so-preservation}
-If the initial goal $G_0$ satisfies SO, then every goal in the cGLP run satisfies SO.
+If the initial goal $G_0$ satisfies SO, then every goal in a proper cGLP run satisfies SO.
+\end{restatable}
+
+\begin{restatable}[Monotonicity]{proposition}{propMonotonicity}
+\label{prop:glp-monotonicity}
+In any proper cGLP run, if unit goal $A$ can reduce with clause $C$ at step $i$, then either an instance of $A$ has been reduced by step $j > i$, or an instance of $A$ can still reduce with $C$ at step $j$.
 \end{restatable}
 
 Every cGLP run is safe, so correctness (Definition~\ref{def:ts}) reduces to liveness.
@@ -157,7 +168,7 @@ Definition~\ref{def:glp-reduction} of a GLP goal/clause reduction is augmented t
 
 \begin{remark}[Guards and SRSW]
 \label{rem:guards-srsw}
-Guard occurrences count toward SRSW satisfaction: a guard reader $X?$ counts as the paired-reader occurrence SRSW requires, so a variable whose writer $X$ occurs in the head and whose reader $X?$ occurs in a guard satisfies SRSW with one occurrence of each.
+Guard occurrences count toward SRSW satisfaction: if $X?$ occurs in a guard, its paired writer $X$ must occur in the head and $X?$ may additionally occur once in the body.
 %
 Furthermore, if the success of a guard implies that $X?$ is bound to a ground term, then both $X$ and $X?$ may occur multiple times in the clause. Groundness-implying guards include \verb|ground|, \verb|integer|, \verb|number|, \verb|string|, \verb|constant|, arithmetic comparisons (\verb|<|, \verb|>|, \verb|=<|, \verb|>=|, \verb|=:=|, \verb|=\=|), and ground equality (\verb|=?=|). However,  \verb|known| and \verb|compound| do not imply groundness.
 \end{remark}
