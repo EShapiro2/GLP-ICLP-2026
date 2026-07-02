@@ -77,6 +77,6 @@ agent(Id, UserIn, [msg(From, Id1, text(Text))|NetIn], Outs) :-
 \end{verbatim}
 
 \mypara{Boot and deployment}
-Each agent runs on a separate isolate (later --- separate smartphone). A boot clause reduces the universal initial state \verb|agent(ch(_?,_),ch(_?,_))| (Definition~\ref{definition:maGLP}) to the four-argument form used in the clauses above. The complete tested program --- the type vocabulary, helper procedures, the UI mediator, the actors, the plays, and the boot variants --- is the directory \verb|programs/social/graph| of the public GLP repository; a comprehensive Alice/Bob/Charlie scenario appears in \appref{appendix:social-graph-walkthrough}{\arxivref}.
+Each agent runs on a separate isolate (later --- separate smartphone). A boot clause reduces the universal initial state \verb|agent(ch(_?,_),ch(_?,_))| (Definition~\ref{definition:maGLP}) to the four-argument form used in the clauses above. The complete tested program --- the type vocabulary, helper procedures, the UI mediator, the actors, the plays, and the boot variants --- is the directory \verb|programs/social/graph| of the public GLP repository (\url{https://github.com/EShapiro2/GLP}); a comprehensive Alice/Bob/Charlie scenario appears in \appref{appendix:social-graph-walkthrough}{\arxivref}.
 
 The social graph specified above, run as a maGLP program, is itself a grassroots platform: it inherits the grassroots property of maGLP (Corollary~\ref{corollary:social-graph-grassroots}).
