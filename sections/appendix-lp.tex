@@ -28,7 +28,7 @@ LP has two forms of nondeterminism: the choice of $A \in G$, called \emph{and-no
 A run $\rho: (G_0,\sigma_0) \rightarrow \cdots \rightarrow (G_n, \sigma_n)$ of $LP(P)$ is \temph{proper} if for any $1\le i< n$, a variable that occurs in $G_{i+1}$ but not in $G_i$ also does not occur in any $G_j$, $j<i$. If proper, the \temph{outcome} of $\rho$ is $(G_0$ \verb|:-| $G_n)\sigma_n$. Such a run is \temph{successful} if $G_n=\emptyset$.
 \end{definition}
 The following proposition justifies the computation-as-deduction view of LP~\cite{kowalski1974predicate},
-calling a proper LP run a \emph{derivation} and a complete proper run ending in the empty goal a \emph{successful derivation}.
+calling a proper LP run a \emph{derivation} and a successful proper run a \emph{successful derivation}.
 
 \begin{restatable}[LP Computation is Deduction]{proposition}{propLPDeduction}
 \label{prop:lp-deduction}

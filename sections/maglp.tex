@@ -13,19 +13,19 @@ We assume a potentially infinite set of \emph{agents} $\Pi$, but consider only f
 We use $S^P$ to denote the set $S$ indexed by the set $P$, and if $c\in S^P$ we use $c_p$ to denote the member of $c$ indexed by $p\in P$. Intuitively, think of such a $c\in S^P$ as an array of cells indexed by members of $P$ with cell values in $S$.
 
 \begin{definition}[Local States, Configuration, Transaction, Participants]\label{def:transaction}
-Given agents $Q \subset \Pi$ and an arbitrary set $S$ of \temph{local states}, a \temph{configuration} over $Q$ and $S$ is a member of $C:= S^Q$. An \temph{atomic transaction} over $Q$ and $S$ is any pair of configurations $t=c\rightarrow c' \in C^2$ such that $c\ne c'$, with $t_p := c_p \rightarrow c'_p$ for any $p\in Q$.
+Given agents $Q \subset \Pi$ and an arbitrary set $S$ of \temph{local states}, a \temph{configuration} over $Q$ and $S$ is a member of $C:= S^Q$. An \temph{atomic transaction} over \temph{participants} $Q$ and states $S$ is any pair of configurations $t=c\rightarrow c' \in C^2$ such that $c\ne c'$, with $t_p := c_p \rightarrow c'_p$ for any $p\in Q$.
 \end{definition}
 
 
 
 \begin{definition}[Multiagent Transition System]\label{def:mts}
-Given agents $P \subset \Pi$ and an arbitrary set $S$ of \temph{local states} with a designated \temph{initial local state} $s_0\in S$, a \temph{multiagent transition system} over $P$ and $S$ is a transition system $TS= (C,c_0,T,{\sim})$ with \temph{configurations} $C:= S^P$, \temph{initial configuration} $c_0:= \{s_0\}^P$, \temph{transitions} $T\subseteq C^2$ being a set of transactions over $P$ and $S$, and ${\sim}$ an equivalence on $T$; the \temph{degree} of $TS$ is the degree of $T$.
+Given agents $P \subset \Pi$ and an arbitrary set $S$ of \temph{local states} with a designated \temph{initial local state} $s_0\in S$, a \temph{multiagent transition system} over $P$ and $S$ is a transition system $TS= (C,c_0,T,{\sim})$ with \temph{configurations} $C:= S^P$, \temph{initial configuration} $c_0:= \{s_0\}^P$, \temph{transitions} $T\subseteq C^2$ being a set of transactions over $P$ and $S$, and ${\sim}$ an equivalence on $T$.
 \end{definition}
 
-Rather than specifying a multiagent transition system over a set of agents $P$ directly, we specify it via atomic transactions, which are typically of bounded degree smaller than $|P|$.
+Rather than specifying a multiagent transition system over a set of agents $P$ directly, we specify it via atomic transactions.
 
 \begin{definition}[Transaction Closure]\label{def:closure}
-Let $P\subset \Pi$, $S$ a set of local states, and $C:=S^P$.
+Let $P\subset \Pi$, $S$ a set of local states, and $C:=S^P$; for any transition or transaction $t = c\rightarrow c'$, we say $p$ is \temph{stationary} in $t$ if $c_p = c'_p$.
 For a transaction $t=(c\rightarrow c')$ over local states $S$ with participants $Q \subseteq P$, the \temph{$P$-closure of $t$}, $t{\uparrow}P$, is the set of transitions over $P$ and $S$ defined by:
 $$
 t{\uparrow}P := \{ t' \in C^2 :
@@ -101,11 +101,6 @@ Every proper maGLP run over $P$ and $M$ is simulated by a proper cGLP run of $L$
 \end{restatable}
 
 Every maGLP run is safe, so correctness (Definition~\ref{def:ts}) reduces to liveness.
-
-\begin{definition}[maGLP Correct Run]
-\label{def:maglp-fair-run}
-A maGLP run is \temph{correct} iff for every equivalence class $[t] \in T/{\sim}$, whenever $[t]$ is enabled some $t' \in [t]$ is eventually taken.
-\end{definition}
 
 \mypara{Implementation}
 The implementation-ready deterministic variants of GLP and maGLP (the latter deterministic at the agent, not system, level), along with formal correctness proofs that they implement their respective specifications, are presented in a companion paper~\cite{shapiro2026implementing}.

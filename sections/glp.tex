@@ -54,11 +54,11 @@ and the goal \verb=merge([1,2,3|Xs?],[a,b|Ys?],Zs)=, which satisfies SO; each cl
 \label{sec:glp-operational}
 %------------------------------------------------------------------------------
 
-\begin{definition}[Transition System, Computation, Run, Safe, Live, Correct~\cite{shapiro2021multiagent,lewis2026volitional}]
+\begin{definition}[Transition System, Computation, Run, Safe, Live, Correct (cf.~\cite{shapiro2021multiagent,lewis2026volitional})]
 \label{def:ts}
 A \temph{transition system} is a tuple $TS = (C, c_0, T, {\sim})$ where $C$ is an arbitrary set of \temph{configurations}, $c_0 \in C$ a designated \temph{initial configuration}, $T \subseteq C \times C$ a set of \temph{transitions}, each a pair $c \rightarrow c'$ of non-identical configurations $c \ne c' \in C$, and ${\sim}$ an equivalence relation on $T$; we write $[t]$ for the class of $t \in T$ under ${\sim}$.
 
-A \temph{computation} is a (nonempty, finite or infinite) sequence of configurations $c_1, c_2, \ldots$; it is a \temph{run} if $c_1 = c_0$, and \temph{safe} if $c_i \rightarrow c_{i+1} \in T$ for every two consecutive configurations. We write $c \xrightarrow{*} c'$ for the existence of a safe computation from $c$ to $c'$ (empty if $c = c'$). A class $[t] \in T/{\sim}$ is \temph{enabled} in $c$ if $c \rightarrow c' \in [t]$ for some $c'$, and $c$ is \temph{terminal} if no class is enabled in it. A run is \temph{live} if no class $[t]$ is enabled in every configuration of some suffix in which no member of $[t]$ occurs, and \temph{correct} if it is safe and live. A run is \temph{complete} if it is infinite or ends in a terminal configuration. The \temph{outcome} of a complete run is determined by a domain-specific function from complete runs to an outcome space.
+A \temph{computation} is a (nonempty, finite or infinite) sequence of configurations $c_1, c_2, \ldots$; it is a \temph{run} if $c_1 = c_0$, and \temph{safe} if $c_i \rightarrow c_{i+1} \in T$ for every two consecutive configurations. We write $c \xrightarrow{*} c'$ for the existence of a safe computation from $c$ to $c'$ (empty if $c = c'$). A class $[t] \in T/{\sim}$ is \temph{enabled} in $c$ if $c \rightarrow c' \in [t]$ for some $c'$. A run is \temph{live} if no class $[t]$ is enabled in every configuration of some suffix in which no member of $[t]$ occurs, and \temph{correct} if it is safe and live.
 \end{definition}
 
 
@@ -142,11 +142,6 @@ In any proper cGLP run, if unit goal $A$ can reduce with clause $C$ at step $i$,
 \end{restatable}
 
 Every cGLP run is safe, so correctness (Definition~\ref{def:ts}) reduces to liveness.
-
-\begin{definition}[cGLP Correct Run]
-\label{def:cglp-fair-run}
-A cGLP run is \temph{correct} iff for every equivalence class $[t] \in \calT/{\sim}$, whenever $[t]$ is enabled some $t' \in [t]$ is eventually taken.
-\end{definition}
 
 The SO invariant of GLP allows eschewing unification in favour of \emph{term matching}: if two terms that jointly satisfy SO are unifiable, their mgu maps each variable in one term to a subterm of the other. Term matching thus performs joint term-tree traversal and collects variable assignments along the way; the detailed definition and table appear in \appref{appendix:term-matching}{\arxivref}.
 
