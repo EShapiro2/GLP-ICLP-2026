@@ -43,7 +43,7 @@ merge(Xs, [Y|Ys], [Y?|Zs?]) :- merge(Xs?, Ys?, Zs).
 merge([], Ys, Ys?).
 merge(Xs, [], Xs?).
 \end{verbatim}
-and the goal \verb=merge([1,2,3|Xs?],[a,b|Ys?],Zs)=. The goal satisfies SO and each clause satisfies SRSW. The first clause swaps inputs in the recursive call, ensuring fairness when both streams are available.
+and the goal \verb=merge([1,2,3|Xs?],[a,b|Ys?],Zs)=, which satisfies SO; each clause satisfies SRSW. The first clause swaps inputs in the recursive call, ensuring fairness when both streams are available.
 \end{example}
 
 
@@ -112,7 +112,7 @@ The cGLP Communicate rule realises the use of reader/writer pairs for asynchrono
 
 
 \mypara{Monotonicity}
-In LP, if a goal cannot be reduced, it will never be reduced. In cGLP, a goal that cannot be reduced now may be reduced in the future: if $A$ and $H$ have an mgu that writes on a reader $X? \in A$, and therefore have no writer mgu at present,  another goal that has $X$ may reduce, assigning $X$, and later $X?$, to a value that will allow $A$ and $H$ to have a writer mgu. Conversely, in LP, if a goal $A$ can be reduced now with some clause $H$\verb|:-|$B$, with a regular mgu of $A$ and $H$, it may not be reducible in the future due to variables that $A$ shares with other goals being assigned values by reductions of other goals, preventing unification between the instantiated $A$ and $H$. In cGLP, if a goal $A$ can be reduced now (with a writers mgu), it can always be reduced in the future, as the SO invariant ensures that no other goal can assign any writer in $A$.
+In LP, if a goal cannot be reduced, it will never be reduced. In cGLP, a goal that cannot be reduced now may be reduced in the future: if $A$ and $H$ have an mgu that writes on a reader $X? \in A$ with no writer mgu at present,  another goal with $X$ may reduce, assigning $X$, and later $X?$, to a value that will allow $A$ and $H$ to have a writer mgu. Conversely, in LP, if a goal $A$ can be reduced now with some clause $H$\verb|:-|$B$, with a regular mgu of $A$ and $H$, it may not be reducible in the future due to variables that $A$ shares with other goals being assigned values by reductions of other goals, preventing unification between the instantiated $A$ and $H$. In cGLP, if a goal $A$ can be reduced now (with a writers mgu), it can always be reduced in the future, as the SO invariant ensures that no other goal can assign any writer in $A$.
 
 Implementation-wise, if a GLP goal $A$ cannot be reduced now, but there is a readers substitution $\sigma$ such that $A\sigma$ can be reduced, such readers are identified, the goal $A$ \emph{suspends} on these readers, and is rescheduled for another reduction attempt once any of them is assigned.
 
@@ -122,7 +122,7 @@ Despite these differences, cGLP has the same notion of logical consequence as LP
 \label{def:cglp-proper-run}
 A cGLP run $\rho: (G_0,\sigma_0) \rightarrow \cdots \rightarrow (G_n, \sigma_n)$ is \temph{proper} if for any $1\le i< n$, a variable that occurs in $G_{i+1}$ but not in $G_i$ also does not occur in any $G_j$, $j<i$; the \temph{outcome} of a proper run is $(G_0$ \texttt{:-} $G_n)\sigma_n^\star$; and the run is \temph{successful} if $G_n=\emptyset$.
 \end{definition}
-The outcome employs pair completion (Definition~\ref{def:writers-assignment}) since $\sigma_n$ accumulates only readers counterparts, leaving the writers of $G_0$ unbound. Let $/?$ be an operator that replaces every reader by its paired writer.
+Pair completion (Definition~\ref{def:writers-assignment}) is employed since $\sigma_n$ accumulates only readers counterparts, leaving the writers of $G_0$ unbound. Let $/?$ be an operator that replaces every reader by its paired writer.
 
 \begin{restatable}[cGLP Computation is Deduction]{proposition}{propGLPDeduction}
 \label{prop:cglp-deduction}
@@ -159,7 +159,7 @@ GLP clauses may include \emph{guards}---tests that determine clause applicabilit
 
 \begin{definition}[Guarded Clause]
 \label{def:guarded-clause}
-A \temph{guarded clause} has the form $H$ \verb|:-| $G$ \verb"|" $B$, where $H$ is the head, $G$ is a conjunction of guard predicates, and $B$ is the body. The guard separator ``\verb"|"'' distinguishes guards from the body, and is interpreted logically as a conjunction.  Guard arguments are readers paired to head writers.
+A \temph{guarded clause} has the form $H$ \verb|:-| $G$ \verb"|" $B$, where $H$ is the head, $G$ is a conjunction of guard predicates, and $B$ is the body. The guard separator ``\verb"|"'' is interpreted logically as a conjunction.  Guard arguments are readers paired to head writers.
 \end{definition}
 
 Guards have three-valued semantics. Each guard predicate explicitly defines its \emph{success} condition. A guard \emph{suspends} if it does not succeed but some instance of it under a readers substitution would succeed. A guard \emph{fails} if no such instance exists. A guard conjunction succeeds if all members succeed; it suspends if any member suspends and none fail; it fails if any member fails.
@@ -181,7 +181,7 @@ An \emph{anonymous variable} is any variable whose name begins with \verb|_| (e.
 
 
 \mypara{System predicates and body kernels}
-GLP \emph{system predicates} such as \verb|:=| (arithmetic assignment), \verb|now| (clock access), and \verb|=..| (term composition/decomposition) are predicates defined by GLP clauses whose bodies may invoke \emph{body kernel predicates}---runtime-implemented primitives not directly accessible to user programs. The system predicate's own guards ensure that body kernel preconditions are met before invocation. For example, arithmetic assignment is defined recursively by clauses that pattern-match on each operator:
+GLP \emph{system predicates} such as \verb|:=| (arithmetic assignment), \verb|now| (clock access), and \verb|=..| (term composition/decomposition) are defined by GLP clauses whose bodies may invoke \emph{body kernel predicates}---runtime-implemented primitives not directly accessible to user programs. The system predicate's own guards ensure that body kernel preconditions are met before invocation. For example, arithmetic assignment is defined recursively as follows:
 
 \begin{verbatim}
 Result? := N :- number(N?) | Result = N?.

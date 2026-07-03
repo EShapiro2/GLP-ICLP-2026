@@ -13,12 +13,10 @@ We assume a potentially infinite set of \emph{agents} $\Pi$, but consider only f
 We use $S^P$ to denote the set $S$ indexed by the set $P$, and if $c\in S^P$ we use $c_p$ to denote the member of $c$ indexed by $p\in P$. Intuitively, think of such a $c\in S^P$ as an array of cells indexed by members of $P$ with cell values in $S$.
 
 \begin{definition}[Local States, Configuration, Transaction, Participants]\label{def:transaction}
-Given agents $Q \subset \Pi$ and an arbitrary set $S$ of \temph{local states}, a \temph{configuration} over $Q$ and $S$ is a member of $C:= S^Q$. An \temph{atomic transaction}, or just \emph{transaction}, over $Q$ and $S$ is any pair of configurations $t=c\rightarrow c' \in C^2$ such that $c\ne c'$, with $t_p := c_p \rightarrow c'_p$ for any $p\in Q$, and with $p$ being an \temph{active participant} in $t$ if $c_p\ne c'_p$, \temph{stationary participant} otherwise.
+Given agents $Q \subset \Pi$ and an arbitrary set $S$ of \temph{local states}, a \temph{configuration} over $Q$ and $S$ is a member of $C:= S^Q$. An \temph{atomic transaction} over $Q$ and $S$ is any pair of configurations $t=c\rightarrow c' \in C^2$ such that $c\ne c'$, with $t_p := c_p \rightarrow c'_p$ for any $p\in Q$.
 \end{definition}
 
-\begin{definition}[Degree]\label{def:degree}
-The \temph{degree} of a transaction $t$ (unary, binary, \ldots, $k$-ary) is the number of active participants in $t$, and the \temph{degree} of a set of transactions $T$ is the maximal degree of any $t\in T$.
-\end{definition}
+
 
 \begin{definition}[Multiagent Transition System]\label{def:mts}
 Given agents $P \subset \Pi$ and an arbitrary set $S$ of \temph{local states} with a designated \temph{initial local state} $s_0\in S$, a \temph{multiagent transition system} over $P$ and $S$ is a transition system $TS= (C,c_0,T,{\sim})$ with \temph{configurations} $C:= S^P$, \temph{initial configuration} $c_0:= \{s_0\}^P$, \temph{transitions} $T\subseteq C^2$ being a set of transactions over $P$ and $S$, and ${\sim}$ an equivalence on $T$; the \temph{degree} of $TS$ is the degree of $T$.
