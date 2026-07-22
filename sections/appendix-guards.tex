@@ -103,6 +103,8 @@ Arithmetic & \verb|'_add'(Number?, Number?, Number)| & Addition \\
  & \verb|'_neg'(Number?, Number)| & Unary negation \\
  & \verb|'_abs'(Number?, Number)| & Absolute value \\
 \hline
+Random & \verb|'_random'(Integer?, Integer?, Integer, Integer)| & Seeded random integer \\
+\hline
 Math & \verb|'_sqrt'(Number?, Number)| & Square root \\
  & \verb|'_sin'(Number?, Number)| & Sine \\
  & \verb|'_cos'(Number?, Number)| & Cosine \\
@@ -149,6 +151,7 @@ System predicates are predicates defined by GLP clauses whose bodies may invoke 
 \verb|=..| & Term composition and decomposition (bidirectional) \\
 \verb|now/1| & Current Unix timestamp (milliseconds) \\
 \verb|:=/2| & Arithmetic evaluation and assignment \\
+\verb|random/4| & Seeded random integer generation \\
 \end{tabular}
 \end{center}
 
@@ -161,5 +164,8 @@ Binds the argument to the current Unix timestamp in milliseconds since the epoch
 \mypara{Arithmetic evaluation and assignment (\texttt{:=})}
 Arithmetic assignment is defined recursively: each clause pattern-matches on an arithmetic operator, guards verify that operands are of the required type, and the body invokes the corresponding body kernel. An \verb|otherwise| clause handles the case where operands are themselves expressions, evaluating them recursively before retrying.
 
-The complete definitions of \verb|:=|, \verb|now|, and \verb|=..| are in \verb|programs/self.glp| of the public GLP repository.
+\mypara{Seeded random numbers (\texttt{random/4})}
+\verb|random(Seed, N, Value, NextSeed)| binds \verb|Value| to a pseudo-random integer with $1 \leq \mathtt{Value} \leq \mathtt{N}$, and \verb|NextSeed| to the seed of the next draw, given a ground seed \verb|Seed| and a ground bound $\mathtt{N} \geq 1$. It is a body goal, not a guard; the clause is guarded by \verb|integer(Seed?), integer(N?)| and invokes the \verb|'_random'| body kernel. \verb|NextSeed| is determined by \verb|Seed| alone; \verb|Value| by \verb|Seed| and \verb|N|. The seed stream is therefore independent of the bound requested, and a computation that threads \verb|NextSeed| from each draw into the next reproduces exactly from its initial seed.
+
+The complete definitions of \verb|:=|, \verb|now|, \verb|=..|, and \verb|random| are in \verb|programs/self.glp| of the public GLP repository.
 

@@ -176,7 +176,7 @@ An \emph{anonymous variable} is any variable whose name begins with \verb|_| (e.
 
 
 \mypara{System predicates and body kernels}
-GLP \emph{system predicates} such as \verb|:=| (arithmetic assignment), \verb|now| (clock access), and \verb|=..| (term composition/decomposition) are defined by GLP clauses whose bodies may invoke \emph{body kernel predicates}---runtime-implemented primitives not directly accessible to user programs. The system predicate's own guards ensure that body kernel preconditions are met before invocation. For example, arithmetic assignment is defined recursively as follows:
+GLP \emph{system predicates} such as \verb|:=| (arithmetic assignment), \verb|now| (clock access), \verb|=..| (term composition/decomposition), and \verb|random| (seeded random-number generation) are defined by GLP clauses whose bodies may invoke \emph{body kernel predicates}---runtime-implemented primitives not directly accessible to user programs. The system predicate's own guards ensure that body kernel preconditions are met before invocation. For example, arithmetic assignment is defined recursively as follows:
 
 \begin{verbatim}
 Result? := N :- number(N?) | Result = N?.
