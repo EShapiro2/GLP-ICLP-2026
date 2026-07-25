@@ -3,7 +3,7 @@
 Guards and system predicates extend GLP programs with access to the GLP runtime state, operating system and hardware capabilities.
 
 \mypara{Predefined types}
-The predefined types, available in every GLP program, are \verb|Stream(X)|, \verb|OpenStream(X)|, \verb|DiffList(X)|, \verb|Channel(In, Out)|, \verb|Constant|, and the arithmetic-expression type \verb|Exp|; their definitions are in \verb|programs/self.glp| of the public GLP repository. \verb|Number|, \verb|Integer|, \verb|Real|, and \verb|String| are primitive types built into the runtime.
+The predefined types, available in every GLP program, are \verb|Stream(X)|, \verb|OpenStream(X)|, \verb|DiffList(X)|, \verb|Channel(In, Out)|, \verb|Number|, \verb|Constant|, and the arithmetic-expression type \verb|Exp|; their definitions are in \verb|programs/self.glp| of the public GLP repository. \verb|Integer|, \verb|Real|, \verb|String|, and \verb|Module| are primitive types built into the runtime.
 
 \mypara{Guard predicates}
 Guards provide read-only access to the runtime state of GLP computation. A guard appears after the clause head, separated by \verb=|=, and must be satisfied for the clause to be selected. The ``Ground'' column indicates whether success of the guard implies that the argument is ground; such guards permit multiple occurrences of the reader in the clause body (Remark~\ref{rem:guards-srsw}). Built-in guards can be negated: \verb|~G| succeeds if \verb|G| fails and vice versa, while suspension is unchanged; negation applies only to atomic built-in guards, not to defined guards or conjunctions.
@@ -136,7 +136,8 @@ MWM & \verb|'_allocate_mutual_reference'(_, _)| & Create mutual reference for O(
 \hline
 Network & \verb|'_send'(_?, _?, _?)| & Send madGLP message to remote agent \\
 \hline
-Modules & \verb|'_activate'(Module?, _)| & Dispatch goal against module's \verb|_select/1| \\
+Modules & \verb|'_self_module'(Module)| & The caller's own module \\
+ & \verb|'_run'(_?, Module?)| & Activate module and post goal to it \\
 \end{tabular}
 }
 \end{center}
@@ -152,6 +153,8 @@ System predicates are predicates defined by GLP clauses whose bodies may invoke 
 \verb|now/1| & Current Unix timestamp (milliseconds) \\
 \verb|:=/2| & Arithmetic evaluation and assignment \\
 \verb|random/4| & Seeded random integer generation \\
+\verb|self_module/1| & The caller's own module, as a \verb|Module| value \\
+\verb|run/2| & Activate a module value and post a goal to it \\
 \end{tabular}
 \end{center}
 
@@ -167,5 +170,11 @@ Arithmetic assignment is defined recursively: each clause pattern-matches on an 
 \mypara{Seeded random numbers (\texttt{random/4})}
 \verb|random(Seed, N, Value, NextSeed)| binds \verb|Value| to a pseudo-random integer with $1 \leq \mathtt{Value} \leq \mathtt{N}$, and \verb|NextSeed| to the seed of the next draw, given a ground seed \verb|Seed| and a ground bound $\mathtt{N} \geq 1$. It is a body goal, not a guard; the clause is guarded by \verb|integer(Seed?), integer(N?), N? >= 1| and invokes the \verb|'_random'| body kernel. \verb|NextSeed| is determined by \verb|Seed| alone; \verb|Value| by \verb|Seed| and \verb|N|. The seed stream is therefore independent of the bound requested, and a computation that threads \verb|NextSeed| from each draw into the next reproduces exactly from its initial seed.
 
-The complete definitions of \verb|:=|, \verb|now|, \verb|=..|, and \verb|random| are in \verb|programs/self.glp| of the public GLP repository.
+\mypara{Module as a value (\texttt{self\_module/1})}
+\verb|self_module(Module)| binds its argument to the caller's own module, a value of the primitive type \verb|Module|.
+
+\mypara{Dynamic activation (\texttt{run/2})}
+\verb|run(Goal, Module)| activates the module value \verb|Module| and posts \verb|Goal| to it; the predicate of \verb|Goal| must be exported by \verb|Module|, else an error. The readers and writers of \verb|Goal| connect the caller and the activated module. The typed discipline over \verb|run/2| is specified in the Typed GLP companion paper~\cite{shapiro2026types}.
+
+The complete definitions of \verb|:=|, \verb|now|, \verb|=..|, \verb|random|, \verb|self_module|, and \verb|run| are in \verb|programs/self.glp| of the public GLP repository.
 
