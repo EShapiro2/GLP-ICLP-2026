@@ -25,6 +25,7 @@ Guards provide read-only access to the runtime state of GLP computation. A guard
 \verb|module| & \verb|procedure module(_?).| & yes \\
 \verb|@<| & \verb|procedure @<(Constant?, Constant?).| & yes \\
 \verb|is_mutual_ref| & \verb|procedure is_mutual_ref(_?).| & no \\
+\verb|verify| & \verb|procedure verify(_?, _?, _?).| & yes (all) \\
 \verb|otherwise| & (no arguments) & --- \\
 \verb|=?=| & \verb|procedure =?=(_?, _?).| & yes (both) \\
 \end{tabular}
@@ -33,6 +34,8 @@ Guards provide read-only access to the runtime state of GLP computation. A guard
 \verb|otherwise| succeeds if all previous clauses for this procedure failed (or suspended).
 
 \verb|=?=| succeeds if both arguments are ground and equal. For example, \verb|f(a,X?) =?= f(b,Z?)| fails (not suspends) because the ground subterms \verb|a| and \verb|b| already differ. Note that the implementation checks terms left-to-right and does not guarantee early failure detection; \verb|f(X?,a) =?= f(Y?,b)| may suspend rather than fail.
+
+\verb|verify(Term, Sig, Key)| succeeds if and only if \verb|Sig| is a valid signature on the pair of the calling instance's module identity and \verb|Term|, by the person whose public key is \verb|Key|. Including the module identity scopes a signature to the module under which it was made. Signatures are produced by \verb|sign/2| below; the security construction that relies on them is in the Secure GLP companion paper~\cite{keidar2026secure}.
 
 \mypara{Arithmetic comparison guards}
 Arithmetic comparison guards evaluate their arguments as arithmetic expressions over \verb|+|, \verb|-|, \verb|*|, \verb|//| (integer division), and \verb|mod|, and compare the results. Success implies both arguments are ground.
@@ -135,6 +138,9 @@ MWM & \verb|'_allocate_mutual_reference'(_, _)| & Create mutual reference for O(
  & \verb|'_close_mutual_reference'(_?)| & Close stream (bind tail to \verb|[]|) \\
 \hline
 Network & \verb|'_send'(_?, _?, _?)| & Send madGLP message to remote agent \\
+ & \verb|'_authorise_link'(_?, _?)| & Release or drop a reported held link \\
+\hline
+Signature & \verb|'_sign'(_?, _)| & Sign a term under the calling module \\
 \hline
 Modules & \verb|'_self_module'(Module)| & The caller's own module \\
  & \verb|'_run'(_?, Module?)| & Activate module and post goal to it \\
@@ -155,6 +161,8 @@ System predicates are predicates defined by GLP clauses whose bodies may invoke 
 \verb|random/4| & Seeded random integer generation \\
 \verb|self_module/1| & The caller's own module, as a \verb|Module| value \\
 \verb|run/2| & Activate a module value and post a goal to it \\
+\verb|sign/2| & Signature by the person, under the calling module \\
+\verb|authorise_link/2| & Release or drop a reported held link \\
 \end{tabular}
 \end{center}
 
@@ -176,5 +184,11 @@ Arithmetic assignment is defined recursively: each clause pattern-matches on an 
 \mypara{Dynamic activation (\texttt{run/2})}
 \verb|run(Goal, Module)| activates the module value \verb|Module| and posts \verb|Goal| to it; the predicate of \verb|Goal| must be exported by \verb|Module|, else an error. The readers and writers of \verb|Goal| connect the caller and the activated module. The typed discipline over \verb|run/2| is specified in the Typed GLP companion paper~\cite{shapiro2026types}.
 
-The complete definitions of \verb|:=|, \verb|now|, \verb|=..|, \verb|random|, \verb|self_module|, and \verb|run| are in \verb|programs/self.glp| of the public GLP repository.
+\mypara{Signing (\texttt{sign/2})}
+\verb|sign(Term, Sig)| requires \verb|Term| ground and binds \verb|Sig| to the signature of the person operating the agent on the pair of the calling instance's module identity and \verb|Term|, as an opaque constant. The guard \verb|verify| checks it.
+
+\mypara{Held links (\texttt{authorise\_link/2})}
+\verb|authorise_link(L, A)| answers a link that the runtime holds and reports because its other end is at an agent with which the name was not exchanged. \verb|L| is the global name of the reported link and \verb|A| is \verb|authorise| or \verb|refuse|: on \verb|authorise| the runtime releases the held message or assignment, on \verb|refuse| it drops the link. The clause is guarded by \verb|known(A?)| and invokes the \verb|'_authorise_link'| body kernel. Held links are specified in the companion implementation paper~\cite{shapiro2026implementing}.
+
+The complete definitions of \verb|:=|, \verb|now|, \verb|=..|, \verb|random|, \verb|self_module|, \verb|run|, \verb|sign|, and \verb|authorise_link| are in \verb|programs/self.glp| of the public GLP repository.
 
