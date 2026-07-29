@@ -1,175 +1,71 @@
-# Instructions for Claude
+# GLP-ICLP — Instructions for Claude
+
+Read `/Grassroots/claude.md` first, and the writing style guide it names.  The root file carries everything that applies to every project: writing style, the bib protocol, the git and Overleaf workflow, discussion mode, the working protocol, and the content policy.  This file adds only what is specific to this paper.
+
+## Start of every conversation
+
+1. Read this file.
+2. Read the code-ownership map (below) in full.
+3. State that you have done so, and wait for direction.  Do nothing else.
+
+## What this is
+
+The paper "GLP: A Grassroots, Multiagent, Concurrent, Logic Programming Language for AI", by Ehud Shapiro, for ICLP 2026, typeset with the EPTCS class.
+
+- **Working directory:** `/Users/udi/Grassroots/GLP-Definitive-Spec`.  The git remote is `EShapiro2/GLP-ICLP-2026` — the directory and the repository have different names.
+- **Main file:** `main-GLP-ICLP-2026.tex`.
+- **Bibliography:** `\bibliographystyle{eptcs}`, `\bibliography{bib}`.  `bib.bib` is imported from Bib-Grassroots in Overleaf; never edit it, and never read it.  The protocol is in the root file.
 
 ## Code ownership
 
-This project is **GLP-ICLP**.  Ownership and authority are not restated here — they live in the map, `/Grassroots/docs/glp-paper-code-map.md`, the single source of truth.  **At session start, before any work, read the map in full and state that you have done so** — it gives what this project owns, the ownership policy, the project roster, and the procedure for requesting changes to code you do not own.  Implementation decisions go in this paper's arXiv "Implementation Notes" appendix, not a separate spec doc.
+This project is **GLP-ICLP**.  Ownership and authority are not restated here — they live in the map, `/Grassroots/docs/glp-paper-code-map.md`, the single source of truth.  Read the map in full at session start.  Implementation decisions go in this paper's arXiv "Implementation Notes" appendix, not a separate spec document.
 
-## Division of Labor
+GLP-ICLP is the language authority.  The guard, body-kernel and system-predicate tables in `sections/appendix-guards.tex` are the language definition that the other projects cite, so those projects send requests for rows in them; TGLP owns the type and module system, IGLP the runtime and kernels, Secure-GLP the attestation and signature layer.
 
-### Claude Web (Chat Interface)
-- **Paper writing and LaTeX editing** - All revisions to .tex files
-- **Discussion and planning** - Reviewing content, proposing changes
-- **Direct file editing** - Uses Filesystem tools to read/write files
+## Sections
 
-### Claude Code (Terminal Interface)
-- **Running GLP code** - Executing .glp programs
-- **Testing** - Running test suites
-- **Git operations** - Commits, pushes, syncs
-- **NOT for paper writing** - Do not edit .tex files
+Body, in the order the main file inputs them:
 
-## CRITICAL - START OF EVERY CONVERSATION
-1. **READ CLAUDE.md** - Always read this file first (thoroughly)
-2. **ACKNOWLEDGE** - State that you have read this document and are ready for discussion
-3. **DO NOTHING ELSE** - Wait for user direction before any other action
+| File | Content |
+|---|---|
+| `introduction.tex` | Introduction |
+| `glp.tex` | GLP: syntax, operational semantics, guards, programming techniques |
+| `maglp.tex` | Multiagent transition systems, maGLP, safety properties |
+| `social-graph.tex` | The grassroots social graph |
+| `grassroots.tex` | maGLP is grassroots |
+| `conclusion.tex` | Conclusion |
 
-## Project Overview
+Appendices, in input order: `appendix-lp.tex`, `appendix-term-matching.tex`, `appendix-grassroots-defs.tex`, `appendix-guards.tex`, `appendix-proofs.tex`, `appendix-social-graph-walkthrough.tex`.
 
-**Repository:** GLP-ICLP-2026
-**Purpose:** Academic paper "GLP: A Grassroots, Multiagent, Concurrent, Logic Programming Language"
-**Target Venue:** ICLP 2026 (Theory and Practice of Logic Programming)
-**Author:** Ehud Shapiro
+## The appendix build flag
 
-## Directory Structure
+The main file defines `\ifappendix`.  `\appendixfalse` is the ICLP submission build, which omits the appendices; `\appendixtrue` is the arXiv full version, whose title gets " (Full Version)" appended by hand, since EPTCS extracts `\title` verbatim into the arXiv metadata and it must stay literal.
 
-```
-/Users/udi/Grassroots/GLP-ICLP-2026/
-├── CLAUDE.md                           # ← This file
-├── main_GLP_ICLP_2026.tex              # ← Main document
-├── bib.bib                             # ← Bibliography (imported from Bib-Grassroots)
-│
-├── STYLE FILES:
-│   ├── tlp.cls                         # ← TPLP document class
-│   ├── tlplike.bst                     # ← TLP bibliography style
-│   └── acmtrans.bst                    # ← ACM bibliography style
-│
-├── SECTIONS:
-│   ├── introduction.tex
-│   ├── concurrent-glp.tex
-│   ├── maglp.tex
-│   ├── grassroots.tex
-│   ├── related-work.tex
-│   ├── conclusion.tex
-│   ├── appendix-lp.tex
-│   ├── appendix-term-matching.tex
-│   ├── appendix-grassroots-defs.tex
-│   ├── appendix-proofs.tex
-│   ├── appendix-guards.tex
-│   ├── appendix-additional-techniques.tex
-│   ├── appendix-social-graph-walkthrough.tex
-│   └── appendix-social-graph-complete.tex
-```
+Appendix material is referenced with `\appref{label}{fallback}`, which renders as an appendix reference in the arXiv build and as the fallback — normally `\arxivref` — in the submission build.  Never reference appendix material with a bare `\ref`: it breaks the submission build.
 
-## Core Rules
+## LaTeX commands defined in this paper
 
-### CRITICAL: Always Commit and Push When Done
-- At the end of every completed task, **always commit and push** without being asked
-- Never leave changes uncommitted or only committed locally
-- This ensures Overleaf stays in sync via GitHub
+`\mypara{Name}` paragraph header; `\temph{text}` for a defined term inside a definition, `\emph` everywhere else; `\Program{title}` program-listing header; `\appref` and `\arxivref` as above; `\udi{...}` blue author comment and `\claude{...}` red editor comment; `\remove{...}`, which drops its argument; `\ia` through `\iv` for roman numerals.
 
-### CRITICAL: Bibliography
-- The single source of truth for bibliography is `/Users/udi/Grassroots/Bib-Grassroots/bib.bib`
-- A copy of `bib.bib` lives in this repo and is imported by Overleaf from Bib-Grassroots
-- The main file uses `\bibliographystyle{eptcs}` and `\bibliography{bib}`
-- NEVER edit the in-repo `bib.bib` directly; all changes go to `Bib-Grassroots/bib.bib`
-- NEVER read `bib.bib` (the file is large enough to crash a chat session)
-- Edits to `Bib-Grassroots/bib.bib` may be made via `edit_file` (server-side find-and-replace) with Udi's per-edit authorization and a tight known `oldText`
-- If there are bib-related errors, report the offending entry and ask Udi for authorization to fix
+## Project-specific rules
 
-### Tool Permissions (Claude Code)
-- Claude Code should use commands that do not require constant user approval
-- Prefer Read/Edit/Write/Grep/Glob tools over shell commands where possible
-- For git operations, use Bash directly (git add, commit, push are pre-approved)
+- **No code appendix.**  Appendices carry no listings, no code figures, no type-definition blocks — only pointers to the public GLP repository.  The reference tables in `appendix-guards.tex` stay.  (Standing decision, Udi, 2026-07-02.)
+- **Paper editing belongs to the chat session.**  Claude Code does not edit `.tex` files in this repo; it runs and tests GLP code, and does git.
+- **Never use boxed questions** (the AskUserQuestion tool).  Free text only.
+- **Never use the word "pattern"** except in the technical sense of pattern-matching.
+- **Commit and push at the end of a task.**  In Cowork, that means giving Udi the one-liner; the network is his.
 
-### Do Exactly What Is Asked
-- When the user asks something, do exactly as asked and nothing else
-- Do not add extra steps, analysis, or actions beyond the specific request
-- If clarification is needed, ask first rather than assuming
+## docs/
 
-### Never Implement Without Agreement
-- NEVER start editing without an agreed upon plan
-- First discuss and document the changes
-- Get explicit user agreement on the plan
-- Only then proceed to implementation
+`docs/` holds notes that predate the paper's appendices: `body-kernels-reference.md`, `guards-reference.md`, `naming-conventions.md`, `glp-predicate-taxonomy.md`, `glp-cheat-sheet.md`, `mutual-ref-spec.md`.  They restate what `sections/appendix-guards.tex` now defines, and they are not updated when it changes.  The appendix is authoritative; treat these as background only.
 
-### Accuracy and Honesty
-- NEVER guess, speculate, or hallucinate
-- If unsure, say so: "I'm not sure, need to check X"
-- NEVER remove content without explicit user approval
+## Related repositories
 
-### Communication Style
-- Brief, direct responses
-- No long explanations - get to the point
-- Mistakes: Just acknowledge - no apologies or promises
-- **Never use boxed questions** (AskUserQuestion tool) — only free text discussion
-- **Never leave a discussion unilaterally** — always wait for user to approve that the discussion has ended before moving on
-- NEVER use the word "pattern" in any paper or document (except in the technical context of pattern-matching).  ALWAYS use more precise alternatives.
+- `/Users/udi/Grassroots/GLP` — the implementation and the GLP programs the paper points to.
+- `/Users/udi/Grassroots/TGLP` — the type system and the module system.
+- `/Users/udi/Grassroots/IGLP` — the implementation paper: dGLP, madGLP, kernels, networking seam.
+- `/Users/udi/Grassroots/Secure-GLP` — mutual attestation, signatures.
 
-## Working Modes
+## #remember
 
-### Discussion Mode (DEFAULT)
-- NO EDITS - Not even small fixes
-- BRIEF RESPONSES - Show content, explain what you see
-- STAY ON TOPIC - Don't jump ahead
-- WAIT FOR AGREEMENT - Explicit approval needed before editing
-
-### Implementation Mode
-- ONLY AFTER EXPLICIT AGREEMENT
-- FOLLOW GUIDANCE - Implement what was discussed
-- VERIFY CHANGES - Check edits are correct
-- REPORT RESULTS - Show exactly what changed
-
-## LaTeX Editing Guidelines
-
-### Before Editing
-1. READ THE FILE - Always read the file before editing
-2. UNDERSTAND CONTEXT - Know what section you're in
-3. PRESERVE FORMATTING - Maintain existing style
-
-### Making Edits
-1. SMALL CHANGES - Make targeted edits, not wholesale rewrites
-2. PRESERVE LABELS - Don't change \label{} references without updating \ref{}
-3. CHECK MATH - Verify math mode is correct
-4. MATH-ONLY FORMAL ENVIRONMENTS - Propositions and definitions contain only math; all auxiliary/explanatory text must be placed before or after the environment, not inside it
-
-### Common LaTeX Patterns in This Paper
-- `\mypara{Name}` - Paragraph headers
-- `\temph{text}` - Bold emphasis
-- `\Program{title}` - Program listings
-- `\begin{verbatim}...\end{verbatim}` - Code blocks
-- `\udi{comment}` - Author annotations (blue)
-- `\claude{comment}` - Editor annotations (red)
-
-## Git Protocol (Claude Code only)
-
-### CRITICAL: Always Commit AND Push
-- At the end of every task, **commit and push** to the remote
-- Never leave work only committed locally — always push
-- Overleaf syncs directly from GitHub's `main` branch, so pushing makes changes visible there
-
-### Standard Workflow
-```bash
-git add <specific files>
-git commit -m "Description of changes"
-git push
-```
-
-After pushing to GitHub, pull in Overleaf (Menu → GitHub → Pull) to see the compiled PDF.
-
-## Related Repositories
-
-- **GLP Implementation**: `/Users/udi/Grassroots/GLP/`
-- **TGLP**: `/Users/udi/Grassroots/TGLP/`
-- **Art-of-GLP-2025**: `/Users/udi/Grassroots/Art-of-GLP-2025/`
-
-## Paper Structure (Agreed Jan 2026)
-
-1. Introduction (revise when main content done)
-2. Concurrent GLP (TS, LP as TS, GLP, examples, social graph with network switch)
-3. maGLP (MTS, maGLP definition, MA social graph - NOT grassroots yet)
-4. maGLP is Grassroots (grassroots definition, proofs, corollaries)
-5. Related Work
-6. Conclusion
-
-## #remember Directive
-
-When the user says `#remember <something>`, add that information to this CLAUDE.md file so it persists across sessions.
+When Udi says `#remember <something>`, add it to this file.
