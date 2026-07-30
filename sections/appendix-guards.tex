@@ -201,5 +201,5 @@ Arithmetic assignment is defined recursively: each clause pattern-matches on an 
 \mypara{Networking seam (\texttt{peer\_address/2}, \texttt{punch\_udp/1}, \texttt{place\_declare/3}, \texttt{place\_remove/1})}
 \verb|peer_address(P, A)| assigns \verb|A| the address at which the networking layer observes peer \verb|P|. \verb|punch_udp(A)| opens a path to address \verb|A| and assigns nothing. \verb|place_declare(P, R, E)| declares a place \verb|P| of radius \verb|R| and assigns \verb|E| a stream of that place's \verb|entered| and \verb|exited| events; a further declaration of the same place supersedes the earlier one and closes its stream. \verb|place_remove(P)| ends the declaration of \verb|P|, and does nothing where \verb|P| is not declared. Each clause is guarded by \verb|ground| on the arguments it consumes. The layer behind these four is specified in the companion implementation paper~\cite{shapiro2026implementing}.
 
-The complete definitions of the system predicates above are in \verb|programs/self.glp| of the public GLP repository.
+The complete definitions of \verb|:=|, \verb|now|, \verb|=..|, and \verb|random| are in \verb|programs/self.glp| of the public GLP repository.
 
