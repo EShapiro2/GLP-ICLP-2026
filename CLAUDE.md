@@ -1,8 +1,10 @@
-# GLP-ICLP — Instructions for Claude
+# GLP-Spec — Instructions for Claude
 
-Read `/Grassroots/claude.md` and the writing style guide it names, then `/Grassroots/docs/glp-paper-code-map.md` in full.  They carry conduct, style, the bib protocol, the git and Overleaf workflow, and ownership and authority.  State at session start that you have read them, and wait for direction.
+Read `/Grassroots/claude.md` and the writing style guide it names, then `/Grassroots/Coordination` — `main.tex` and all of `sections/` — in full.  They carry conduct, style, the bib protocol, the git and Overleaf workflow, ownership and authority, terminology and the open issues.  Read this project's inbox, `/Grassroots/Coordination/mail/GLP-Spec_inbox.md`.  State at session start that you have read them, and wait for direction.
 
-This directory, `GLP-Spec`, is the map's **GLP-ICLP** project, and pushes to a remote named `GLP-ICLP-2026` — three names for one thing.  Everything else about the paper is in `main-GLP-ICLP-2026.tex`: title, venue, class, bibliography, section order, the `\ifappendix` build policy, and the LaTeX commands it defines.
+GLP-Spec is the authority on every language issue, wherever it arises: a language decision taken inside TGLP or IGLP is subordinate to it, and every guard, system predicate and body kernel any project adds appears in this paper's catalogue.
+
+The directory and the project are both `GLP-Spec`; the git remote is still `GLP-ICLP-2026`.  Everything else about the paper is in the paper, and its location is in Appendix A of the Coordination document.
 
 Claude Code does not edit `.tex` files in this repo; paper editing is the chat session's.
 
