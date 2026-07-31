@@ -24,7 +24,7 @@ Channels are used in friend-mediated introduction (below) to establish a direct 
 \mypara{Cold-call befriending}
 The user's \verb|connect(Target)| request triggers a cold-call: the agent sends \verb|intro(Id, Resp)| on the network and injects the paired reader \verb|Resp?| into its own user-input stream, so the eventual response surfaces locally as a normal user-side message:
 \begin{verbatim}
-agent(Id, [msg('_user', Id1, connect(Target))|UserIn], NetIn, Outs) :-
+agent(Id, [msg(person, Id1, connect(Target))|UserIn], NetIn, Outs) :-
     Id? =?= Id1?, ground(Target?) |
     send_net(msg(Target?, intro(Id?, Resp)), Outs?, Outs1),
     inject_msg(Resp?, Target?, Id?, UserIn?, UserIn1),
@@ -34,12 +34,12 @@ On the recipient side, an incoming \verb|intro(From, Resp?)| captures the respon
 \begin{verbatim}
 agent(Id, UserIn, [msg(Id1, intro(From, Resp?))|NetIn], Outs) :-
     Id? =?= Id1? |
-    send_user(msg(agent, '_user', befriend(From?, Resp)), Outs?, Outs1),
+    send_user(msg(agent, person, befriend(From?, Resp)), Outs?, Outs1),
     agent(Id?, UserIn?, NetIn?, Outs1?).
 \end{verbatim}
 When the user makes a decision (accept or reject), the agent processes the response:
 \begin{verbatim}
-agent(Id, [msg('_user', Id1,
+agent(Id, [msg(person, Id1,
     decision(Dec, From, response(Resp?)))|UserIn], NetIn, Outs) :-
     Id? =?= Id1? |
     bind_response(Id?, Dec?, From?, Resp, Outs?, Outs1, NetIn?, NetIn1),
@@ -52,7 +52,7 @@ When Alice executes this protocol to befriend Bob, her agent sends \verb|msg(bob
 \mypara{Friend-mediated introduction}
 Friend-mediated introduction creates a fresh setup-channel pair via \verb|new_channel/2| and sends one half to each of the introduced parties; on mutual acceptance a direct connection arises without a cold-call:
 \begin{verbatim}
-agent(Id, [msg('_user', Id1, introduce(P, Q))|UserIn], NetIn, Outs) :-
+agent(Id, [msg(person, Id1, introduce(P, Q))|UserIn], NetIn, Outs) :-
     Id? =?= Id1?, ground(P?), ground(Q?), ~(P? =?= Q?),
     new_channel(PQCh, QPCh) |
     send_friend(P?, msg(Id?, P?, intro(Q?, QPCh?)), Outs?, Outs1),
@@ -64,7 +64,7 @@ When Bob introduces Alice to Charlie, the setup-channel pair he creates contains
 \mypara{Text messaging}
 Once two agents are friends, messages flow directly along their shared channel via the Communicate transaction, without cold-calls.  The user's \verb|send(Target, Text)| request is dispatched by \verb|send_friend| on the \verb|friend_output| entry registered under \verb|Target| in \verb|Outs|:
 \begin{verbatim}
-agent(Id, [msg('_user', Id1, send(Target, Text))|UserIn], NetIn, Outs) :-
+agent(Id, [msg(person, Id1, send(Target, Text))|UserIn], NetIn, Outs) :-
     Id? =?= Id1?, ground(Target?) |
     send_friend(Target?, msg(Id?, Target?, text(Text?)), Outs?, Outs1),
     agent(Id?, UserIn?, NetIn?, Outs1?).
@@ -73,7 +73,7 @@ On the other side, an incoming \verb|text(Text)| from \verb|From| is forwarded t
 \begin{verbatim}
 agent(Id, UserIn, [msg(From, Id1, text(Text))|NetIn], Outs) :-
     Id? =?= Id1? |
-    send_user(msg(agent, '_user', received(From?, Text?)), Outs?, Outs1),
+    send_user(msg(agent, person, received(From?, Text?)), Outs?, Outs1),
     agent(Id?, UserIn?, NetIn?, Outs1?).
 \end{verbatim}
 

@@ -87,10 +87,13 @@ The following defined guard predicates are shipped with the runtime:
 \end{tabular}
 \end{center}
 
+\mypara{Naming and admission of body kernels}
+A body kernel is named by a quoted constant whose name begins with an underscore, as \verb|'_add'| is. Quoting is necessary: an unquoted name beginning with an underscore is an anonymous variable (Remark~\ref{rem:anonymous-variables}). A module declaring \verb|-mode(system)| may define and call procedures whose names are so written; a module that does not may neither define nor call one. The restriction is on names in call position only; a constant beginning with an underscore is unrestricted as data, as a message tag or a member of a type union. The system modules are the root \verb|programs/self.glp| and the modules under \verb|programs/system/|.
+
 \mypara{Body kernel predicates}
 \temph{Body kernel predicates} are runtime-implemented primitives that execute in the clause body with two-valued semantics: they either succeed or abort. Body kernels are not directly accessible to user programs. They are invoked only by \emph{system predicates}---predicates defined by GLP clauses that are shipped with the runtime and have privileged access to the body kernel registry. The system predicate's own guards ensure that a body kernel's preconditions are met before invocation.
 
-Body kernels follow a naming convention of quoted atoms beginning with an underscore (e.g., \verb|'_add'|), preventing collisions with user-defined predicates. The following table lists all body kernels:
+The following table lists all body kernels:
 
 \begin{center}
 {\small
