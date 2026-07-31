@@ -130,8 +130,10 @@ Conversion & \verb|'_integer'(Number?, Integer)| & Convert to integer \\
  & \verb|'_floor'(Number?, Integer)| & Floor \\
  & \verb|'_ceil'(Number?, Integer)| & Ceiling \\
 \hline
-Structure & \verb|'_list_to_tuple'(List?, _)| & List to compound term \\
- & \verb|'_tuple_to_list'(_?, List)| & Compound term to list \\
+Structure & \verb|'_list_to_tuple'(Stream(_)?, _)| & List to compound term \\
+ & \verb|'_tuple_to_list'(_?, Stream(_))| & Compound term to list \\
+\hline
+Copy & \verb|'_copy'(_?, _)| & Bind the second argument to the first's value \\
 \hline
 Time & \verb|'_now'(Integer)| & Current Unix timestamp (ms) \\
 \hline
@@ -145,7 +147,7 @@ Network & \verb|'_send'(_?, _?, _?)| & Send madGLP message to remote agent \\
  & \verb|'_authorise_link'(_?, _?)| & Release or drop a reported held link \\
  & \verb|'_peer_address'(_?, _)| & Address at which the layer observes a peer \\
  & \verb|'_punch_udp'(_?)| & Open a path to an address \\
- & \verb|'_place_declare'(_?, _?, _)| & Declare a place; stream its entry and exit events \\
+ & \verb|'_place_declare'(_?, _?, _)| & Declare a place; stream its crossing and observability events \\
  & \verb|'_place_remove'(_?)| & End a place declaration \\
 \hline
 Signature & \verb|'_sign'(_?, _)| & Sign a term under the calling module \\
@@ -174,7 +176,7 @@ System predicates are predicates defined by GLP clauses whose bodies may invoke 
 \verb|authorise_link/2| & Release or drop a reported held link \\
 \verb|peer_address/2| & Address at which the layer observes a peer \\
 \verb|punch_udp/1| & Open a path to an address \\
-\verb|place_declare/3| & Declare a place; stream its entry and exit events \\
+\verb|place_declare/3| & Declare a place; stream its crossing and observability events \\
 \verb|place_remove/1| & End a place declaration \\
 \verb|allocate_mutual_reference/2| & Create a mutual reference and the stream it builds \\
 \verb|stream_append/3| & Append a value to that stream \\
@@ -210,7 +212,7 @@ Arithmetic assignment is defined recursively: each clause pattern-matches on an 
 \verb|authorise_link(L, A)| answers a link that the runtime holds and reports because its other end is at an agent with which the name was not exchanged. \verb|L| is the ground term naming the reported link and \verb|A| is \verb|authorise| or \verb|refuse|: on \verb|authorise| the runtime releases the held message or assignment, on \verb|refuse| it drops the link. The clause is guarded by \verb|known(A?)| and invokes the \verb|'_authorise_link'| body kernel. Held links are specified in the companion implementation paper~\cite{shapiro2026implementing}.
 
 \mypara{Networking seam (\texttt{peer\_address/2}, \texttt{punch\_udp/1}, \texttt{place\_declare/3}, \texttt{place\_remove/1})}
-\verb|peer_address(P, A)| assigns \verb|A| the address at which the networking layer observes peer \verb|P|. \verb|punch_udp(A)| opens a path to address \verb|A| and assigns nothing. \verb|place_declare(P, R, E)| declares a place \verb|P| of radius \verb|R| and assigns \verb|E| a stream of that place's \verb|entered| and \verb|exited| events; a further declaration of the same place supersedes the earlier one and closes its stream. \verb|place_remove(P)| ends the declaration of \verb|P|, and does nothing where \verb|P| is not declared. Each clause is guarded by \verb|ground| on the arguments it consumes. The layer behind these four is specified in the companion implementation paper~\cite{shapiro2026implementing}.
+\verb|peer_address(P, A)| assigns \verb|A| the address at which the networking layer observes peer \verb|P|. \verb|punch_udp(A)| opens a path to address \verb|A| and assigns nothing. \verb|place_declare(P, R, E)| declares a place \verb|P| of radius \verb|R|, centred on the declaring agent's location at the time of the call, and assigns \verb|E| a stream of that agent's own \verb|entered| and \verb|exited| events for the place, interleaved with \verb|unobservable| where the layer has stopped reporting crossings and \verb|observable| where it resumes; between the two no crossing is seen and none is delivered late. A further declaration of the same place supersedes the earlier one and closes its stream. \verb|place_remove(P)| ends the declaration of \verb|P|, and does nothing where \verb|P| is not declared. Each clause is guarded by \verb|ground| on the arguments it consumes. The layer behind these four is specified in the companion implementation paper~\cite{shapiro2026implementing}.
 
 \mypara{Mutual references (\texttt{allocate\_mutual\_reference/2}, \texttt{stream\_append/3}, \texttt{close\_mutual\_reference/1})}
 A \emph{mutual reference} is a handle on the tail of a stream, giving the stream a constant-time append. \verb|allocate_mutual_reference(Ref, Out)| binds \verb|Ref| to a fresh mutual reference and \verb|Out| to the stream it builds. \verb|stream_append(Value, RefIn, RefOut)| appends \verb|Value| to that stream and binds \verb|RefOut| to the reference for the next append. \verb|close_mutual_reference(Ref)| ends the stream, binding its tail to \verb|[]|. The clauses of the latter two are guarded by \verb|is_mutual_ref| on the reference they consume.
