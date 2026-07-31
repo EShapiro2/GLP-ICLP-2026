@@ -5,7 +5,7 @@
 
 The grassroots social graph is the foundation upon which all other grassroots platforms are built. Nodes represent cryptographically self-identified agents; edges represent authenticated bidirectional channels; connected components arise spontaneously through befriending.
 
-Each agent processes messages from user and network input streams and maintains an outputs list with one typed entry per destination --- \verb|user_output|, \verb|net_output|, and a \verb|friend_output| per friend --- on which the library routers \verb|send_user|, \verb|send_net|, and \verb|send_friend| dispatch. The program supports three protocols: (1) \emph{cold-call befriending}, where agents with no prior shared variables establish friendship by exchanging a response variable through the network; (2) \emph{friend-mediated introduction}, where a mutual friend creates a channel pair and sends each half to the respective parties, establishing a direct connection; and (3) \emph{text messaging} between established friends via named output streams.
+Each agent processes messages from user and network input streams and maintains an outputs list with one typed entry per destination --- \verb|user_output|, \verb|net_output|, and a \verb|friend_output| per friend --- on which the library routers \verb|send_user|, \verb|send_net|, and \verb|send_friend| dispatch. The program supports four protocols: (1) \emph{cold-call befriending}, where agents with no prior shared variables establish friendship by exchanging a response variable through the network; (2) \emph{friend-mediated introduction}, where a mutual friend creates a channel pair and sends each half to the respective parties, establishing a direct connection; (3) \emph{text messaging} between established friends via named output streams; and (4) \emph{unfriending}, where either friend closes the shared channel.
 
 The core of the program is the procedure \verb|agent/4|; the key clauses follow. Module declarations (\verb|exported|/\verb|imported|, \verb|#|-qualified calls) are elided from quoted clauses.
 
@@ -76,6 +76,26 @@ agent(Id, UserIn, [msg(From, Id1, text(Text))|NetIn], Outs) :-
     send_user(msg(agent, person, received(From?, Text?)), Outs?, Outs1),
     agent(Id?, UserIn?, NetIn?, Outs1?).
 \end{verbatim}
+
+\mypara{Unfriending}
+Either friend may unfriend the other, and the operation is one-way: no acknowledgement and no decline. The user's \verb|unfriend(Target)| request notifies the peer on the friend channel, removes the \verb|friend_output| entry, and tells the person the friend is gone:
+\begin{verbatim}
+agent(Id, [msg(person, Id1, unfriend(Target))|UserIn], NetIn, Outs) :-
+    Id? =?= Id1?, ground(Target?) |
+    send_friend(Target?, msg(Id?, Target?, unfriend), Outs?, Outs1),
+    close_friend(Target?, Outs1?, Outs2),
+    send_user(msg(agent, person, unfriended(Target?)), Outs2?, Outs3),
+    agent(Id?, UserIn?, NetIn?, Outs3?).
+\end{verbatim}
+The receiving side closes its own half on the incoming \verb|unfriend|:
+\begin{verbatim}
+agent(Id, UserIn, [msg(From, Id1, unfriend)|NetIn], Outs) :-
+    Id? =?= Id1?, ground(From?) |
+    close_friend(From?, Outs?, Outs1),
+    send_user(msg(agent, person, unfriended(From?)), Outs1?, Outs2),
+    agent(Id?, UserIn?, NetIn?, Outs2?).
+\end{verbatim}
+\verb|close_friend| does nothing where the named party is not a friend, so both clauses are idempotent and an unfriend from both sides at once closes each half once.
 
 \mypara{Boot and deployment}
 Each agent runs on a separate isolate (later --- separate smartphone). A boot clause reduces the universal initial state \verb|agent(ch(_?,_),ch(_?,_))| (Definition~\ref{definition:maGLP}) to the four-argument form used in the clauses above. The complete tested program --- the type vocabulary, helper procedures, the UI mediator, the actors, the plays, and the boot variants --- is the directory \verb|programs/social/graph| of the public GLP repository (\url{https://github.com/EShapiro2/GLP}); a comprehensive Alice/Bob/Charlie scenario appears in \appref{appendix:social-graph-walkthrough}{\arxivref}.

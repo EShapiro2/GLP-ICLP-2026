@@ -167,6 +167,7 @@ System predicates are predicates defined by GLP clauses whose bodies may invoke 
 \verb|now/1| & Current Unix timestamp (milliseconds) \\
 \verb|:=/2| & Arithmetic evaluation and assignment \\
 \verb|random/4| & Seeded random integer generation \\
+\verb|send_to_person/1| & Emit each term of a stream to the person \\
 \verb|self_module/1| & The caller's own module, as a \verb|Module| value \\
 \verb|run/2| & Activate a module value and post a goal to it \\
 \verb|sign/2| & Signature by the person, under the calling module \\
@@ -193,6 +194,9 @@ Arithmetic assignment is defined recursively: each clause pattern-matches on an 
 \mypara{Seeded random numbers (\texttt{random/4})}
 \verb|random(Seed, N, Value, NextSeed)| binds \verb|Value| to a pseudo-random integer with $1 \leq \mathtt{Value} \leq \mathtt{N}$, and \verb|NextSeed| to the seed of the next draw, given a ground seed \verb|Seed| and a ground bound $\mathtt{N} \geq 1$. It is a body goal, not a guard; the clause is guarded by \verb|integer(Seed?), integer(N?), N? >= 1| and invokes the \verb|'_random'| body kernel. \verb|NextSeed| is determined by \verb|Seed| alone; \verb|Value| by \verb|Seed| and \verb|N|. The seed stream is therefore independent of the bound requested, and a computation that threads \verb|NextSeed| from each draw into the next reproduces exactly from its initial seed.
 
+\mypara{Output to the person (\texttt{send\_to\_person/1})}
+\verb|send_to_person(Stream)| emits each element of \verb|Stream| to the person operating the agent, in order, and ends when the stream ends. Its clause is guarded by \verb|ground| on the element and invokes the \verb|'_output'| body kernel. A module reaches the person through this predicate; naming \verb|'_output'| in call position is admitted only to a system module.
+
 \mypara{Module as a value (\texttt{self\_module/1})}
 \verb|self_module(Module)| binds its argument to the caller's own module, a value of the primitive type \verb|Module|.
 
@@ -211,5 +215,5 @@ Arithmetic assignment is defined recursively: each clause pattern-matches on an 
 \mypara{Mutual references (\texttt{allocate\_mutual\_reference/2}, \texttt{stream\_append/3}, \texttt{close\_mutual\_reference/1})}
 A \emph{mutual reference} is a handle on the tail of a stream, giving the stream a constant-time append. \verb|allocate_mutual_reference(Ref, Out)| binds \verb|Ref| to a fresh mutual reference and \verb|Out| to the stream it builds. \verb|stream_append(Value, RefIn, RefOut)| appends \verb|Value| to that stream and binds \verb|RefOut| to the reference for the next append. \verb|close_mutual_reference(Ref)| ends the stream, binding its tail to \verb|[]|. The clauses of the latter two are guarded by \verb|is_mutual_ref| on the reference they consume.
 
-The complete definitions of \verb|:=|, \verb|now|, \verb|=..|, \verb|random|, \verb|self_module|, \verb|run|, \verb|sign|, \verb|authorise_link|, \verb|allocate_mutual_reference|, \verb|stream_append|, and \verb|close_mutual_reference| are in \verb|programs/self.glp| of the public GLP repository.
+The complete definitions of \verb|:=|, \verb|now|, \verb|=..|, \verb|random|, \verb|send_to_person|, \verb|self_module|, \verb|run|, \verb|sign|, \verb|authorise_link|, \verb|allocate_mutual_reference|, \verb|stream_append|, and \verb|close_mutual_reference| are in \verb|programs/self.glp| of the public GLP repository.
 
