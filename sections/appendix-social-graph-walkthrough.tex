@@ -20,9 +20,9 @@ Each agent processes messages from two separate input streams---user and network
 \subsection{Cold-Call Befriending Protocol}
 %------------------------------------------------------------------------------
 
-The cold-call protocol enables agents to establish friendship without prior shared variables. Its initiating, receiving, and decision clauses appear in Section~\ref{sec:ma-social-graph}; the remaining clause, handling the response to a sent cold-call, is in \verb|agent.glp| of the repository directory.
+The cold-call protocol enables agents to establish friendship without prior shared variables. Its initiating, receiving, and decision clauses appear in Section~\ref{sec:ma-social-graph}; the remaining clauses, among them the two that handle the response to a sent cold-call, are in \verb|agent.glp| of the repository directory.
 
-The protocol works as follows: (1) Alice sends \verb|connect(bob)| to her agent via the \verb|person| stream; (2) her agent sends a 2-argument \verb|msg(bob, intro(alice, Resp))| via the \verb|'_net'| output, including a fresh response variable \verb|Resp|; (3) Bob receives \verb|msg(bob, intro(alice, Resp))| on his network input and forwards the request to his user interface; (4) Bob decides \verb|yes| or \verb|no|; (5) Bob's agent creates a setup-channel pair and sends \verb|accept(RetCh?)| back via \verb|Resp|; (6) Alice's agent receives the response, and both agents commit the friendship via the shared \verb|befriend_commit|, which conveys a fresh friend channel over the setup channel and adds a \verb|friend_output| entry on each side.
+The protocol works as follows: (1) Alice sends \verb|connect(bob)| to her agent via the \verb|person| stream; (2) her agent sends a 2-argument \verb|msg(bob, intro(alice, Resp))| via the \verb|net_output| entry, including a fresh response variable \verb|Resp|; (3) Bob receives \verb|msg(bob, intro(alice, Resp))| on his network input and forwards the request to his user interface; (4) Bob decides \verb|yes| or \verb|no|; (5) Bob's agent creates a setup-channel pair and sends \verb|accept(RetCh?)| back via \verb|Resp|; (6) Alice's agent receives the response, and both agents commit the friendship via the shared \verb|befriend_commit|, which conveys a fresh friend channel over the setup channel and adds a \verb|friend_output| entry on each side.
 
 %------------------------------------------------------------------------------
 \subsection{Channel Establishment}
@@ -46,11 +46,11 @@ Once agents are friends, they can exchange text messages; the sending and receiv
 \subsection{Friend-Mediated Introduction}
 %------------------------------------------------------------------------------
 
-Once agents are friends, they can introduce each other to third parties. The introducing clause, which creates a fresh channel pair and sends each half to the respective parties, appears in Section~\ref{sec:ma-social-graph}; the receiving-side clauses are in \verb|agent.glp| of the repository directory.
+Once agents are friends, they can introduce each other to third parties. The introducing clause, which creates a fresh channel pair and sends each half to the respective parties, appears in Section~\ref{sec:ma-social-graph}; the receiving-side clauses are in \verb|agent.glp| of the repository directory, and the procedures they call, \verb|intro_await_peer| and \verb|inject_intro_result|, are in \verb|lib/routing/intro.glp|.
 
 When Bob types \verb|introduce(alice, charlie)|, he creates a setup-channel pair via \verb|new_channel(PQCh, QPCh)|; Alice and Charlie each receive one half. Accepting sends \verb|ack| on the setup channel; \verb|intro_await_peer| waits for the peer's \verb|ack| (or \verb|nack|) and injects the result, and on mutual acknowledgement each side commits via \verb|befriend_commit|. When both accept, they become direct friends without Bob's further involvement.
 
-Note the distinction between cold-call messages and friend-mediated messages: cold-call uses a 2-argument \verb|msg(Target, Content)| sent via the \verb|'_net'| output, while friend-mediated introduction uses a 3-argument \verb|msg(From, To, intro(Other, Ch))| sent directly to a friend via their named output.
+Note the distinction between cold-call messages and friend-mediated messages: cold-call uses a 2-argument \verb|msg(Target, Content)| sent via the \verb|net_output| entry, while friend-mediated introduction uses a 3-argument \verb|msg(From, To, intro(Other, Ch))| sent directly to a friend via their named output.
 
 %------------------------------------------------------------------------------
 \subsection{Network Switch Simulation}
