@@ -78,7 +78,7 @@ agent(Id, UserIn, [msg(From, Id1, text(Text))|NetIn], Outs) :-
 \end{verbatim}
 
 \mypara{Unfriending}
-Either friend may unfriend the other, and the operation is one-way: no acknowledgement and no decline. The user's \verb|unfriend(Target)| request notifies the peer on the friend channel, removes the \verb|friend_output| entry, and tells the person the friend is gone:
+Either friend may unfriend the other~\cite{shapiro2026gsg}, and the operation is one-way: no acknowledgement and no decline. The user's \verb|unfriend(Target)| request notifies the peer on the friend channel, removes the \verb|friend_output| entry, and tells the person the friend is gone:
 \begin{verbatim}
 agent(Id, [msg(person, Id1, unfriend(Target))|UserIn], NetIn, Outs) :-
     Id? =?= Id1?, ground(Target?) |
