@@ -160,7 +160,7 @@ Modules & \verb|'_self_module'(Module)| & The caller's own module \\
 \end{center}
 
 \mypara{System predicates}
-System predicates are predicates defined by GLP clauses whose bodies may invoke body kernel predicates. They provide safe, user-accessible interfaces to runtime services:
+System predicates are predicates defined by GLP clauses whose bodies may invoke body kernel predicates. They provide safe, user-accessible interfaces to runtime services. The table lists those in root scope, where every program reaches them; a system module may define others for its own use, and those belong to that module rather than to the language:
 
 \begin{center}
 {\small
