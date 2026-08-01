@@ -149,6 +149,7 @@ Network & \verb|'_send'(_?, _?, _?)| & Send madGLP message to remote agent \\
  & \verb|'_punch_udp'(_?)| & Open a path to an address \\
  & \verb|'_place_declare'(_?, _?, _)| & Declare a place; stream its crossing and observability events \\
  & \verb|'_place_remove'(_?)| & End a place declaration \\
+ & \verb|'_trust_declare'(_?, _?)| & Set a proximity medium's cold-call trust level \\
 \hline
 Signature & \verb|'_sign'(_?, _)| & Sign a term under the calling module \\
 \hline
@@ -172,12 +173,15 @@ System predicates are predicates defined by GLP clauses whose bodies may invoke 
 \verb|send_to_person/1| & Emit each term of a stream to the person \\
 \verb|self_module/1| & The caller's own module, as a \verb|Module| value \\
 \verb|run/2| & Activate a module value and post a goal to it \\
+\verb|run/3| & As \verb|run/2|, under a required type identity \\
+\verb|find_type/2| & The type identity of a procedure's declaration \\
 \verb|sign/2| & Signature by the person, under the calling module \\
 \verb|authorise_link/2| & Release or drop a reported held link \\
 \verb|peer_address/2| & Address at which the layer observes a peer \\
 \verb|punch_udp/1| & Open a path to an address \\
 \verb|place_declare/3| & Declare a place; stream its crossing and observability events \\
 \verb|place_remove/1| & End a place declaration \\
+\verb|trust_declare/2| & Declare a proximity medium's cold-call trust level \\
 \verb|allocate_mutual_reference/2| & Create a mutual reference and the stream it builds \\
 \verb|stream_append/3| & Append a value to that stream \\
 \verb|close_mutual_reference/1| & End that stream \\
@@ -202,8 +206,8 @@ Arithmetic assignment is defined recursively: each clause pattern-matches on an 
 \mypara{Module as a value (\texttt{self\_module/1})}
 \verb|self_module(Module)| binds its argument to the caller's own module, a value of the primitive type \verb|Module|.
 
-\mypara{Dynamic activation (\texttt{run/2})}
-\verb|run(Goal, Module)| activates the module value \verb|Module| and posts \verb|Goal| to it; the predicate of \verb|Goal| must be exported by \verb|Module|, else an error. The readers and writers of \verb|Goal| connect the caller and the activated module. The typed discipline over \verb|run/2| is specified in the Typed GLP companion paper~\cite{shapiro2026types}.
+\mypara{Dynamic activation (\texttt{run/2}, \texttt{run/3}, \texttt{find\_type/2})}
+\verb|run(Goal, Module)| activates the module value \verb|Module| and posts \verb|Goal| to it; the predicate of \verb|Goal| must be exported by \verb|Module|, else an error. The readers and writers of \verb|Goal| connect the caller and the activated module. \verb|run(Goal, Type, Module)| activates \verb|Module| and posts \verb|Goal| to it where \verb|Type| equals the type identity that \verb|Module|'s exports record for \verb|Goal|'s predicate, and errs otherwise. \verb|find_type(P/N, Type)| assigns \verb|Type| the type identity of the declaration of \verb|P/N| in the caller's scope, and \verb|error| where \verb|P/N| is not declared there. Type identity is defined in the Typed GLP companion paper~\cite{shapiro2026types}, which also gives its construction and proves the compatibility it rests on. \verb|run/3| and \verb|find_type/2| are not yet implemented.
 
 \mypara{Signing (\texttt{sign/2})}
 \verb|sign(Term, Sig)| requires \verb|Term| ground and binds \verb|Sig| to the signature of the person operating the agent on the pair of the calling instance's module identity and \verb|Term|, as an opaque constant. The guard \verb|verify| checks it.
@@ -213,6 +217,9 @@ Arithmetic assignment is defined recursively: each clause pattern-matches on an 
 
 \mypara{Networking seam (\texttt{peer\_address/2}, \texttt{punch\_udp/1}, \texttt{place\_declare/3}, \texttt{place\_remove/1})}
 \verb|peer_address(P, A)| assigns \verb|A| the address at which the networking layer observes peer \verb|P|. \verb|punch_udp(A)| opens a path to address \verb|A| and assigns nothing. \verb|place_declare(P, R, E)| declares a place \verb|P| of radius \verb|R|, centred on the declaring agent's location at the time of the call, and assigns \verb|E| a stream of that agent's own \verb|entered| and \verb|exited| events for the place, interleaved with \verb|unobservable| where the layer has stopped reporting crossings and \verb|observable| where it resumes; between the two no crossing is seen and none is delivered late. A further declaration of the same place supersedes the earlier one and closes its stream. \verb|place_remove(P)| ends the declaration of \verb|P|, and does nothing where \verb|P| is not declared. Each clause is guarded by \verb|ground| on the arguments it consumes. The layer behind these four is specified in the companion implementation paper~\cite{shapiro2026implementing}.
+
+\mypara{Proximity trust (\texttt{trust\_declare/2})}
+A \emph{proximity medium} carries a \emph{cold-call trust level}, which decides whether the agent answers a nearby device it does not already know. \verb|trust_declare(Medium, Level)| declares that level for one medium: \verb|Medium| is \verb|ble| or \verb|lan|, and \verb|Level| is \verb|open| or \verb|closed|. Under \verb|open| the agent contacts and answers unrecognised presences on that medium, revealing its public key to them; under \verb|closed| it ignores them, and its presence serves only to let peers who already know it recognise it. Each medium carries its own level, so an agent may answer strangers over one and ignore them over the other. One declaration stands per medium and a later one supersedes it. The clause is guarded by \verb|ground| on both arguments. The level is the program's to set and not the networking layer's to choose; the layer beneath it is specified in the companion implementation paper~\cite{shapiro2026implementing}.
 
 \mypara{Mutual references (\texttt{allocate\_mutual\_reference/2}, \texttt{stream\_append/3}, \texttt{close\_mutual\_reference/1})}
 A \emph{mutual reference} is a handle on the tail of a stream, giving the stream a constant-time append. \verb|allocate_mutual_reference(Ref, Out)| binds \verb|Ref| to a fresh mutual reference and \verb|Out| to the stream it builds. \verb|stream_append(Value, RefIn, RefOut)| appends \verb|Value| to that stream and binds \verb|RefOut| to the reference for the next append. \verb|close_mutual_reference(Ref)| ends the stream, binding its tail to \verb|[]|. The clauses of the latter two are guarded by \verb|is_mutual_ref| on the reference they consume.
