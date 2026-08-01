@@ -163,29 +163,31 @@ Modules & \verb|'_self_module'(Module)| & The caller's own module \\
 System predicates are predicates defined by GLP clauses whose bodies may invoke body kernel predicates. They provide safe, user-accessible interfaces to runtime services:
 
 \begin{center}
+{\small
 \begin{tabular}{ll}
-\textbf{Predicate} & \textbf{Description} \\
+\textbf{Signature} & \textbf{Description} \\
 \hline
-\verb|=..| & Term composition and decomposition (bidirectional) \\
-\verb|now/1| & Current Unix timestamp (milliseconds) \\
-\verb|:=/2| & Arithmetic evaluation and assignment \\
-\verb|random/4| & Seeded random integer generation \\
-\verb|send_to_person/1| & Emit each term of a stream to the person \\
-\verb|self_module/1| & The caller's own module, as a \verb|Module| value \\
-\verb|run/2| & Activate a module value and post a goal to it \\
-\verb|run/3| & As \verb|run/2|, under a required type identity \\
-\verb|find_type/2| & The type identity of a procedure's declaration \\
-\verb|sign/2| & Signature by the person, under the calling module \\
-\verb|authorise_link/2| & Release or drop a reported held link \\
-\verb|peer_address/2| & Address at which the layer observes a peer \\
-\verb|punch_udp/1| & Open a path to an address \\
-\verb|place_declare/3| & Declare a place; stream its crossing and observability events \\
-\verb|place_remove/1| & End a place declaration \\
-\verb|trust_declare/2| & Declare a proximity medium's cold-call trust level \\
-\verb|allocate_mutual_reference/2| & Create a mutual reference and the stream it builds \\
-\verb|stream_append/3| & Append a value to that stream \\
-\verb|close_mutual_reference/1| & End that stream \\
+\verb|procedure =..(_, Stream(_)?).| & Term composition and decomposition \\
+\verb|procedure now(Integer).| & Current Unix timestamp (milliseconds) \\
+\verb|procedure :=(Number, Exp?).| & Arithmetic evaluation and assignment \\
+\verb|procedure random(Integer?, Integer?, Integer, Integer).| & Seeded random integer \\
+\verb|procedure send_to_person(Stream(_)?).| & Emit each term of a stream to the person \\
+\verb|procedure self_module(Module).| & The caller's own module, as a value \\
+\verb|procedure run(_?, Module?).| & Activate a module value, post a goal to it \\
+\verb|procedure run(_?, Constant?, Module?).| & As \verb|run/2|, under a required type identity \\
+\verb|procedure find_type(_?, Constant).| & The type identity of a declaration \\
+\verb|procedure sign(_?, _).| & Signature by the person, under the module \\
+\verb|procedure authorise_link(_?, _?).| & Release or drop a reported held link \\
+\verb|procedure peer_address(_?, _).| & Address at which the layer observes a peer \\
+\verb|procedure punch_udp(_?).| & Open a path to an address \\
+\verb|procedure place_declare(_?, _?, _).| & Declare a place; stream its events \\
+\verb|procedure place_remove(_?).| & End a place declaration \\
+\verb|procedure trust_declare(Constant?, Constant?).| & A medium's cold-call trust level \\
+\verb|procedure allocate_mutual_reference(_, _).| & Create a mutual reference and its stream \\
+\verb|procedure stream_append(_?, _?, _).| & Append a value to that stream \\
+\verb|procedure close_mutual_reference(_?).| & End that stream \\
 \end{tabular}
+}
 \end{center}
 
 \mypara{Term composition and decomposition (\texttt{=..})}
