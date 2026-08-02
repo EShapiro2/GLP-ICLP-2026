@@ -46,7 +46,7 @@ Once agents are friends, they can exchange text messages; the sending and receiv
 \subsection{Friend-Mediated Introduction}
 %------------------------------------------------------------------------------
 
-Once agents are friends, they can introduce each other to third parties. The introducing clause, which creates a fresh channel pair and sends each half to the respective parties, appears in Section~\ref{sec:ma-social-graph}; the receiving-side clauses are in \verb|agent.glp| of the repository directory, and the procedures they call, \verb|intro_await_peer| and \verb|inject_intro_result|, are in \verb|lib/routing/intro.glp|.
+Once agents are friends, they can introduce each other to third parties. The introducing clause, which creates a fresh channel pair and sends each half to the respective parties, appears in Section~\ref{sec:ma-social-graph}; the receiving-side clauses are in \verb|agent.glp| of the repository directory, and the procedures they call, \verb|intro_await_peer| and \verb|inject_intro_result|, are in \verb|routing/intro.glp| of the repository directory.
 
 When Bob types \verb|introduce(alice, charlie)|, he creates a setup-channel pair via \verb|new_channel(PQCh, QPCh)|; Alice and Charlie each receive one half. Accepting sends \verb|ack| on the setup channel; \verb|intro_await_peer| waits for the peer's \verb|ack| (or \verb|nack|) and injects the result, and on mutual acknowledgement each side commits via \verb|befriend_commit|. When both accept, they become direct friends without Bob's further involvement.
 
@@ -64,7 +64,7 @@ The network switch routes both 2-argument cold-call messages (where \verb|msg(Ta
 \subsection{The Scenario and Actors}
 %------------------------------------------------------------------------------
 
-The complete scenario demonstrates all three protocols:
+The complete scenario demonstrates three of the four protocols of Section~\ref{sec:ma-social-graph}; unfriending is not among them:
 \begin{enumerate}
 \item Alice cold-calls Bob (Bob accepts) --- Alice and Bob become friends
 \item Alice sends Bob: ``Hi Bob, this is Alice''
