@@ -28,6 +28,8 @@ The directory and the project are both `GLP-Spec`; the git remote is still `GLP-
 
 Claude Code does not edit `.tex` files in this repo; paper editing is the chat session's.
 
+**FROZEN: the security constructs (Udi, 2026-08-03).**  `sign/2`, the guard `signed/3` and `valid_attestation/4` are frozen pending a resolution of authority across SPM, Secure-GLP and SGSG, whose work has to be integrated and has not been.  Until that is settled: no edits to those rows or their prose, no rulings on them, no mail advancing them, and no citation redirects --- Secure-GLP has deleted the mechanism from their paper, so the citations in SGSG's code and GLP-Networking-API's Section 5 now point at a paper that does not carry it, and fixing that is inside the freeze rather than outside it.  IGLP holds a rename request; it stays held.  The freeze is on handling, not on recording: note what arrives and leave it.
+
 Open at handover (2026-08-03): read `IGLP/main_iglp.tex` and `GLP-Networking-API/main.tex` end to end.  The 2026-08-03 review justified the constructs that were flagged, by reading the sections that motivate them; it did not establish that nothing *else* in those two papers bears on the language and has never reached the catalogue.  Udi deferred this to the next session.
 
 When Udi says `#remember <something>`, add it here.

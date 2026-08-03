@@ -35,7 +35,7 @@ Guards provide read-only access to the runtime state of GLP computation. A guard
 
 \verb|=?=| succeeds if both arguments are ground and equal. For example, \verb|f(a,X?) =?= f(b,Z?)| fails (not suspends) because the ground subterms \verb|a| and \verb|b| already differ. Note that the implementation checks terms left-to-right and does not guarantee early failure detection; \verb|f(X?,a) =?= f(Y?,b)| may suspend rather than fail.
 
-\verb|signed(Term, Sig, Key)| succeeds if and only if \verb|Sig| is a valid signature on the pair of the calling instance's module identity and \verb|Term|, by the person whose public key is \verb|Key|. Including the module identity scopes a signature to the module under which it was made. The guard is named for what it decides --- that \verb|Term| is signed --- and pairs with the system predicate \verb|sign/2| below, which produces the signature the guard checks: \verb|sign| makes it, \verb|signed| checks it. The security construction that relies on them is in the Secure GLP companion paper~\cite{keidar2026secure}.
+\verb|signed(Term, Sig, Key)| succeeds if and only if \verb|Sig| is a valid signature on the pair of the calling instance's module identity and \verb|Term|, by the person whose public key is \verb|Key|. Including the module identity scopes a signature to the module under which it was made. The guard is named for what it decides --- that \verb|Term| is signed --- and pairs with the system predicate \verb|sign/2| below, which produces the signature the guard checks: \verb|sign| makes it, \verb|signed| checks it.
 
 \mypara{Arithmetic comparison guards}
 Arithmetic comparison guards evaluate their arguments as arithmetic expressions over \verb|+|, \verb|-|, \verb|*|, \verb|//| (integer division), and \verb|mod|, and compare the results. Success implies both arguments are ground.
@@ -149,6 +149,7 @@ Network & \verb|'_send'(_?, _?, _?)| & Send madGLP message to remote agent \\
  & \verb|'_punch_udp'(_?)| & Open a path to an address \\
  & \verb|'_place_declare'(_?, _?, _)| & Declare a place; stream its crossing and observability events \\
  & \verb|'_place_remove'(_?)| & End a place declaration \\
+ & \verb|'_trust_declare'(_?, _?)| & Set a proximity medium's cold-call trust level \\
 \hline
 Signature & \verb|'_sign'(_?, _)| & Sign a term under the calling module \\
 \hline
@@ -182,6 +183,7 @@ System predicates are predicates defined by GLP clauses whose bodies may invoke 
 \verb|procedure punch_udp(_?).| & Open a path to an address \\
 \verb|procedure place_declare(_?, _?, _).| & Declare a place; stream its events \\
 \verb|procedure place_remove(_?).| & End a place declaration \\
+\verb|procedure trust_declare(Constant?, Constant?).| & A proximity medium's cold-call trust level \\
 \verb|procedure(X) mwm(MwmInput(X)?, Stream(X)).| & Multiway merge of many streams into one \\
 \end{tabular}
 }
@@ -222,6 +224,11 @@ A signature is what carries a claim to a party that has neither an authenticated
 \verb|peer_address(P, A)| assigns \verb|A| the address at which the networking layer observes peer \verb|P|. \verb|punch_udp(A)| opens a path to address \verb|A| and assigns nothing. \verb|place_declare(P, R, E)| declares a place \verb|P| of radius \verb|R|, centred on the declaring agent's location at the time of the call, and assigns \verb|E| a stream of that agent's own \verb|entered| and \verb|exited| events for the place, interleaved with \verb|unobservable| where the layer has stopped reporting crossings and \verb|observable| where it resumes; between the two no crossing is seen and none is delivered late. A further declaration of the same place supersedes the earlier one and closes its stream. \verb|place_remove(P)| ends the declaration of \verb|P|, and does nothing where \verb|P| is not declared. Each clause is guarded by \verb|ground| on the arguments it consumes, and the clauses themselves are in \verb|programs/self.glp|.
 
 The four are on this seam because a GLP program cannot reach the platform by itself. \verb|peer_address/2| is address discovery: an agent behind a NAT learns from a peer the public address that peer observes for it, and \verb|punch_udp/1| opens a path to a peer so observed, the two together standing in for external address-discovery infrastructure. \verb|place_declare/3| and \verb|place_remove/1| register and unregister a geofence with the platform's location service. Crossings reach the program as messages on a stream rather than through a guard, and must: a guard is a test on the resolvent alone, so one that consulted the device's location would let the same local state reduce differently at different times. A declaration carries a name and a radius and returns no coordinates, so a program learns of its own device's location only that it entered or left a place it named itself~\cite{bachar2026networking}. The runtime behind the kernels they invoke is described in the companion implementation paper~\cite{shapiro2026implementing}; the layer beneath that is specified in the networking companion paper~\cite{bachar2026networking}.
+
+\mypara{Proximity trust (\texttt{trust\_declare/2})}
+A \emph{proximity medium} carries a \emph{cold-call trust level}, which decides whether the agent answers an unsolicited approach from a device it does not already know. \verb|trust_declare(Medium, Level)| declares that level for one medium: \verb|Medium| is \verb|ble| or \verb|lan| and \verb|Level| is \verb|open| or \verb|closed|. Both media stand at \verb|closed| until declared, a later declaration of a medium replaces the level then standing, and the two are declared independently, so an agent may answer strangers over one and ignore them over the other. The clause is guarded by \verb|ground| on both arguments.
+
+The level is the program's to set and cannot be the layer's, for a reason that decides where the predicate belongs: an agent raises the level on entering a place it trusts and lowers it on leaving, and lowers it again when that place's crossings become unobservable, doubt resolving to closed --- and the layer cannot do any of that, because it does not know which place is trusted. The program declared the place~\cite{bachar2026networking}.
 
 \mypara{Multiway merge (\texttt{mwm/2})}
 \verb|mwm(In, Out)| merges the streams named by \verb|In| into the single stream \verb|Out|, preserving the order of each input stream and interleaving them fairly. \verb|In| is a stream of \verb|merge(S)| elements, each contributing the stream \verb|S| to the merge, following the merger of FCP~\cite{shapiro1989family}. Since \verb|In| is itself a stream, a \verb|merge(S)| element arriving later grafts a further stream into a running merge: the set of merged streams need not be known when the merge begins, and a merge is closed by closing \verb|In|.
