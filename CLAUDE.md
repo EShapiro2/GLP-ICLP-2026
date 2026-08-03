@@ -28,7 +28,9 @@ The directory and the project are both `GLP-Spec`; the git remote is still `GLP-
 
 Claude Code does not edit `.tex` files in this repo; paper editing is the chat session's.
 
-**FROZEN: the security constructs (Udi, 2026-08-03).**  `sign/2`, the guard `signed/3` and `valid_attestation/4` are frozen pending a resolution of authority across SPM, Secure-GLP and SGSG, whose work has to be integrated and has not been.  Until that is settled: no edits to those rows or their prose, no rulings on them, no mail advancing them, and no citation redirects --- Secure-GLP has deleted the mechanism from their paper, so the citations in SGSG's code and GLP-Networking-API's Section 5 now point at a paper that does not carry it, and fixing that is inside the freeze rather than outside it.  IGLP holds a rename request; it stays held.  The freeze is on handling, not on recording: note what arrives and leave it.
+**Propose; do not "rule" (Udi, 2026-08-03).**  Udi does not rule.  This session proposes its best answer for his approval --- one recommendation, with the alternatives and what each costs, numbered so he can answer briefly --- and waits.  Putting a question to him as a menu with no recommendation is a failure to do the work, not deference.  The authority rule above says what must be put to him; this says how.
+
+**The security freeze is LIFTED (Udi, 2026-08-03).**  Secure-GLP's \S3.4 "The Seam" now carries the reason for each construct, which is what the extension rule asks.  The catalogue holds `self_key/1`, `sign/3`, `signed/4`, `signed/2` and `decompose_module/4` as seam predicates; the guard `verify/3` and `sign/2` are gone, and `valid_attestation/4` with them.
 
 Open at handover (2026-08-03): read `IGLP/main_iglp.tex` and `GLP-Networking-API/main.tex` end to end.  The 2026-08-03 review justified the constructs that were flagged, by reading the sections that motivate them; it did not establish that nothing *else* in those two papers bears on the language and has never reached the catalogue.  Udi deferred this to the next session.
 
