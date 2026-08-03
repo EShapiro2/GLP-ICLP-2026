@@ -4,6 +4,22 @@ Read `/Grassroots/claude.md` and the writing style guide it names, then `/Grassr
 
 GLP-Spec is the authority on every language issue, wherever it arises: a language decision taken inside TGLP or IGLP is subordinate to it, and every guard, system predicate and body kernel any project adds appears in this paper's catalogue.
 
+**Which papers are the rule (Udi, 2026-08-02).**  Two papers specify the language and both are GLP-Spec's: this one and TGLP.  IGLP is the implementation paper and has *derived authority only* — it may expand on these two to address implementation detail, and it may not change or dictate language design.  So: a construct's existence, name, signature, modes and meaning are settled here or in TGLP, never in IGLP; where IGLP's paper states something about the language, it restates what these two say or it is wrong; and a citation from here to IGLP must point at a runtime mechanism, never at the specification of a language construct.  GLP-Networking-API is different in kind — it specifies the layer *beneath* the language, so citing it for what that layer does is correct.
+
+**The paper is the sole rule (Udi, 2026-08-02).**  The papers and their appendices are the specification of GLP; no code may violate or circumvent them.  Where code disagrees with the paper, the code is wrong: report it as non-compliant to its owner.  Do not accommodate it, do not work around it, and never let it decide what the paper says.  Where the paper has a gap or an inconsistency, revise the paper — deliberately, with Udi's approval — and the code then follows.  Either way the paper remains the one and sole rule.
+
+Three consequences, each of which has been violated in practice:
+
+- No sentence of the specification may rest on an implementation limitation.  "The DFA builder cannot handle it" is a defect report, never a reason for what the language says.
+- Any mechanism in the implementation that gates what the specification permits — a hand-maintained list of admissible names, a protected-name table, a resolver refusing a form the grammar allows — is a defect by construction, whatever it happens to block today.
+- A test asserting behaviour the paper forbids is a wrong test.  Report it to its owner as such; never treat it as a constraint.
+
+And the inversion that caused all three reversals of 2026-08-02: **absence in the code is not evidence about the language.**  `..=` had no clause and `mwm/2` had no caller, and both were proposed for deletion on that basis; both were needed.  Measure the code to learn what conforms.  Never to learn what the language is.
+
+**Every language ruling is Udi's to approve before it is issued (Udi, 2026-08-02).**  GLP-Spec holds the authority and exercises it with his approval, not in his place.  A language ruling is anything that decides what GLP *is*: whether a construct exists or is removed, what it is named, its signature or its modes, what a guard, kernel or system predicate means, and which paper carries a subject.  Put it to him with the measurement, the alternatives and what each costs, numbered so he can answer briefly, and wait.  Do not post it to another project's inbox, write it into a paper, or instruct a Code session on it before he has answered.  Answering a question about what the language already says is not a ruling; neither is correcting a paper or a file to match a ruling already given.
+
+Why the rule exists: on 2026-08-02 three rulings were issued without asking and Udi reversed all three --- removing `..=`, removing the root `mwm` family, and treating `=..` as bidirectional.  Each was wrong for a reason he had and the session did not: `..=` and `=..` are two predicates because modes force them to be, both are needed to walk a term, and `mwm/2` is the efficient many-to-one merge whose disuse was the applications' naivety, not evidence it was dead.  The cost of asking is one message; the cost of not asking is a request already sitting in another project's inbox.
+
 The directory and the project are both `GLP-Spec`; the git remote is still `GLP-ICLP-2026`.  Everything else about the paper is in the paper, and its location is in Appendix A of the Coordination document.
 
 Claude Code does not edit `.tex` files in this repo; paper editing is the chat session's.

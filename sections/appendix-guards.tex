@@ -3,7 +3,7 @@
 Guards and system predicates extend GLP programs with access to the GLP runtime state, operating system and hardware capabilities.
 
 \mypara{Predefined types}
-The predefined types, available in every GLP program, are \verb|Stream(X)|, \verb|OpenStream(X)|, \verb|DiffList(X)|, \verb|Channel(In, Out)|, \verb|Closed|, \verb|Number|, \verb|Constant|, and the arithmetic-expression type \verb|Exp|; their definitions are in \verb|programs/self.glp| of the public GLP repository. \verb|Integer|, \verb|Real|, \verb|String|, and \verb|Module| are primitive types built into the runtime.
+The predefined types, available in every GLP program, are \verb|Stream(X)|, \verb|OpenStream(X)|, \verb|DiffList(X)|, \verb|Channel(In, Out)|, \verb|Closed|, \verb|MwmInput(X)|, \verb|Number|, \verb|Constant|, and the arithmetic-expression type \verb|Exp|; their definitions are in \verb|programs/self.glp| of the public GLP repository. \verb|Integer|, \verb|Real|, \verb|String|, and \verb|Module| are primitive types built into the runtime.
 
 \mypara{Guard predicates}
 Guards provide read-only access to the runtime state of GLP computation. A guard appears after the clause head, separated by \verb=|=, and must be satisfied for the clause to be selected. The ``Ground'' column indicates whether success of the guard implies that the argument is ground; such guards permit multiple occurrences of the reader in the clause body (Remark~\ref{rem:guards-srsw}). Built-in guards can be negated: \verb|~G| succeeds if \verb|G| fails and vice versa, while suspension is unchanged; negation applies only to atomic built-in guards, not to defined guards or conjunctions.
@@ -25,7 +25,7 @@ Guards provide read-only access to the runtime state of GLP computation. A guard
 \verb|module| & \verb|procedure module(Module?).| & yes \\
 \verb|@<| & \verb|procedure @<(Constant?, Constant?).| & yes \\
 \verb|is_mutual_ref| & \verb|procedure is_mutual_ref(_?).| & no \\
-\verb|verify| & \verb|procedure verify(_?, Constant?, Constant?).| & yes (all) \\
+\verb|signed| & \verb|procedure signed(_?, Constant?, Constant?).| & yes (all) \\
 \verb|otherwise| & (no arguments) & --- \\
 \verb|=?=| & \verb|procedure =?=(_?, _?).| & yes (both) \\
 \end{tabular}
@@ -35,7 +35,7 @@ Guards provide read-only access to the runtime state of GLP computation. A guard
 
 \verb|=?=| succeeds if both arguments are ground and equal. For example, \verb|f(a,X?) =?= f(b,Z?)| fails (not suspends) because the ground subterms \verb|a| and \verb|b| already differ. Note that the implementation checks terms left-to-right and does not guarantee early failure detection; \verb|f(X?,a) =?= f(Y?,b)| may suspend rather than fail.
 
-\verb|verify(Term, Sig, Key)| succeeds if and only if \verb|Sig| is a valid signature on the pair of the calling instance's module identity and \verb|Term|, by the person whose public key is \verb|Key|. Including the module identity scopes a signature to the module under which it was made. Signatures are produced by \verb|sign/2| below; the security construction that relies on them is in the Secure GLP companion paper~\cite{keidar2026secure}.
+\verb|signed(Term, Sig, Key)| succeeds if and only if \verb|Sig| is a valid signature on the pair of the calling instance's module identity and \verb|Term|, by the person whose public key is \verb|Key|. Including the module identity scopes a signature to the module under which it was made. The guard is named for what it decides --- that \verb|Term| is signed --- and pairs with the system predicate \verb|sign/2| below, which produces the signature the guard checks: \verb|sign| makes it, \verb|signed| checks it. The security construction that relies on them is in the Secure GLP companion paper~\cite{keidar2026secure}.
 
 \mypara{Arithmetic comparison guards}
 Arithmetic comparison guards evaluate their arguments as arithmetic expressions over \verb|+|, \verb|-|, \verb|*|, \verb|//| (integer division), and \verb|mod|, and compare the results. Success implies both arguments are ground.
@@ -167,7 +167,8 @@ System predicates are predicates defined by GLP clauses whose bodies may invoke 
 \begin{tabular}{ll}
 \textbf{Signature} & \textbf{Description} \\
 \hline
-\verb|procedure =..(_, Stream(_)?).| & Term composition and decomposition \\
+\verb|procedure =..(_, Stream(_)?).| & Term composition \\
+\verb|procedure ..=(Stream(_), _?).| & Term decomposition \\
 \verb|procedure now(Integer).| & Current Unix timestamp (milliseconds) \\
 \verb|procedure :=(Number, Exp?).| & Arithmetic evaluation and assignment \\
 \verb|procedure random(Integer?, Integer?, Integer, Integer).| & Seeded random integer \\
@@ -186,12 +187,15 @@ System predicates are predicates defined by GLP clauses whose bodies may invoke 
 \verb|procedure allocate_mutual_reference(_, _).| & Create a mutual reference and its stream \\
 \verb|procedure stream_append(_?, _?, _).| & Append a value to that stream \\
 \verb|procedure close_mutual_reference(_?).| & End that stream \\
+\verb|procedure(X) mwm(MwmInput(X)?, Stream(X)).| & Multiway merge of many streams into one \\
 \end{tabular}
 }
 \end{center}
 
-\mypara{Term composition and decomposition (\texttt{=..})}
-The \verb|=..| predicate is bidirectional: when the right-hand side is a list, it composes a compound term; when the left-hand side is a compound term, it decomposes it into a list. The reader/writer positions of the arguments determine the direction. For example, \verb|T =.. [foo, a, b]?| constructs \verb|T = foo(a, b)|, and \verb|foo(a, b) =.. L| produces \verb|L = [foo, a, b]|.
+\mypara{Term composition and decomposition (\texttt{=..}, \texttt{..=})}
+Composition and decomposition are two predicates, not one bidirectional predicate. A declaration fixes one mode per argument, so a single name cannot carry both directions: \verb|=..| takes a list and produces a term, and \verb|..=| takes a term and produces a list, each with the opposite mode on both arguments. \verb|T =.. [foo, a, b]?| constructs \verb|T = foo(a, b)|; \verb|L ..= foo(a, b)?| produces \verb|L = [foo, a, b]|.
+
+Both are needed, and a program that walks an arbitrary term needs both together: \verb|..=| to take a compound apart and recurse on its arguments, \verb|=..| to rebuild it from the results. Decomposition alone descends without returning, and composition alone cannot get started.
 
 \mypara{Clock access (\texttt{now/1})}
 Binds the argument to the current Unix timestamp in milliseconds since the epoch.
@@ -212,19 +216,26 @@ Arithmetic assignment is defined recursively: each clause pattern-matches on an 
 \verb|run(Goal, Module)| activates the module value \verb|Module| and posts \verb|Goal| to it; the predicate of \verb|Goal| must be exported by \verb|Module|, else an error. The readers and writers of \verb|Goal| connect the caller and the activated module. \verb|run(Goal, Type, Module)| activates \verb|Module| and posts \verb|Goal| to it where \verb|Type| equals the type identity that \verb|Module|'s exports record for \verb|Goal|'s predicate, and errs otherwise. \verb|find_type(P/N, Type)| assigns \verb|Type| the type identity of the declaration of \verb|P/N| in the caller's scope, and \verb|error| where \verb|P/N| is not declared there. Type identity is defined in the Typed GLP companion paper~\cite{shapiro2026types}, which also gives its construction and proves the compatibility it rests on. \verb|run/3| and \verb|find_type/2| are not yet implemented.
 
 \mypara{Signing (\texttt{sign/2})}
-\verb|sign(Term, Sig)| requires \verb|Term| ground and binds \verb|Sig| to the signature of the person operating the agent on the pair of the calling instance's module identity and \verb|Term|, as an opaque constant. The guard \verb|verify| checks it.
+\verb|sign(Term, Sig)| requires \verb|Term| ground and binds \verb|Sig| to the signature of the person operating the agent on the pair of the calling instance's module identity and \verb|Term|, as an opaque constant. The guard \verb|signed| checks it.
 
 \mypara{Held links (\texttt{authorise\_link/2})}
-\verb|authorise_link(L, A)| answers a link that the runtime holds and reports because its other end is at an agent with which the name was not exchanged. \verb|L| is the ground term naming the reported link and \verb|A| is \verb|authorise| or \verb|refuse|: on \verb|authorise| the runtime releases the held message or assignment, on \verb|refuse| it drops the link. The clause is guarded by \verb|known(A?)| and invokes the \verb|'_authorise_link'| body kernel. Held links are specified in the companion implementation paper~\cite{shapiro2026implementing}.
+\verb|authorise_link(L, A)| answers a link that the runtime holds and reports because its other end is at an agent with which the name was not exchanged. \verb|L| is the ground term naming the reported link and \verb|A| is \verb|authorise| or \verb|refuse|: on \verb|authorise| the runtime releases the held message or assignment, on \verb|refuse| it drops the link. The clause is guarded by \verb|known(A?)| and invokes the \verb|'_authorise_link'| body kernel. The runtime mechanism that holds a link and reports it is described in the companion implementation paper~\cite{shapiro2026implementing}.
 
 \mypara{Networking seam (\texttt{peer\_address/2}, \texttt{punch\_udp/1}, \texttt{place\_declare/3}, \texttt{place\_remove/1})}
-\verb|peer_address(P, A)| assigns \verb|A| the address at which the networking layer observes peer \verb|P|. \verb|punch_udp(A)| opens a path to address \verb|A| and assigns nothing. \verb|place_declare(P, R, E)| declares a place \verb|P| of radius \verb|R|, centred on the declaring agent's location at the time of the call, and assigns \verb|E| a stream of that agent's own \verb|entered| and \verb|exited| events for the place, interleaved with \verb|unobservable| where the layer has stopped reporting crossings and \verb|observable| where it resumes; between the two no crossing is seen and none is delivered late. A further declaration of the same place supersedes the earlier one and closes its stream. \verb|place_remove(P)| ends the declaration of \verb|P|, and does nothing where \verb|P| is not declared. Each clause is guarded by \verb|ground| on the arguments it consumes. The clause bodies are in the companion implementation paper~\cite{shapiro2026implementing}; the layer behind them is specified in the networking companion paper~\cite{bachar2026networking}.
+\verb|peer_address(P, A)| assigns \verb|A| the address at which the networking layer observes peer \verb|P|. \verb|punch_udp(A)| opens a path to address \verb|A| and assigns nothing. \verb|place_declare(P, R, E)| declares a place \verb|P| of radius \verb|R|, centred on the declaring agent's location at the time of the call, and assigns \verb|E| a stream of that agent's own \verb|entered| and \verb|exited| events for the place, interleaved with \verb|unobservable| where the layer has stopped reporting crossings and \verb|observable| where it resumes; between the two no crossing is seen and none is delivered late. A further declaration of the same place supersedes the earlier one and closes its stream. \verb|place_remove(P)| ends the declaration of \verb|P|, and does nothing where \verb|P| is not declared. Each clause is guarded by \verb|ground| on the arguments it consumes, and the clauses themselves are in \verb|programs/self.glp|. The runtime behind the kernels they invoke is described in the companion implementation paper~\cite{shapiro2026implementing}; the layer beneath that is specified in the networking companion paper~\cite{bachar2026networking}.
 
 \mypara{Proximity trust (\texttt{trust\_declare/2})}
 A \emph{proximity medium} carries a \emph{cold-call trust level}, which decides whether the agent answers a nearby device it does not already know. \verb|trust_declare(Medium, Level)| declares that level for one medium: \verb|Medium| is \verb|ble| or \verb|lan|, and \verb|Level| is \verb|open| or \verb|closed|. Under \verb|open| the agent contacts and answers unrecognised presences on that medium, revealing its public key to them; under \verb|closed| it ignores them, and its presence serves only to let peers who already know it recognise it. Each medium carries its own level, so an agent may answer strangers over one and ignore them over the other. One declaration stands per medium and a later one supersedes it. The clause is guarded by \verb|ground| on both arguments. The level is the program's to set and not the networking layer's to choose; the layer beneath it is specified in the networking companion paper~\cite{bachar2026networking}.
 
+\mypara{Multiway merge (\texttt{mwm/2})}
+\verb|mwm(In, Out)| merges the streams named by \verb|In| into the single stream \verb|Out|, preserving the order of each input stream and interleaving them fairly. \verb|In| is a stream of \verb|merge(S)| elements, each contributing the stream \verb|S| to the merge, following the merger of FCP~\cite{shapiro1989family}. Since \verb|In| is itself a stream, a \verb|merge(S)| element arriving later grafts a further stream into a running merge: the set of merged streams need not be known when the merge begins, and a merge is closed by closing \verb|In|.
+
+\verb|mwm/2| is the construct to use whenever many streams are merged into one, and is preferred to a tree of \verb|merge/3| goals for that purpose. The difference is asymptotic, not stylistic. Merging $n$ streams with binary \verb|merge/3| passes each message through $\log n$ merge processes on a balanced tree, and through as many as $n$ on the linear tree a program most easily writes; \verb|mwm/2| appends each message once, in constant time, through the mutual reference that holds the tail of \verb|Out| (below). A program that builds its own merge tree pays a factor no implementation can recover, since the cost is in the process structure the program chose. None of this makes a hand-built merge tree wrong: it is sound, and knowing how to build one is worth having. The preference is about which construct a program should reach for when many streams must arrive at one receiver, not about which technique is worth understanding.
+
+\verb|merge/3| remains the right construct where two streams are merged, or where the merge tree itself carries meaning --- a merge goal that is also the point at which a process terminates. \verb|mwm/2| is for many-to-one merging, which is the common case in a program routing many senders to one receiver.
+
 \mypara{Mutual references (\texttt{allocate\_mutual\_reference/2}, \texttt{stream\_append/3}, \texttt{close\_mutual\_reference/1})}
 A \emph{mutual reference} is a handle on the tail of a stream, giving the stream a constant-time append. \verb|allocate_mutual_reference(Ref, Out)| binds \verb|Ref| to a fresh mutual reference and \verb|Out| to the stream it builds. \verb|stream_append(Value, RefIn, RefOut)| appends \verb|Value| to that stream and binds \verb|RefOut| to the reference for the next append. \verb|close_mutual_reference(Ref)| ends the stream, binding its tail to \verb|[]|. The clauses of the latter two are guarded by \verb|is_mutual_ref| on the reference they consume.
 
-The complete definitions of \verb|:=|, \verb|now|, \verb|=..|, \verb|random|, \verb|send_to_person|, \verb|self_module|, \verb|run|, \verb|sign|, \verb|authorise_link|, \verb|allocate_mutual_reference|, \verb|stream_append|, and \verb|close_mutual_reference| are in \verb|programs/self.glp| of the public GLP repository.
+The complete definitions of \verb|:=|, \verb|now|, \verb|=..|, \verb|..=|, \verb|random|, \verb|send_to_person|, \verb|self_module|, \verb|run|, \verb|sign|, \verb|authorise_link|, \verb|mwm|, \verb|allocate_mutual_reference|, \verb|stream_append|, and \verb|close_mutual_reference| are in \verb|programs/self.glp| of the public GLP repository.
 
