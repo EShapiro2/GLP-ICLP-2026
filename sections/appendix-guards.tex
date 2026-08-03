@@ -3,7 +3,7 @@
 Guards, kernel predicates and seam predicates extend GLP programs with access to the GLP runtime state, operating system and hardware capabilities.
 
 \mypara{Predefined types}
-The predefined types, available in every GLP program, are \verb|Stream(X)|, \verb|OpenStream(X)|, \verb|DiffList(X)|, \verb|Channel(In, Out)|, \verb|Closed|, \verb|MwmInput(X)|, \verb|Number|, \verb|Constant|, and the arithmetic-expression type \verb|Exp|; their definitions are in \verb|programs/self.glp| of the public GLP repository. \verb|Integer|, \verb|Real|, \verb|String|, and \verb|Module| are primitive types built into the runtime.
+The predefined types, available in every GLP program, are \verb|Stream(X)|, \verb|OpenStream(X)|, \verb|DiffList(X)|, \verb|Channel(In, Out)|, \verb|Closed|, \verb|MwmInput(X)|, \verb|Number|, \verb|Constant|, \verb|Key|, \verb|SignedTerm|, \verb|Hash|, \verb|GlobalName|, \verb|Answer|, and the arithmetic-expression type \verb|Exp|; their definitions are in \verb|programs/self.glp| of the public GLP repository. \verb|Integer|, \verb|Real|, \verb|String|, and \verb|Module| are primitive types built into the runtime.
 
 Some predefined types name a structure another already denotes. Type identity being structural, the checker treats such a pair as one type and will accept either where the other is declared; the second name buys no checking. It is declared all the same, for two reasons. It says what a value is for where the structure alone does not --- a key and a hash are both strings and are not the same thing to a reader --- and it localises a later change of representation to one definition rather than to every declaration that would otherwise have named the structure directly.
 
@@ -27,7 +27,6 @@ Guards provide read-only access to the runtime state of GLP computation. A guard
 \verb|module| & \verb|procedure module(Module?).| & yes \\
 \verb|@<| & \verb|procedure @<(Constant?, Constant?).| & yes \\
 \verb|is_mutual_ref| & \verb|procedure is_mutual_ref(_?).| & no \\
-\verb|signed| & \verb|procedure signed(_?, Constant?, Constant?).| & yes (all) \\
 \verb|otherwise| & (no arguments) & --- \\
 \verb|=?=| & \verb|procedure =?=(_?, _?).| & yes (both) \\
 \end{tabular}
@@ -36,8 +35,6 @@ Guards provide read-only access to the runtime state of GLP computation. A guard
 \verb|otherwise| succeeds if all previous clauses for this procedure failed (or suspended).
 
 \verb|=?=| succeeds if both arguments are ground and equal. For example, \verb|f(a,X?) =?= f(b,Z?)| fails (not suspends) because the ground subterms \verb|a| and \verb|b| already differ. Note that the implementation checks terms left-to-right and does not guarantee early failure detection; \verb|f(X?,a) =?= f(Y?,b)| may suspend rather than fail.
-
-\verb|signed(Term, Sig, Key)| succeeds if and only if \verb|Sig| is a valid signature on the pair of the calling instance's module identity and \verb|Term|, by the person whose public key is \verb|Key|. Including the module identity scopes a signature to the module under which it was made. The guard is named for what it decides --- that \verb|Term| is signed --- and pairs with the system predicate \verb|sign/2| below, which produces the signature the guard checks: \verb|sign| makes it, \verb|signed| checks it.
 
 \mypara{Arithmetic comparison guards}
 Arithmetic comparison guards evaluate their arguments as arithmetic expressions over \verb|+|, \verb|-|, \verb|*|, \verb|//| (integer division), and \verb|mod|, and compare the results. Success implies both arguments are ground.
@@ -153,9 +150,12 @@ Network & \verb|'_send'(_?, _?, _?)| & Send madGLP message to remote agent \\
  & \verb|'_place_remove'(_?)| & End a place declaration \\
  & \verb|'_trust_declare'(_?, _?)| & Set a proximity medium's cold-call trust level \\
 \hline
-Signature & \verb|'_sign'(_?, _)| & Sign a term under the calling module \\
+Signature & \verb|'_self_key'(Key)| & The person's public key \\
+ & \verb|'_sign'(_?, Key?, SignedTerm)| & Sign a term under a key and the calling module \\
+ & \verb|'_signed'(_?, Key, Hash, _)| & Signer, signing module, and what was signed \\
 \hline
 Modules & \verb|'_self_module'(Module)| & The caller's own module \\
+ & \verb|'_decompose_module'(Module?, Key, Hash, Hash)| & Compiler's key, source and compiled identity \\
  & \verb|'_run'(_?, Module?)| & Activate module and post goal to it \\
 \end{tabular}
 }
@@ -193,13 +193,17 @@ Both tables list those in root scope, where every program reaches them; a system
 \textbf{Seam predicate} & \textbf{Description} & \textbf{Joins GLP to} \\
 \hline
 \verb|procedure send_to_person(Stream(_)?).| & Emit each term of a stream to the person & the person \\
-\verb|procedure sign(_?, _).| & Signature by the person, under the module & the person's keys \\
-\verb|procedure authorise_link(_?, _?).| & Release or drop a reported held link & the network runtime \\
+\verb|procedure sign(_?, Key?, SignedTerm).| & Sign a term under a named key & the person's keys \\
+\verb|procedure authorise_link(GlobalName?, Answer?).| & Release or drop a reported held link & the network runtime \\
 \verb|procedure peer_address(_?, _).| & Address at which the layer observes a peer & the networking layer \\
 \verb|procedure punch_udp(_?).| & Open a path to an address & the networking layer \\
 \verb|procedure place_declare(_?, _?, _).| & Declare a place; stream its events & the platform \\
 \verb|procedure place_remove(_?).| & End a place declaration & the platform \\
 \verb|procedure trust_declare(Constant?, Constant?).| & A proximity medium's cold-call trust level & the networking layer \\
+\verb|procedure self_key(Key).| & The person's public key & the person's keys \\
+\verb|procedure signed(_?, Key, Hash, _).| & Signer, signing module, and what was signed & the person's keys \\
+\verb|procedure signed(_?, Key).| & The signer alone & the person's keys \\
+\verb|procedure decompose_module(Module?, Key, Hash, Hash).| & Compiler's key, source and compiled identity & the compiler \\
 \end{tabular}
 }
 \end{center}
@@ -221,19 +225,23 @@ Arithmetic assignment is defined recursively: each clause pattern-matches on an 
 \mypara{Output to the person (\texttt{send\_to\_person/1})}
 \verb|send_to_person(Stream)| emits each element of \verb|Stream| to the person operating the agent, in order, and ends when the stream ends. Its clause is guarded by \verb|ground| on the element and invokes the \verb|'_output'| body kernel. A module reaches the person through this predicate; naming \verb|'_output'| in call position is admitted only to a system module.
 
-\mypara{Module as a value (\texttt{self\_module/1})}
-\verb|self_module(Module)| binds its argument to the caller's own module, a value of the primitive type \verb|Module|.
+\mypara{Module as a value (\texttt{self\_module/1}, \texttt{decompose\_module/4})}
+\verb|self_module(Module)| binds its argument to the caller's own module, a value of the primitive type \verb|Module|. \verb|decompose_module(Module, Key, Source, Compiled)| takes a module value apart, assigning the public key of the compiler that produced it, the identity of the source it was compiled from, and the identity of the compiled module itself.
+
+The two identities are distinct and neither determines the other. Source identity says what was written; compiled identity says what runs, and two compilers compiling one source produce two of them. The compiler's key is what joins them: it is the compiler that vouches for the correspondence, and a party relying on the pair decides for itself whether that key is one it accepts. A module value is opaque to a program, so the decomposition has to come from the runtime~\cite{keidar2026secure}. Neither identity is the type identity of \verb|run/3| and \verb|find_type/2|, which is a property of a declaration and not of a module.
 
 \mypara{Dynamic activation (\texttt{run/2}, \texttt{run/3}, \texttt{find\_type/2})}
 \verb|run(Goal, Module)| activates the module value \verb|Module| and posts \verb|Goal| to it; the predicate of \verb|Goal| must be exported by \verb|Module|, else an error. The readers and writers of \verb|Goal| connect the caller and the activated module. \verb|run(Goal, Type, Module)| activates \verb|Module| and posts \verb|Goal| to it where \verb|Type| equals the type identity that \verb|Module|'s exports record for \verb|Goal|'s predicate, and errs otherwise. \verb|find_type(P/N, Type)| assigns \verb|Type| the type identity of the declaration of \verb|P/N| in the caller's scope, and \verb|error| where \verb|P/N| is not declared there. Type identity is defined in the Typed GLP companion paper~\cite{shapiro2026types}, which also gives its construction and proves the compatibility it rests on. \verb|run/3| and \verb|find_type/2| are not yet implemented.
 
-\mypara{Signing (\texttt{sign/2})}
-\verb|sign(Term, Sig)| requires \verb|Term| ground and binds \verb|Sig| to the signature of the person operating the agent on the pair of the calling instance's module identity and \verb|Term|, as an opaque constant. The guard \verb|signed| checks it.
+\mypara{Identity and signature (\texttt{self\_key/1}, \texttt{sign/3}, \texttt{signed/4}, \texttt{signed/2})}
+\verb|self_key(Key)| assigns \verb|Key| the public key of the person operating the agent. \verb|sign(Term, Key, Signed)| requires \verb|Term| ground and \verb|Key| a key of that person, and assigns \verb|Signed| the signature under \verb|Key| of the pair of \verb|Term| and the identity of the module making the call. \verb|signed(Signed, Key, Hash, Term)| takes a signed term apart, assigning the signer's key, the identity of the module under which the signature was made, and the term signed; \verb|signed(Signed, Key)| assigns the signer alone, for a reader that needs to know who signed and not what.
+
+The module identity is the runtime's contribution and cannot be the program's, because a program can build any term it likes. Were the signature over \verb|Term| alone, any module the person runs could obtain that person's signature on any statement whatever, and a signature would attest only that the person ran something. Scoped, it says that the person ran this module and that this module asked for this term, which is what a relying party needs~\cite{keidar2026secure}.
 
 A signature is what carries a claim to a party that has neither an authenticated channel to its author nor an attestation of the runtime that produced it. Within a conversation none is needed: authorship of every stream extension is already established to its reader by the channel and by the attested runtime at the writer's end~\cite{keidar2026secure}. It is needed outside one --- a rendezvous agent belongs to no social graph and is itself unattested, and admits a connecting agent on a signed capability and on nothing else~\cite{bachar2026networking}.
 
 \mypara{Held links (\texttt{authorise\_link/2})}
-\verb|authorise_link(L, A)| answers a link that the runtime holds and reports because its other end is at an agent with which the name was not exchanged. \verb|L| is the ground term naming the reported link and \verb|A| is \verb|authorise| or \verb|refuse|: on \verb|authorise| the runtime releases the held message or assignment, on \verb|refuse| it drops the link. The clause is guarded by \verb|known(A?)| and invokes the \verb|'_authorise_link'| body kernel. A link end is held when the agent at its other end is not the one with which the name was exchanged; while it is held the runtime places nothing on its channel and applies nothing arriving on it. The decision is the program's rather than the runtime's because the reason to release or drop such a link is not visible to the runtime, which therefore reports and waits. The mechanism that holds a link and reports it is described in the companion implementation paper~\cite{shapiro2026implementing}.
+\verb|authorise_link(L, A)| answers a link that the runtime holds and reports because its other end is at an agent with which the name was not exchanged. \verb|L| is the global name of the reported link, of type \verb|GlobalName|, and \verb|A| is of type \verb|Answer|, either \verb|authorise| or \verb|refuse|: on \verb|authorise| the runtime releases the held message or assignment, on \verb|refuse| it drops the link. The clause is guarded by \verb|known(A?)| and invokes the \verb|'_authorise_link'| body kernel. A link end is held when the agent at its other end is not the one with which the name was exchanged; while it is held the runtime places nothing on its channel and applies nothing arriving on it. The decision is the program's rather than the runtime's because the reason to release or drop such a link is not visible to the runtime, which therefore reports and waits. The mechanism that holds a link and reports it is described in the companion implementation paper~\cite{shapiro2026implementing}.
 
 \mypara{Networking seam (\texttt{peer\_address/2}, \texttt{punch\_udp/1}, \texttt{place\_declare/3}, \texttt{place\_remove/1})}
 \verb|peer_address(P, A)| assigns \verb|A| the address at which the networking layer observes peer \verb|P|. \verb|punch_udp(A)| opens a path to address \verb|A| and assigns nothing. \verb|place_declare(P, R, E)| declares a place \verb|P| of radius \verb|R|, centred on the declaring agent's location at the time of the call, and assigns \verb|E| a stream of that agent's own \verb|entered| and \verb|exited| events for the place, interleaved with \verb|unobservable| where the layer has stopped reporting crossings and \verb|observable| where it resumes; between the two no crossing is seen and none is delivered late. A further declaration of the same place supersedes the earlier one and closes its stream. \verb|place_remove(P)| ends the declaration of \verb|P|, and does nothing where \verb|P| is not declared. Each clause is guarded by \verb|ground| on the arguments it consumes, and the clauses themselves are in \verb|programs/self.glp|.
@@ -252,5 +260,5 @@ The level is the program's to set and cannot be the layer's, for a reason that d
 
 \verb|merge/3| remains the right construct where two streams are merged, or where the merge tree itself carries meaning --- a merge goal that is also the point at which a process terminates. \verb|mwm/2| is for many-to-one merging, which is the common case in a program routing many senders to one receiver.
 
-The complete definitions of \verb|:=|, \verb|now|, \verb|=..|, \verb|..=|, \verb|random|, \verb|send_to_person|, \verb|self_module|, \verb|run|, \verb|sign|, \verb|authorise_link| and \verb|mwm| are in \verb|programs/self.glp| of the public GLP repository.
+The complete definitions of \verb|:=|, \verb|now|, \verb|=..|, \verb|..=|, \verb|random|, \verb|send_to_person|, \verb|self_module|, \verb|decompose_module|, \verb|run|, \verb|self_key|, \verb|sign|, \verb|signed|, \verb|authorise_link| and \verb|mwm| are in \verb|programs/self.glp| of the public GLP repository.
 
