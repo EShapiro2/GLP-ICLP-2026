@@ -1,9 +1,11 @@
-\section{Guards and System Predicates}\label{appendix:guards-system}
+\section{Guards, Kernel and Seam Predicates}\label{appendix:guards-system}
 
-Guards and system predicates extend GLP programs with access to the GLP runtime state, operating system and hardware capabilities.
+Guards, kernel predicates and seam predicates extend GLP programs with access to the GLP runtime state, operating system and hardware capabilities.
 
 \mypara{Predefined types}
 The predefined types, available in every GLP program, are \verb|Stream(X)|, \verb|OpenStream(X)|, \verb|DiffList(X)|, \verb|Channel(In, Out)|, \verb|Closed|, \verb|MwmInput(X)|, \verb|Number|, \verb|Constant|, and the arithmetic-expression type \verb|Exp|; their definitions are in \verb|programs/self.glp| of the public GLP repository. \verb|Integer|, \verb|Real|, \verb|String|, and \verb|Module| are primitive types built into the runtime.
+
+Some predefined types name a structure another already denotes. Type identity being structural, the checker treats such a pair as one type and will accept either where the other is declared; the second name buys no checking. It is declared all the same, for two reasons. It says what a value is for where the structure alone does not --- a key and a hash are both strings and are not the same thing to a reader --- and it localises a later change of representation to one definition rather than to every declaration that would otherwise have named the structure directly.
 
 \mypara{Guard predicates}
 Guards provide read-only access to the runtime state of GLP computation. A guard appears after the clause head, separated by \verb=|=, and must be satisfied for the clause to be selected. The ``Ground'' column indicates whether success of the guard implies that the argument is ground; such guards permit multiple occurrences of the reader in the clause body (Remark~\ref{rem:guards-srsw}). Built-in guards can be negated: \verb|~G| succeeds if \verb|G| fails and vice versa, while suspension is unchanged; negation applies only to atomic built-in guards, not to defined guards or conjunctions.
@@ -92,7 +94,7 @@ The following defined guard predicates are shipped with the runtime:
 A body kernel is named by a quoted constant whose name begins with an underscore, as \verb|'_add'| is. Quoting is necessary: an unquoted name beginning with an underscore is an anonymous variable (Remark~\ref{rem:anonymous-variables}). A module declaring \verb|-mode(system)| may define and call procedures whose names are so written; a module that does not may neither define nor call one. The restriction is on names in call position only; a constant beginning with an underscore is unrestricted as data, as a message tag or a member of a type union. The system modules are the root \verb|programs/self.glp| and the modules under \verb|programs/system/|.
 
 \mypara{Body kernel predicates}
-\temph{Body kernel predicates} are runtime-implemented primitives that execute in the clause body with two-valued semantics: they either succeed or abort. Body kernels are not directly accessible to user programs. They are invoked only by \emph{system predicates}---predicates defined by GLP clauses that are shipped with the runtime and have privileged access to the body kernel registry. The system predicate's own guards ensure that a body kernel's preconditions are met before invocation.
+\temph{Body kernel predicates} are runtime-implemented primitives that execute in the clause body with two-valued semantics: they either succeed or abort. Body kernels are not directly accessible to user programs. They are invoked only by the kernel and seam predicates below---predicates defined by GLP clauses that are shipped with the runtime and have privileged access to the body kernel registry. The invoking predicate's own guards ensure that a body kernel's preconditions are met before invocation.
 
 The table below is the interface between GLP and its runtime, and is documentation for the writers of system modules rather than a facility of ordinary programs: no application module may call any of it. Every kernel the runtime registers appears here, whether or not an ordinary program can reach what it does.
 
@@ -159,32 +161,45 @@ Modules & \verb|'_self_module'(Module)| & The caller's own module \\
 }
 \end{center}
 
-\mypara{System predicates}
-System predicates are predicates defined by GLP clauses whose bodies may invoke body kernel predicates. They provide safe, user-accessible interfaces to runtime services. The table lists those in root scope, where every program reaches them; a system module may define others for its own use, and those belong to that module rather than to the language:
+\mypara{Kernel and seam predicates}
+A predicate defined by GLP clauses whose body may invoke a body kernel is of one of two kinds, and the difference is what lies on the other side of it. A \temph{kernel predicate} reaches the runtime that implements GLP: arithmetic, term structure, the clock, the module system. A \temph{seam predicate} reaches something the language cannot reach at all --- the person, the person's keys, the networking layer, the platform. The first kind is GLP realised; the second is GLP joined to what is not GLP, and a seam is where two things are joined.
+
+The distinction is not one of mechanism: both are ordinary GLP clauses, both may name a body kernel in call position, and both are admitted only to a system module. It decides where the specification of a construct's behaviour belongs. A kernel predicate's behaviour is the language's own and is stated here. A seam predicate's is not: what an address is, what a geofence reports, what a signature attests are settled by the paper that specifies the thing on the far side, and this catalogue states the predicate and cites that paper.
+
+Both tables list those in root scope, where every program reaches them; a system module may define others for its own use, and those belong to that module rather than to the language.
 
 \begin{center}
 {\small
 \begin{tabular}{ll}
-\textbf{Signature} & \textbf{Description} \\
+\textbf{Kernel predicate} & \textbf{Description} \\
 \hline
 \verb|procedure =..(_, Stream(_)?).| & Term composition \\
 \verb|procedure ..=(Stream(_), _?).| & Term decomposition \\
 \verb|procedure now(Integer).| & Current Unix timestamp (milliseconds) \\
 \verb|procedure :=(Number, Exp?).| & Arithmetic evaluation and assignment \\
 \verb|procedure random(Integer?, Integer?, Integer, Integer).| & Seeded random integer \\
-\verb|procedure send_to_person(Stream(_)?).| & Emit each term of a stream to the person \\
 \verb|procedure self_module(Module).| & The caller's own module, as a value \\
 \verb|procedure run(_?, Module?).| & Activate a module value, post a goal to it \\
 \verb|procedure run(_?, Constant?, Module?).| & As \verb|run/2|, under a required type identity \\
 \verb|procedure find_type(_?, Constant).| & The type identity of a declaration \\
-\verb|procedure sign(_?, _).| & Signature by the person, under the module \\
-\verb|procedure authorise_link(_?, _?).| & Release or drop a reported held link \\
-\verb|procedure peer_address(_?, _).| & Address at which the layer observes a peer \\
-\verb|procedure punch_udp(_?).| & Open a path to an address \\
-\verb|procedure place_declare(_?, _?, _).| & Declare a place; stream its events \\
-\verb|procedure place_remove(_?).| & End a place declaration \\
-\verb|procedure trust_declare(Constant?, Constant?).| & A proximity medium's cold-call trust level \\
 \verb|procedure(X) mwm(MwmInput(X)?, Stream(X)).| & Multiway merge of many streams into one \\
+\end{tabular}
+}
+\end{center}
+
+\begin{center}
+{\small
+\begin{tabular}{lll}
+\textbf{Seam predicate} & \textbf{Description} & \textbf{Joins GLP to} \\
+\hline
+\verb|procedure send_to_person(Stream(_)?).| & Emit each term of a stream to the person & the person \\
+\verb|procedure sign(_?, _).| & Signature by the person, under the module & the person's keys \\
+\verb|procedure authorise_link(_?, _?).| & Release or drop a reported held link & the network runtime \\
+\verb|procedure peer_address(_?, _).| & Address at which the layer observes a peer & the networking layer \\
+\verb|procedure punch_udp(_?).| & Open a path to an address & the networking layer \\
+\verb|procedure place_declare(_?, _?, _).| & Declare a place; stream its events & the platform \\
+\verb|procedure place_remove(_?).| & End a place declaration & the platform \\
+\verb|procedure trust_declare(Constant?, Constant?).| & A proximity medium's cold-call trust level & the networking layer \\
 \end{tabular}
 }
 \end{center}
