@@ -94,6 +94,8 @@ A body kernel is named by a quoted constant whose name begins with an underscore
 \mypara{Body kernel predicates}
 \temph{Body kernel predicates} are runtime-implemented primitives that execute in the clause body with two-valued semantics: they either succeed or abort. Body kernels are not directly accessible to user programs. They are invoked only by \emph{system predicates}---predicates defined by GLP clauses that are shipped with the runtime and have privileged access to the body kernel registry. The system predicate's own guards ensure that a body kernel's preconditions are met before invocation.
 
+The table below is the interface between GLP and its runtime, and is documentation for the writers of system modules rather than a facility of ordinary programs: no application module may call any of it. Every kernel the runtime registers appears here, whether or not an ordinary program can reach what it does.
+
 The following table lists all body kernels:
 
 \begin{center}
@@ -132,8 +134,6 @@ Conversion & \verb|'_integer'(Number?, Integer)| & Convert to integer \\
 \hline
 Structure & \verb|'_list_to_tuple'(Stream(_)?, _)| & List to compound term \\
  & \verb|'_tuple_to_list'(_?, Stream(_))| & Compound term to list \\
-\hline
-Copy & \verb|'_copy'(_?, _)| & Bind the second argument to the first's value \\
 \hline
 Time & \verb|'_now'(Integer)| & Current Unix timestamp (ms) \\
 \hline

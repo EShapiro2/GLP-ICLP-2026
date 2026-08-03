@@ -28,4 +28,6 @@ The directory and the project are both `GLP-Spec`; the git remote is still `GLP-
 
 Claude Code does not edit `.tex` files in this repo; paper editing is the chat session's.
 
+Open at handover (2026-08-03): read `IGLP/main_iglp.tex` and `GLP-Networking-API/main.tex` end to end.  The 2026-08-03 review justified the constructs that were flagged, by reading the sections that motivate them; it did not establish that nothing *else* in those two papers bears on the language and has never reached the catalogue.  Udi deferred this to the next session.
+
 When Udi says `#remember <something>`, add it here.
