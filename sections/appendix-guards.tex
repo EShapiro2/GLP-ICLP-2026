@@ -36,6 +36,8 @@ Guards provide read-only access to the runtime state of GLP computation. A guard
 
 \verb|=?=| succeeds if both arguments are ground and equal. For example, \verb|f(a,X?) =?= f(b,Z?)| fails (not suspends) because the ground subterms \verb|a| and \verb|b| already differ. Note that the implementation checks terms left-to-right and does not guarantee early failure detection; \verb|f(X?,a) =?= f(Y?,b)| may suspend rather than fail.
 
+\verb|is_mutual_ref| succeeds if its argument is a mutual reference, the handle through which \verb|mwm/2| appends to the tail of its output stream in constant time. It is admitted only to a system module, as are the body kernels that create, append through and close a mutual reference: no other module can obtain one, so no other module can put the guard to use.
+
 \mypara{Arithmetic comparison guards}
 Arithmetic comparison guards evaluate their arguments as arithmetic expressions over \verb|+|, \verb|-|, \verb|*|, \verb|//| (integer division), and \verb|mod|, and compare the results. Success implies both arguments are ground.
 
