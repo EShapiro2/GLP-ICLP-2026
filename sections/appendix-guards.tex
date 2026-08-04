@@ -3,7 +3,7 @@
 Guards, kernel predicates and seam predicates extend GLP programs with access to the GLP runtime state, operating system and hardware capabilities.
 
 \mypara{Predefined types}
-The predefined types, available in every GLP program, are \verb|Stream(X)|, \verb|OpenStream(X)|, \verb|DiffList(X)|, \verb|Channel(In, Out)|, \verb|Closed|, \verb|MwmInput(X)|, \verb|Number|, \verb|Constant|, \verb|Key|, \verb|SignedTerm|, \verb|Hash|, \verb|GlobalName|, \verb|Answer|, and the arithmetic-expression type \verb|Exp|; their definitions are in \verb|programs/self.glp| of the public GLP repository. \verb|Integer|, \verb|Real|, \verb|String|, and \verb|Module| are primitive types built into the runtime.
+The predefined types, available in every GLP program, are \verb|Stream(X)|, \verb|OpenStream(X)|, \verb|DiffList(X)|, \verb|Channel(In, Out)|, \verb|Closed|, \verb|MwmInput(X)|, \verb|Number|, \verb|Constant|, \verb|Key|, \verb|SignedTerm|, \verb|Hash|, \verb|GlobalName|, \verb|Answer|, \verb|Compiled|, and the arithmetic-expression type \verb|Exp|; their definitions are in \verb|programs/self.glp| of the public GLP repository. \verb|Integer|, \verb|Real|, \verb|String|, and \verb|Module| are primitive types built into the runtime.
 
 Some predefined types name a structure another already denotes. Type identity being structural, the checker treats such a pair as one type and will accept either where the other is declared; the second name buys no checking. It is declared all the same, for two reasons. It says what a value is for where the structure alone does not --- a key and a hash are both strings and are not the same thing to a reader --- and it localises a later change of representation to one definition rather than to every declaration that would otherwise have named the structure directly.
 
@@ -159,6 +159,8 @@ Signature & \verb|'_self_key'(Key)| & The person's public key \\
 Modules & \verb|'_self_module'(Module)| & The caller's own module \\
  & \verb|'_decompose_module'(Module?, Key, Hash, Hash)| & Compiler's key, source and compiled identity \\
  & \verb|'_run'(_?, Module?)| & Activate module and post goal to it \\
+ & \verb|'_compile'(String?, Compiled)| & Compile a program and store the module \\
+ & \verb|'_load_module'(String?, Compiled)| & Read a stored compiled module \\
 \end{tabular}
 }
 \end{center}
@@ -206,6 +208,8 @@ Both tables list those in root scope, where every program reaches them; a system
 \verb|procedure signed(_?, Key, Hash, _).| & Signer, signing module, and what was signed & the person's keys \\
 \verb|procedure signed(_?, Key).| & The signer alone & the person's keys \\
 \verb|procedure decompose_module(Module?, Key, Hash, Hash).| & Compiler's key, source and compiled identity & the compiler \\
+\verb|procedure compile(String?, Compiled).| & Compile the program a path names & the compiler \\
+\verb|procedure load_module(String?, Compiled).| & Read a stored compiled module & the device's storage \\
 \end{tabular}
 }
 \end{center}
@@ -234,6 +238,11 @@ The two identities are distinct and neither determines the other. Source identit
 
 \mypara{Dynamic activation (\texttt{run/2}, \texttt{run/3}, \texttt{find\_type/2})}
 \verb|run(Goal, Module)| activates the module value \verb|Module| and posts \verb|Goal| to it; the predicate of \verb|Goal| must be exported by \verb|Module|, else an error. The readers and writers of \verb|Goal| connect the caller and the activated module. \verb|run(Goal, Type, Module)| activates \verb|Module| and posts \verb|Goal| to it where \verb|Type| equals the type identity that \verb|Module|'s exports record for \verb|Goal|'s predicate, and errs otherwise. \verb|find_type(P/N, Type)| assigns \verb|Type| the type identity of the declaration of \verb|P/N| in the caller's scope, and \verb|error| where \verb|P/N| is not declared there. Type identity is defined in the Typed GLP companion paper~\cite{shapiro2026types}, which also gives its construction and proves the compatibility it rests on. \verb|run/3| and \verb|find_type/2| are not yet implemented.
+
+\mypara{Compilation (\texttt{compile/2}, \texttt{load\_module/2})}
+\verb|compile(Source, Compiled)| compiles the program the path \verb|Source| names, under the root the device nominates, and assigns \verb|Compiled| either \verb|module(M)| for the compiled module \verb|M| or \verb|error(Es)| for the stream of diagnostics that rejected the program; where it succeeds it also writes \verb|M| as an artefact in the device's default directory for them. \verb|load_module(Source, Compiled)| reads such an artefact and assigns \verb|Compiled| the module it holds, or \verb|error(Es)| where what it reads is not a certified module. The type is \verb|Compiled ::= module(Module) ; error(Stream(String))|. What a program is, what compilation does to one, and what the root is are specified in the Typed GLP companion paper~\cite{shapiro2026types}.
+
+Neither predicate admits a path where a module value is expected. A path is resolved by the device, so it names a different program on another one, and it carries none of the identities \verb|decompose_module/4| takes apart; \verb|run/2| and \verb|run/3| therefore take the value, and these two are how a device obtains one from its own storage, as a typed stream is how it obtains one from another agent. \verb|compile/2| and \verb|load_module/2| are not yet implemented.
 
 \mypara{Identity and signature (\texttt{self\_key/1}, \texttt{sign/3}, \texttt{signed/4}, \texttt{signed/2})}
 \verb|self_key(Key)| assigns \verb|Key| the public key of the person operating the agent. \verb|sign(Term, Key, Signed)| requires \verb|Term| ground and \verb|Key| a key of that person, and assigns \verb|Signed| the signature under \verb|Key| of the pair of \verb|Term| and the identity of the module making the call. \verb|signed(Signed, Key, Hash, Term)| takes a signed term apart, assigning the signer's key, the identity of the module under which the signature was made, and the term signed; \verb|signed(Signed, Key)| assigns the signer alone, for a reader that needs to know who signed and not what.
