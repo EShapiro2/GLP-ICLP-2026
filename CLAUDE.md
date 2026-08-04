@@ -4,6 +4,10 @@ Read `/Grassroots/claude.md` and the writing style guide it names, then `/Grassr
 
 GLP-Spec is the authority on every language issue, wherever it arises: a language decision taken inside TGLP or IGLP is subordinate to it, and every guard, system predicate and body kernel any project adds appears in this paper's catalogue.
 
+**Answer a language question by pointing at the paper, never by explaining it (Udi, 2026-08-03).**  A question from another project is answered with a passage: section, and the sentence that settles it.  If the passage settles it, that is the whole reply.  If answering needs a paragraph of reasoning, the paper is defective at that point --- revise it until the passage alone suffices, then send the passage.  Reasoning delivered in mail is a repair that reaches one reader and leaves the defect in place, and the next project asks the same question.
+
+The case (2026-08-03): IGLP asked whether a program root outside `programs/` keeps its own `self.glp` in scope.  The answer was drafted as three numbered distinctions with quotations.  It should have been one pointer, and could not be, because TGLP's "Scope construction" never distinguished the language primitives --- the base of every scope, wherever a program sits --- from a directory `self.glp`, reached only by the path from the root, and the repository's `programs/self.glp` is both.  The paragraph was written; the reply became the pointer.
+
 **Which papers are the rule (Udi, 2026-08-02).**  Two papers specify the language and both are GLP-Spec's: this one and TGLP.  IGLP is the implementation paper and has *derived authority only* — it may expand on these two to address implementation detail, and it may not change or dictate language design.  So: a construct's existence, name, signature, modes and meaning are settled here or in TGLP, never in IGLP; where IGLP's paper states something about the language, it restates what these two say or it is wrong; and a citation from here to IGLP must point at a runtime mechanism, never at the specification of a language construct.  GLP-Networking-API is different in kind — it specifies the layer *beneath* the language, so citing it for what that layer does is correct.
 
 **Understand a requested extension before it enters the language (Udi, 2026-08-03).**  Before proposing or incorporating any language extension asked for by another project --- a guard, a kernel, a system predicate, a type, a construct --- know its reason, its motivation and its use, from the requesting paper itself.  Read that paper.  A comment in a file, a message from that project's session, or a plausible reconstruction is not knowledge of why the thing exists, and a catalogue row written on any of those is a row this session cannot defend.  If the reason cannot be stated in a sentence after reading, the extension is not ready and the question goes back to the requester.
@@ -27,6 +31,8 @@ Why the rule exists: on 2026-08-02 three rulings were issued without asking and 
 The directory and the project are both `GLP-Spec`; the git remote is still `GLP-ICLP-2026`.  Everything else about the paper is in the paper, and its location is in Appendix A of the Coordination document.
 
 Claude Code does not edit `.tex` files in this repo; paper editing is the chat session's.
+
+Udi does not push `Coordination` (Udi, 2026-08-03).  Mail is written to the inbox and left there; never give him a push line for that repo.
 
 **Propose; do not "rule" (Udi, 2026-08-03).**  Udi does not rule.  This session proposes its best answer for his approval --- one recommendation, with the alternatives and what each costs, numbered so he can answer briefly --- and waits.  Putting a question to him as a menu with no recommendation is a failure to do the work, not deference.  The authority rule above says what must be put to him; this says how.
 
