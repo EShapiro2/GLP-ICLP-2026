@@ -3,7 +3,7 @@
 Guards, kernel predicates and seam predicates extend GLP programs with access to the GLP runtime state, operating system and hardware capabilities.
 
 \mypara{Predefined types}
-The predefined types, available in every GLP program, are \verb|Stream(X)|, \verb|OpenStream(X)|, \verb|DiffList(X)|, \verb|Channel(In, Out)|, \verb|Closed|, \verb|MwmInput(X)|, \verb|Number|, \verb|Constant|, \verb|Key|, \verb|SignedTerm|, \verb|Hash|, \verb|GlobalName|, \verb|Answer|, \verb|Compiled|, \verb|Content|, and the arithmetic-expression type \verb|Exp|; their definitions are in \verb|programs/self.glp| of the public GLP repository. \verb|Integer|, \verb|Real|, \verb|String|, and \verb|Module| are primitive types built into the runtime.
+The predefined types, available in every GLP program, are \verb|Stream(X)|, \verb|OpenStream(X)|, \verb|DiffList(X)|, \verb|Channel(In, Out)|, \verb|Closed|, \verb|MwmInput(X)|, \verb|Number|, \verb|Constant|, \verb|Key|, \verb|SignedTerm|, \verb|Hash|, \verb|Signature|, \verb|GlobalName|, \verb|Answer|, \verb|Compiled|, \verb|Content|, and the arithmetic-expression type \verb|Exp|; their definitions are in \verb|programs/self.glp| of the public GLP repository. \verb|Integer|, \verb|Real|, \verb|String|, and \verb|Module| are primitive types built into the runtime.
 
 Some predefined types name a structure another already denotes. Type identity being structural, the checker treats such a pair as one type and will accept either where the other is declared; the second name buys no checking. It is declared all the same, for two reasons. It says what a value is for where the structure alone does not --- a key and a hash are both strings and are not the same thing to a reader --- and it localises a later change of representation to one definition rather than to every declaration that would otherwise have named the structure directly.
 
@@ -154,7 +154,7 @@ Network & \verb|'_send'(_?, _?, _?)| & Send madGLP message to remote agent \\
 \hline
 Signature & \verb|'_self_key'(Key)| & The person's public key \\
  & \verb|'_sign'(_?, Key?, SignedTerm)| & Sign a term under a key and the calling module \\
- & \verb|'_signed'(_?, Key, Hash, _)| & Signer, signing module, and what was signed \\
+ & \verb|'_signature'(_?, Signature)| & Signer, signing module and what was signed, or \verb|unsigned| \\
 \hline
 Modules & \verb|'_self_module'(Module)| & The caller's own module \\
  & \verb|'_decompose_module'(Module?, Key, Hash, Hash)| & Compiler's key, source and compiled identity \\
@@ -207,8 +207,7 @@ Both tables list those in root scope, where every program reaches them; a system
 \verb|procedure place_remove(_?).| & End a place declaration & the platform \\
 \verb|procedure trust_declare(Constant?, Constant?).| & A proximity medium's cold-call trust level & the networking layer \\
 \verb|procedure self_key(Key).| & The person's public key & the person's keys \\
-\verb|procedure signed(_?, Key, Hash, _).| & Signer, signing module, and what was signed & the person's keys \\
-\verb|procedure signed(_?, Key).| & The signer alone & the person's keys \\
+\verb|procedure signature(_?, Signature).| & Signer, signing module and what was signed, or \verb|unsigned| & the person's keys \\
 \verb|procedure decompose_module(Module?, Key, Hash, Hash).| & Compiler's key, source and compiled identity & the compiler \\
 \verb|procedure compile(String?, Compiled).| & Compile the program a path names & the compiler \\
 \verb|procedure load_file(String?, Content).| & Read a file in the calling module's directory & the file system \\
@@ -248,8 +247,8 @@ A module value therefore cannot be forged by writing a file: a file whose certif
 
 \verb|Name| is resolved within the calling module's own directory, and the caller can neither escape it nor choose otherwise. That directory is the module's path from the root, which compilation assigns it, and it is the runtime's contribution for the same reason the module identity in a signature is. A module needing something outside its own area receives it from whoever holds it, as a value or over a stream, rather than by naming it. Neither predicate admits a path where a module value is expected, a path being resolved by the device and carrying none of the identities \verb|decompose_module/4| takes apart; \verb|run/2| and \verb|run/3| take the value. \verb|compile/2| is not yet implemented.
 
-\mypara{Identity and signature (\texttt{self\_key/1}, \texttt{sign/3}, \texttt{signed/4}, \texttt{signed/2})}
-\verb|self_key(Key)| assigns \verb|Key| the public key of the person operating the agent. \verb|sign(Term, Key, Signed)| requires \verb|Term| ground and \verb|Key| a key of that person, and assigns \verb|Signed| the signature under \verb|Key| of the pair of \verb|Term| and the identity of the module making the call. \verb|signed(Signed, Key, Hash, Term)| takes a signed term apart, assigning the signer's key, the identity of the module under which the signature was made, and the term signed; \verb|signed(Signed, Key)| assigns the signer alone, for a reader that needs to know who signed and not what.
+\mypara{Identity and signature (\texttt{self\_key/1}, \texttt{sign/3}, \texttt{signature/2})}
+\verb|self_key(Key)| assigns \verb|Key| the public key of the person operating the agent. \verb|sign(Term, Key, Signed)| requires \verb|Term| ground and \verb|Key| a key of that person, and assigns \verb|Signed| the signature under \verb|Key| of the pair of \verb|Term| and the identity of the module making the call. \verb|signature(Signed, Signature)| takes a signed term apart and reports what it finds. Where \verb|Signed| is a signed term whose signature verifies, it assigns \verb|Signature| the term \verb|signed(Key, Hash, Term)|, giving the signer's key, the identity of the module under which the signature was made, and the term signed; otherwise it assigns the constant \verb|unsigned|. The type is \verb|Signature ::= signed(Key, Hash, _) ; unsigned|, and the caller discriminates by matching, taking \verb|signed(Key, _, _)| where it needs to know who signed and not what. A predicate that did not hold on a forgery could not refuse one and carry on, which is what an agent presented with an invitation, an undertaking or a creator's certification does~\cite{shapiro2026gsg}.
 
 The module identity is the runtime's contribution and cannot be the program's, because a program can build any term it likes. Were the signature over \verb|Term| alone, any module the person runs could obtain that person's signature on any statement whatever, and a signature would attest only that the person ran something. Scoped, it says that the person ran this module and that this module asked for this term, which is what a relying party needs~\cite{keidar2026secure}.
 
@@ -275,5 +274,5 @@ The level is the program's to set and cannot be the layer's, for a reason that d
 
 \verb|merge/3| remains the right construct where two streams are merged, or where the merge tree itself carries meaning --- a merge goal that is also the point at which a process terminates. \verb|mwm/2| is for many-to-one merging, which is the common case in a program routing many senders to one receiver.
 
-The complete definitions of \verb|:=|, \verb|now|, \verb|=..|, \verb|..=|, \verb|random|, \verb|send_to_person|, \verb|self_module|, \verb|decompose_module|, \verb|run|, \verb|self_key|, \verb|sign|, \verb|signed|, \verb|authorise_link| and \verb|mwm| are in \verb|programs/self.glp| of the public GLP repository.
+The complete definitions of \verb|:=|, \verb|now|, \verb|=..|, \verb|..=|, \verb|random|, \verb|send_to_person|, \verb|self_module|, \verb|decompose_module|, \verb|run|, \verb|self_key|, \verb|sign|, \verb|signature|, \verb|authorise_link| and \verb|mwm| are in \verb|programs/self.glp| of the public GLP repository.
 
