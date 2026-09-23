@@ -3,7 +3,7 @@
 Guards, kernel predicates and seam predicates extend GLP programs with access to the GLP runtime state, operating system and hardware capabilities.
 
 \mypara{Predefined types}
-The predefined types, available in every GLP program, are \verb|Stream(X)|, \verb|OpenStream(X)|, \verb|DiffList(X)|, \verb|Channel(In, Out)|, \verb|Closed|, \verb|MwmInput(X)|, \verb|Number|, \verb|Constant|, \verb|Key|, \verb|SignedTerm|, \verb|Hash|, \verb|Signature|, \verb|GlobalName|, \verb|Answer|, \verb|Compiled|, \verb|Content|, and the arithmetic-expression type \verb|Exp|; their definitions are in \verb|programs/self.glp| of the public GLP repository. \verb|Integer|, \verb|Real|, \verb|String|, and \verb|Module| are primitive types built into the runtime.
+The predefined types, available in every GLP program, are \verb|Stream(X)|, \verb|OpenStream(X)|, \verb|DiffList(X)|, \verb|Channel(In, Out)|, \verb|Closed|, \verb|MwmInput(X)|, \verb|Number|, \verb|Constant|, \verb|Key|, \verb|SignedTerm|, \verb|Hash|, \verb|Signature|, \verb|GlobalName|, \verb|Answer|, \verb|Compiled|, \verb|Content|, and the arithmetic-expression type \verb|Exp|; their definitions are in \verb|programs/self.glp| of the public GLP repository. \verb|Integer|, \verb|Real|, \verb|String|, \verb|Module| and \verb|MutualRef| are primitive types built into the runtime.
 
 Some predefined types name a structure another already denotes. Type identity being structural, the checker treats such a pair as one type and will accept either where the other is declared; the second name buys no checking. It is declared all the same, for two reasons. It says what a value is for where the structure alone does not --- a key and a hash are both strings and are not the same thing to a reader --- and it localises a later change of representation to one definition rather than to every declaration that would otherwise have named the structure directly.
 
@@ -26,7 +26,7 @@ Guards provide read-only access to the runtime state of GLP computation. A guard
 \verb|no_readers| & \verb|procedure no_readers(_?).| & no \\
 \verb|module| & \verb|procedure module(Module?).| & yes \\
 \verb|@<| & \verb|procedure @<(Constant?, Constant?).| & yes \\
-\verb|is_mutual_ref| & \verb|procedure is_mutual_ref(_?).| & no \\
+\verb|is_mutual_ref| & \verb|procedure is_mutual_ref(MutualRef?).| & no \\
 \verb|otherwise| & (no arguments) & --- \\
 \verb|=?=| & \verb|procedure =?=(_?, _?).| & yes (both) \\
 \end{tabular}
@@ -140,9 +140,9 @@ Time & \verb|'_now'(Integer)| & Current Unix timestamp (ms) \\
 \hline
 I/O & \verb|'_output'(_?)| & Send term to output callback \\
 \hline
-MWM & \verb|'_allocate_mutual_reference'(_, _)| & Create mutual reference for O(1) append \\
- & \verb|'_stream_append'(_?, _?, _)| & Append value via mutual reference \\
- & \verb|'_close_mutual_reference'(_?)| & Close stream (bind tail to \verb|[]|) \\
+MWM & \verb|procedure(X) '_allocate_mutual_reference'(MutualRef, Stream(X)).| & Create mutual reference for O(1) append \\
+ & \verb|procedure(X) '_stream_append'(MutualRef?, X?, MutualRef).| & Append value via mutual reference \\
+ & \verb|procedure '_close_mutual_reference'(MutualRef?).| & Close stream (bind tail to \verb|[]|) \\
 \hline
 Network & \verb|'_send'(_?, GlobalName?, Key?)| & Send madGLP message to remote agent \\
  & \verb|'_authorise_link'(_?, _?)| & Release or drop a reported held link \\
@@ -189,6 +189,9 @@ Both tables list those in root scope, where every program reaches them; a system
 \verb|procedure run(_?, Constant?, Module?).| & As \verb|run/2|, under a required type identity \\
 \verb|procedure find_type(_?, Constant).| & The type identity of a declaration \\
 \verb|procedure(X) mwm(MwmInput(X)?, Stream(X)).| & Multiway merge of many streams into one \\
+\verb|procedure(X) allocate_mutual_reference(MutualRef, Stream(X)).| & Allocate a mutual reference on a stream's tail \\
+\verb|procedure(X) stream_append(X?, MutualRef?, MutualRef).| & Append a value through a mutual reference \\
+\verb|procedure close_mutual_reference(MutualRef?).| & Close the stream a mutual reference holds \\
 \end{tabular}
 }
 \end{center}
