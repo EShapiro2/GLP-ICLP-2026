@@ -1,6 +1,6 @@
 \section{An Extension for Stochastic Simulation}\label{appendix:idle}
 
-This appendix states an extension of the cGLP transition system that is not part of the language.  A program that does not use it computes exactly as it does without it, and nothing elsewhere in this paper depends on it.
+This appendix presents an extension of the cGLP transition system that is not part of the language.  A program that does not use it computes exactly as it does without it, and nothing elsewhere in this paper depends on it.
 
 A Gillespie-style stochastic simulation draws which event happens next, and at what simulated time, and the drawing is done by a monitor written as an ordinary GLP program.  Machine steps carry no simulated time, so the monitor may draw only where no reduction, communication or cold call is possible: every event of the simulated system has been taken up, and the next one is the monitor's to choose.  A program has no way to learn that, since no goal of it is about the configuration it sits in.  The extension supplies one.
 
