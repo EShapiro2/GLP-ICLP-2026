@@ -32,7 +32,7 @@ Guards provide read-only access to the runtime state of GLP computation. A guard
 \end{tabular}
 \end{center}
 
-\verb|otherwise| succeeds if all previous clauses for this procedure failed (or suspended).
+\verb|otherwise| succeeds if all previous clauses for this procedure fail, and suspends while any of them suspends.
 
 \verb|=?=| succeeds if both arguments are ground and equal. For example, \verb|f(a,X?) =?= f(b,Z?)| fails (not suspends) because the ground subterms \verb|a| and \verb|b| already differ. Note that the implementation checks terms left-to-right and does not guarantee early failure detection; \verb|f(X?,a) =?= f(Y?,b)| may suspend rather than fail.
 
