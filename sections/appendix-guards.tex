@@ -8,7 +8,7 @@ The predefined types, available in every GLP program, are \verb|Stream(X)|, \ver
 Some predefined types name a structure another already denotes. Type identity being structural, the checker treats such a pair as one type and will accept either where the other is declared; the second name buys no checking. It is declared all the same, for two reasons. It says what a value is for where the structure alone does not --- a key and a hash are both strings and are not the same thing to a reader --- and it localises a later change of representation to one definition rather than to every declaration that would otherwise have named the structure directly.
 
 \mypara{Guard predicates}
-Guards provide read-only access to the runtime state of GLP computation. A guard appears after the clause head, separated by \verb=|=, and must be satisfied for the clause to be selected. The ``Ground'' column indicates whether success of the guard implies that the argument is ground; such guards permit multiple occurrences of the reader in the clause body (Remark~\ref{rem:guards-srsw}). Built-in guards can be negated: \verb|~G| succeeds if \verb|G| fails and vice versa, while suspension is unchanged; negation applies only to atomic built-in guards, not to defined guards or conjunctions.
+Guards provide read-only access to the runtime state of GLP computation. A guard appears after the clause head, separated by \verb=|=, and must be satisfied for the clause to be selected. The ``Ground'' column indicates whether success of the guard implies that the argument is ground; such guards permit multiple occurrences of the reader in the clause body (Remark~\ref{rem:guards-srsw}).
 
 \begin{center}
 \begin{tabular}{lll}
@@ -65,7 +65,7 @@ Time guards provide access to the system clock for scheduling and synchronizatio
 \verb|wait_until| & \verb|procedure wait_until(Number?).| \\
 \end{tabular}
 \end{center}
-\noindent\verb|wait(D)| suspends for \verb|D| milliseconds then succeeds. \verb|wait_until(T)| suspends until the current time is at or past timestamp~\verb|T| (Unix milliseconds), then succeeds. Neither guard can be negated. They are a program's only means of suspending on the clock, as \verb|now/1| below is its only means of reading one.
+\noindent\verb|wait(D)| suspends for \verb|D| milliseconds then succeeds. \verb|wait_until(T)| suspends until the current time is at or past timestamp~\verb|T| (Unix milliseconds), then succeeds. They are a program's only means of suspending on the clock, as \verb|now/1| below is its only means of reading one.
 
 \mypara{Monotonicity and implications}
 \verb|ground/1|, \verb|no_readers/1|, and \verb|known/1| are monotonic. \verb|ground(X)| implies both \verb|no_readers(X)| and \verb|known(X)|, which do not imply each other: \verb|no_readers(X)| succeeds but \verb|known(X)| fails for an unassigned writer; \verb|no_readers(f(X?))| suspends but \verb|known(f(X?))| succeeds.
