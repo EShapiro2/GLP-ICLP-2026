@@ -63,9 +63,10 @@ Time guards provide access to the system clock for scheduling and synchronizatio
 \hline
 \verb|wait| & \verb|procedure wait(Number?).| \\
 \verb|wait_until| & \verb|procedure wait_until(Number?).| \\
+\verb|when_idle| & (no arguments) \\
 \end{tabular}
 \end{center}
-\noindent\verb|wait(D)| suspends for \verb|D| milliseconds then succeeds. \verb|wait_until(T)| suspends until the current time is at or past timestamp~\verb|T| (Unix milliseconds), then succeeds. They are a program's only means of suspending on the clock, as \verb|now/1| below is its only means of reading one.
+\noindent\verb|wait(D)| suspends for \verb|D| milliseconds then succeeds. \verb|wait_until(T)| suspends until the current time is at or past timestamp~\verb|T| (Unix milliseconds), then succeeds. \verb|when_idle| suspends while the machine has a Reduce or a Communicate to make, and succeeds when it has none.
 
 \mypara{Monotonicity and implications}
 \verb|ground/1|, \verb|no_readers/1|, and \verb|known/1| are monotonic. \verb|ground(X)| implies both \verb|no_readers(X)| and \verb|known(X)|, which do not imply each other: \verb|no_readers(X)| succeeds but \verb|known(X)| fails for an unassigned writer; \verb|no_readers(f(X?))| suspends but \verb|known(f(X?))| succeeds.
