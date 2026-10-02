@@ -53,7 +53,7 @@ When Alice executes this protocol to befriend Bob, her agent sends \verb|msg(bob
 Friend-mediated introduction creates a fresh setup-channel pair via \verb|new_channel/2| and sends one half to each of the introduced parties; on mutual acceptance a direct connection arises without a cold-call:
 \begin{verbatim}
 agent(Id, [msg(person, Id1, introduce(P, Q))|UserIn], NetIn, Outs) :-
-    Id? =?= Id1?, ground(P?), ground(Q?), ~(P? =?= Q?),
+    Id? =?= Id1?, ground(P?), ground(Q?), P? =?\= Q?,
     new_channel(PQCh, QPCh) |
     send_friend(P?, msg(Id?, P?, intro(Q?, QPCh?)), Outs?, Outs1),
     send_friend(Q?, msg(Id?, Q?, intro(P?, PQCh?)), Outs1?, Outs2),
