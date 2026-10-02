@@ -120,7 +120,7 @@ Despite these differences, cGLP has the same notion of logical consequence as LP
 
 \begin{definition}[cGLP Proper Run, Outcome]
 \label{def:cglp-proper-run}
-A cGLP run $\rho: (G_0,\sigma_0) \rightarrow \cdots \rightarrow (G_n, \sigma_n)$ is \temph{proper} if for any $1\le i< n$, a variable that occurs in $G_{i+1}$ but not in $G_i$ also does not occur in any $G_j$, $j<i$; the \temph{outcome} of a proper run is $(G_0$ \texttt{:-} $G_n)\sigma_n^\star$; and the run is \temph{successful} if $G_n=\emptyset$.
+The \temph{variables of a configuration} $(G,\sigma)$ are those of $G$ and of $\sigma$, its readers and the terms assigned to them.  A cGLP run $\rho: (G_0,\sigma_0) \rightarrow \cdots \rightarrow (G_n, \sigma_n)$ is \temph{proper} if for any $1\le i< n$, a variable of $(G_{i+1},\sigma_{i+1})$ that is not one of $(G_i,\sigma_i)$ is not one of any $(G_j,\sigma_j)$, $j<i$; the \temph{outcome} of a proper run is $(G_0$ \texttt{:-} $G_n)\sigma_n^\star$; and the run is \temph{successful} if $G_n=\emptyset$.
 \end{definition}
 Pair completion (Definition~\ref{def:writers-assignment}) is employed since $\sigma_n$ accumulates only readers counterparts, leaving the writers of $G_0$ unbound. Let $/?$ be an operator that replaces every reader by its paired writer.
 
