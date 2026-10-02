@@ -29,12 +29,13 @@ Guards provide read-only access to the runtime state of GLP computation. A guard
 \verb|is_mutual_ref| & \verb|procedure is_mutual_ref(MutualRef?).| & no \\
 \verb|otherwise| & (no arguments) & --- \\
 \verb|=?=| & \verb|procedure =?=(_?, _?).| & yes (both) \\
+\verb|=?\=| & \verb|procedure =?\=(_?, _?).| & yes (both) \\
 \end{tabular}
 \end{center}
 
 \verb|otherwise| succeeds if all previous clauses for this procedure fail.
 
-\verb|=?=| succeeds if both arguments are ground and equal. For example, \verb|f(a,X?) =?= f(b,Z?)| fails (not suspends) because the ground subterms \verb|a| and \verb|b| already differ. Note that the implementation checks terms left-to-right and does not guarantee early failure detection; \verb|f(X?,a) =?= f(Y?,b)| may suspend rather than fail.
+\verb|=?=| succeeds if both arguments are ground and equal. For example, \verb|f(a,X?) =?= f(b,Z?)| fails (not suspends) because the ground subterms \verb|a| and \verb|b| already differ. Note that the implementation checks terms left-to-right and does not guarantee early failure detection; \verb|f(X?,a) =?= f(Y?,b)| may suspend rather than fail. \verb|=?\=| succeeds if both arguments are ground and differ, and suspends where \verb|=?=| suspends.
 
 \verb|is_mutual_ref| succeeds if its argument is a mutual reference, the handle through which \verb|mwm/2| appends to the tail of its output stream in constant time. It is admitted only to a system module, as are the body kernels that create, append through and close a mutual reference: no other module can obtain one, so no other module can put the guard to use.
 
