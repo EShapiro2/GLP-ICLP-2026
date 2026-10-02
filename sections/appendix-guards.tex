@@ -40,7 +40,7 @@ Guards provide read-only access to the runtime state of GLP computation. A guard
 \verb|is_mutual_ref| succeeds if its argument is a mutual reference, the handle through which \verb|mwm/2| appends to the tail of its output stream in constant time. It is admitted only to a system module, as are the body kernels that create, append through and close a mutual reference: no other module can obtain one, so no other module can put the guard to use.
 
 \mypara{Arithmetic comparison guards}
-Arithmetic comparison guards evaluate their arguments as arithmetic expressions over \verb|+|, \verb|-|, \verb|*|, \verb|//| (integer division), and \verb|mod|, and compare the results. Success implies both arguments are ground.
+Arithmetic comparison guards evaluate their arguments as arithmetic expressions of type \verb|Exp| and compare the results; an argument with no value --- a zero divisor, a non-integer under \verb|//| or \verb|mod|, an argument outside a function's domain --- fails the guard. Success implies both arguments are ground.
 
 \begin{center}
 \begin{tabular}{ll}
@@ -110,8 +110,8 @@ Arithmetic & \verb|'_add'(Number?, Number?, Number)| & Addition \\
  & \verb|'_sub'(Number?, Number?, Number)| & Subtraction \\
  & \verb|'_mul'(Number?, Number?, Number)| & Multiplication \\
  & \verb|'_div'(Number?, Number?, Number)| & Division (real result) \\
- & \verb|'_idiv'(Integer?, Integer?, Integer)| & Integer division \\
- & \verb|'_mod'(Integer?, Integer?, Integer)| & Modulo \\
+ & \verb|'_idiv'(Number?, Number?, Integer)| & Integer division; aborts on a non-integer operand \\
+ & \verb|'_mod'(Number?, Number?, Integer)| & Modulo; aborts on a non-integer operand \\
  & \verb|'_neg'(Number?, Number)| & Unary negation \\
  & \verb|'_abs'(Number?, Number)| & Absolute value \\
 \hline
