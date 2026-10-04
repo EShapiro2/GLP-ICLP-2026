@@ -154,6 +154,8 @@ Network & \verb|'_send'(_?, GlobalName?, Key?)| & Send madGLP message to remote 
  & \verb|'_place_declare'(_?, _?, _)| & Declare a place; stream its crossing and observability events \\
  & \verb|'_place_remove'(_?)| & End a place declaration \\
  & \verb|'_trust_declare'(_?, _?)| & Set a proximity medium's cold-call trust level \\
+ & \verb|'_peer_declare'(Key?)| & Give the layer a peer the program knows \\
+ & \verb|'_address_declare'(Key?, String?)| & Give the layer a peer's address \\
 \hline
 Signature & \verb|'_self_key'(Key)| & The person's public key \\
  & \verb|'_sign'(_?, Key?, SignedTerm)| & Sign a term under a key and the calling module \\
@@ -214,6 +216,8 @@ Both tables list those in root scope, where every program reaches them; a system
 \verb|procedure place_declare(_?, _?, _).| & Declare a place; stream its events & the platform \\
 \verb|procedure place_remove(_?).| & End a place declaration & the platform \\
 \verb|procedure trust_declare(Constant?, Constant?).| & A proximity medium's cold-call trust level & the networking layer \\
+\verb|procedure peer_declare(Key?).| & A peer the program knows & the networking layer \\
+\verb|procedure address_declare(Key?, String?).| & A peer's address & the networking layer \\
 \verb|procedure self_key(Key).| & The person's public key & the person's keys \\
 \verb|procedure signature(_?, Signature).| & Signer, signing module and what was signed, or \verb|unsigned| & the person's keys \\
 \verb|procedure decompose_module(Module?, Key, Hash, Hash).| & Compiler's key, source and compiled identity & the compiler \\
@@ -275,6 +279,9 @@ The four are on this seam because a GLP program cannot reach the platform by its
 
 \mypara{Proximity trust (\texttt{trust\_declare/2})}
 A \emph{proximity medium} carries a \emph{cold-call trust level}, which decides whether the agent answers an unsolicited approach from a device it does not already know. \verb|trust_declare(Medium, Level)| declares that level for one medium: \verb|Medium| is \verb|ble| or \verb|lan| and \verb|Level| is \verb|open| or \verb|closed|. Both media stand at \verb|closed| until declared, a later declaration of a medium replaces the level then standing, and the two are declared independently, so an agent may answer strangers over one and ignore them over the other. The clause is guarded by \verb|ground| on both arguments.
+
+\mypara{Known peers (\texttt{peer\_declare/1}, \texttt{address\_declare/2})}
+\verb|peer_declare(P)| gives the networking layer the public key \verb|P| of a peer the program knows; \verb|address_declare(P, A)| gives it the address \verb|A| at which peer \verb|P| is reached. Who learns an agent's address is the social graph's decision, and the layer holds no social graph, so the program tells the layer what it knows. Each clause is guarded by \verb|ground| on its arguments.
 
 The level is the program's to set and cannot be the layer's, for a reason that decides where the predicate belongs: an agent raises the level on entering a place it trusts and lowers it on leaving, and lowers it again when that place's crossings become unobservable, doubt resolving to closed --- and the layer cannot do any of that, because it does not know which place is trusted. The program declared the place.
 
