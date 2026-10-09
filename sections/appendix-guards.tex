@@ -153,7 +153,7 @@ Network & \verb|'_send'(_?, GlobalName?, Key?)| & Send madGLP message to remote 
  & \verb|'_punch_udp'(_?)| & Open a path to an address \\
  & \verb|'_place_declare'(_?, _?, _)| & Declare a place; stream its crossing and observability events \\
  & \verb|'_place_remove'(_?)| & End a place declaration \\
- & \verb|'_trust_declare'(_?, _?)| & Set a proximity medium's cold-call trust level \\
+ & \verb|'_trust_declare'(_?, _?)| & Set a proximity underlay's cold-call trust level \\
  & \verb|'_peer_declare'(Key?)| & Give the layer a peer the program knows \\
  & \verb|'_address_declare'(Key?, String?)| & Give the layer a peer's address \\
 \hline
@@ -215,7 +215,7 @@ Both tables list those in root scope, where every program reaches them; a system
 \verb|procedure punch_udp(_?).| & Open a path to an address & the networking layer \\
 \verb|procedure place_declare(_?, _?, _).| & Declare a place; stream its events & the platform \\
 \verb|procedure place_remove(_?).| & End a place declaration & the platform \\
-\verb|procedure trust_declare(Constant?, Constant?).| & A proximity medium's cold-call trust level & the networking layer \\
+\verb|procedure trust_declare(Constant?, Constant?).| & A proximity underlay's cold-call trust level & the networking layer \\
 \verb|procedure peer_declare(Key?).| & A peer the program knows & the networking layer \\
 \verb|procedure address_declare(Key?, String?).| & A peer's address & the networking layer \\
 \verb|procedure self_key(Key).| & The person's public key & the person's keys \\
@@ -278,7 +278,7 @@ A signature is what carries a claim to a party that has neither an authenticated
 The four are on this seam because a GLP program cannot reach the platform by itself. \verb|peer_address/2| is address discovery: an agent behind a NAT learns from a peer the public address that peer observes for it, and \verb|punch_udp/1| opens a path to a peer so observed, the two together standing in for external address-discovery infrastructure. \verb|place_declare/3| and \verb|place_remove/1| register and unregister a geofence with the platform's location service. Crossings reach the program as messages on a stream rather than through a guard, and must: a guard is a test on the resolvent alone, so one that consulted the device's location would let the same local state reduce differently at different times. A declaration carries a name and a radius and returns no coordinates, so a program learns of its own device's location only that it entered or left a place it named itself. The runtime behind the kernels they invoke is described in the companion implementation paper~\cite{shapiro2026implementing}; the layer beneath that is specified in the networking companion paper.
 
 \mypara{Proximity trust (\texttt{trust\_declare/2})}
-A \emph{proximity medium} carries a \emph{cold-call trust level}, which decides whether the agent answers an unsolicited approach from a device it does not already know. \verb|trust_declare(Medium, Level)| declares that level for one medium: \verb|Medium| is \verb|ble| or \verb|lan| and \verb|Level| is \verb|open| or \verb|closed|. Both media stand at \verb|closed| until declared, a later declaration of a medium replaces the level then standing, and the two are declared independently, so an agent may answer strangers over one and ignore them over the other. The clause is guarded by \verb|ground| on both arguments.
+A \emph{proximity underlay} carries a \emph{cold-call trust level}, which decides whether the agent answers an unsolicited approach from a device it does not already know. \verb|trust_declare(Underlay, Level)| declares that level for one underlay: \verb|Underlay| is \verb|pan| (Bluetooth Low Energy) or \verb|lan| (the local network) and \verb|Level| is \verb|open| or \verb|closed|. Both underlays stand at \verb|closed| until declared, a later declaration of an underlay replaces the level then standing, and the two are declared independently, so an agent may answer strangers over one and ignore them over the other. The clause is guarded by \verb|ground| on both arguments.
 
 \mypara{Known peers (\texttt{peer\_declare/1}, \texttt{address\_declare/2})}
 \verb|peer_declare(P)| gives the networking layer the public key \verb|P| of a peer the program knows; \verb|address_declare(P, A)| gives it the address \verb|A| at which peer \verb|P| is reached. Who learns an agent's address is the social graph's decision, and the layer holds no social graph, so the program tells the layer what it knows. Each clause is guarded by \verb|ground| on its arguments.
