@@ -149,8 +149,8 @@ MWM & \verb|procedure(X) '_allocate_mutual_reference'(MutualRef, Stream(X)).| & 
 \hline
 Network & \verb|'_send'(_?, GlobalName?, Key?)| & Send madGLP message to remote agent \\
  & \verb|'_authorise_link'(_?, _?)| & Release or drop a reported held link \\
- & \verb|'_peer_address'(_?, _)| & Address at which the layer observes a peer \\
- & \verb|'_punch_udp'(_?)| & Open a path to an address \\
+ & \verb|'_peer_address'(Key?, String)| & Address at which the layer observes a peer \\
+ & \verb|'_punch_udp'(String?)| & Open a path to an address \\
  & \verb|'_place_declare'(_?, _?, _)| & Declare a place; stream its crossing and observability events \\
  & \verb|'_place_remove'(_?)| & End a place declaration \\
  & \verb|'_trust_declare'(_?, _?)| & Set a proximity underlay's cold-call trust level \\
@@ -211,8 +211,8 @@ Both tables list those in root scope, where every program reaches them; a system
 \verb|procedure send_to_net(Stream(_)?).| & Send each message of a stream to the agent it names & the network \\
 \verb|procedure sign(_?, Key?, SignedTerm).| & Sign a term under a named key & the person's keys \\
 \verb|procedure authorise_link(GlobalName?, Answer?).| & Release or drop a reported held link & the network runtime \\
-\verb|procedure peer_address(_?, _).| & Address at which the layer observes a peer & the networking layer \\
-\verb|procedure punch_udp(_?).| & Open a path to an address & the networking layer \\
+\verb|procedure peer_address(Key?, String).| & Address at which the layer observes a peer & the networking layer \\
+\verb|procedure punch_udp(String?).| & Open a path to an address & the networking layer \\
 \verb|procedure place_declare(_?, _?, _).| & Declare a place; stream its events & the platform \\
 \verb|procedure place_remove(_?).| & End a place declaration & the platform \\
 \verb|procedure trust_declare(Constant?, Constant?).| & A proximity underlay's cold-call trust level & the networking layer \\
