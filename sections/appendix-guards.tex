@@ -38,6 +38,8 @@ Guards provide read-only access to the runtime state of GLP computation. A guard
 
 \verb|=?=| succeeds if both arguments are ground and equal. \verb|=?\=| succeeds if no readers substitution makes them ground and equal.
 
+\verb|@<| succeeds if both arguments are ground constants and the first precedes the second in the standard order of constants: a number precedes a string; numbers compare by value, and strings by the codes of their characters, lexicographically.
+
 \verb|is_mutual_ref| succeeds if its argument is a mutual reference, the handle through which \verb|mwm/2| appends to the tail of its output stream in constant time. It is admitted only to a system module, as are the body kernels that create, append through and close a mutual reference: no other module can obtain one, so no other module can put the guard to use.
 
 \mypara{Arithmetic comparison guards}
