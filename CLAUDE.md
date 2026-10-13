@@ -6,9 +6,9 @@ Read `/Grassroots/docs/claude.md` first; every rule there applies.  This file st
 
 Directory `/Users/udi/Grassroots/GLP-Spec`; remote `GLP-ICLP-2026`; main file `main-GLP-ICLP-2026.tex`; cite key `shapiro2025glp`; arXiv 2510.15747.  **The language paper of the GLP project since 2026-09-20** (Udi), which holds three papers --- this one, TGLP (`/Grassroots/TGLP`, remote `Moded-Types`, `main_tglp.tex`, `shapiro2026types`) and IGLP (`/Grassroots/IGLP`, remote `CGLP`, `main_iglp.tex`, `shapiro2026implementing`) --- read and written by one session through `GLP_inbox.md`; `GLP-Spec_inbox.md` is retired to `mail/OLD/`.  No directory is renamed: `/Grassroots/GLP` is the code repository and Integration's, and the tree is always "the GLP repository", never "GLP".  This paper owns the language specification entire and the GLP listed in Coordination Appendix B, and no Dart.  Claude Code does not edit `.tex` files in this repo; paper editing is the Cowork session's.
 
-## Handover
+## Startup and handovers
 
-The current handover is `docs/handover-2026-10-12.md`.
+A GLP session reads the three papers' `CLAUDE.md` files --- this one, `/Grassroots/TGLP/CLAUDE.md` and `/Grassroots/IGLP/CLAUDE.md` --- then asks Udi which paper(s) it works on, reads each end to end (claude.md, "Sessions"), and reads the current handover its `CLAUDE.md` names.  This paper's current handover is `docs/handover-2026-10-12.md` (GLP #5, 2026-10-12); TGLP's is named in its `CLAUDE.md`; IGLP has none.
 
 ## Rules specific to this project
 
