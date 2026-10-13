@@ -213,7 +213,7 @@ Both tables list those in root scope, where every program reaches them; a system
 \textbf{Seam predicate} & \textbf{Description} & \textbf{Joins GLP to} \\
 \hline
 % send_to_user/1 is renamed send_to_person/1 at the next overhaul of the language, not before (Udi, 2026-10-04).
-\verb|procedure send_to_user(Stream(_)?).| & Emit each term of a stream to the person & the person \\
+\verb|procedure(X) send_to_user(Stream(X)?).| & Emit each term of a stream to the person & the person \\
 \verb|procedure send_to_net(Stream(_)?).| & Send each message of a stream to the agent it names & the network \\
 \verb|procedure sign(_?, Key?, SignedTerm).| & Sign a term under a named key & the person's keys \\
 \verb|procedure authorise_link(GlobalName?, Answer?).| & Release or drop a reported held link & the network runtime \\
@@ -248,7 +248,7 @@ Arithmetic assignment is defined recursively: each clause pattern-matches on an 
 \verb|random(Seed, N, Value, NextSeed)| binds \verb|Value| to a pseudo-random integer with $1 \leq \mathtt{Value} \leq \mathtt{N}$, and \verb|NextSeed| to the seed of the next draw, given a ground seed \verb|Seed| and a ground bound $\mathtt{N} \geq 1$. It is a body goal, not a guard; the clause is guarded by \verb|integer(Seed?), integer(N?), N? >= 1| and invokes the \verb|'_random'| body kernel. \verb|NextSeed| is determined by \verb|Seed| alone; \verb|Value| by \verb|Seed| and \verb|N|. The seed stream is therefore independent of the bound requested, and a computation that threads \verb|NextSeed| from each draw into the next reproduces exactly from its initial seed.
 
 \mypara{Output to the person (\texttt{send\_to\_user/1})}
-\verb|send_to_user(Stream)| emits each element of \verb|Stream| to the person operating the agent, in order, and ends when the stream ends. Its clause is guarded by \verb|ground| on the element and invokes the \verb|'_output'| body kernel. A module reaches the person through this predicate; naming \verb|'_output'| in call position is admitted only to a system module.
+\verb|send_to_user(Stream)| emits each element of \verb|Stream|, a stream of any one type, to the person operating the agent, in order, and ends when the stream ends. Its clause is guarded by \verb|ground| on the element and invokes the \verb|'_output'| body kernel. A module reaches the person through this predicate; naming \verb|'_output'| in call position is admitted only to a system module.
 
 \mypara{Output to the network (\texttt{send\_to\_net/1})}
 \verb|send_to_net(Stream)| sends each element of \verb|Stream|, a term \verb|msg(Q, T)| with \verb|Q| the key of an agent, to agent \verb|Q|, in order, and ends when the stream ends: it is how a program writes the network output stream of Definition~\ref{definition:maGLP}, whose Cold-call carries \verb|msg(Q, T)| to the network input stream of \verb|Q|. Its clause is guarded by \verb|ground| on \verb|Q| and invokes the \verb|'_send'| body kernel on \verb|msg(Q?, T?)|, the link \verb|'_w'(Q?, 0)| and \verb|Q?|. A module reaches the network through this predicate; naming \verb|'_send'| in call position is admitted only to a system module.
