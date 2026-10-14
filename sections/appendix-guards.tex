@@ -3,7 +3,7 @@
 Guards, kernel predicates and seam predicates extend GLP programs with access to the GLP runtime state, operating system and hardware capabilities.
 
 \mypara{Predefined types}
-The predefined types, available in every GLP program, are \verb|Stream(X)|, \verb|List(X)|, \verb|OpenStream(X)|, \verb|DiffList(X)|, \verb|Channel(In, Out)|, \verb|Closed|, \verb|MwmInput(X)|, \verb|Number|, \verb|Constant|, \verb|Key|, \verb|SignedTerm|, \verb|Hash|, \verb|Signature|, \verb|GlobalName|, \verb|NetMsg(X)|, \verb|Answer|, \verb|PeerAddress|, \verb|Compiled|, \verb|Content|, and the arithmetic-expression type \verb|Exp|; their definitions are in \verb|programs/self.glp| of the public GLP repository. \verb|Integer|, \verb|Real|, \verb|String|, \verb|Module| and \verb|MutualRef| are primitive types built into the runtime.  \verb|Opaque|, the union of all opaque types, is built into the type checker: a program can only pass a term of it on (Typed GLP companion paper~\cite{shapiro2026types}).
+The predefined types, available in every GLP program, are \verb|Stream(X)|, \verb|List(X)|, \verb|OpenStream(X)|, \verb|DiffList(X)|, \verb|Channel(In, Out)|, \verb|Closed|, \verb|MwmInput(X)|, \verb|Number|, \verb|Constant|, \verb|Key|, \verb|SignedTerm|, \verb|Hash|, \verb|Signature|, \verb|GlobalName|, \verb|NetMsg(X)|, \verb|Answer|, \verb|PeerAddress|, \verb|Compiled|, \verb|Content|, \verb|Path|, \verb|Input(T)|, \verb|Draw(T)|, \verb|PersonChannel(T)|, \verb|RootChannel(T)|, \verb|Conversation(T)|, \verb|SgToApp(T)|, \verb|AppToSg|, \verb|SgChannel(T)|, and the arithmetic-expression type \verb|Exp|; their definitions are in \verb|programs/self.glp| of the public GLP repository, which also declares the entry templates \verb|miniapp/4| and \verb|miniapp_person/4| that a host's guests instantiate (Typed GLP companion paper~\cite{shapiro2026types}). \verb|Integer|, \verb|Real|, \verb|String|, \verb|Module| and \verb|MutualRef| are primitive types built into the runtime.  \verb|Opaque|, the union of all opaque types, is built into the type checker: a program can only pass a term of it on (Typed GLP companion paper~\cite{shapiro2026types}).
 
 Some predefined types name a structure another already denotes. Type identity being structural, the checker treats such a pair as one type and will accept either where the other is declared; the second name buys no checking. It is declared all the same, for two reasons. It says what a value is for where the structure alone does not --- a key and a hash are both strings and are not the same thing to a reader --- and it localises a later change of representation to one definition rather than to every declaration that would otherwise have named the structure directly.
 
@@ -143,7 +143,7 @@ Structure & \verb|'_list_to_tuple'(Stream(_)?, _)| & List to compound term \\
 \hline
 Time & \verb|'_now'(Integer)| & Current Unix timestamp (ms) \\
 \hline
-I/O & \verb|'_output'(_?)| & Send term to output callback \\
+I/O & \verb|procedure(X) '_output'(X?).| & Send term to output callback \\
 \hline
 MWM & \verb|procedure(X) '_allocate_mutual_reference'(MutualRef, Stream(X)).| & Create mutual reference for O(1) append \\
  & \verb|procedure(X) '_stream_append'(MutualRef?, X?, MutualRef).| & Append value via mutual reference \\
