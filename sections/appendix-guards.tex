@@ -149,7 +149,7 @@ MWM & \verb|procedure(X) '_allocate_mutual_reference'(MutualRef, Stream(X)).| & 
  & \verb|procedure(X) '_stream_append'(MutualRef?, X?, MutualRef).| & Append value via mutual reference \\
  & \verb|procedure '_close_mutual_reference'(MutualRef?).| & Close stream (bind tail to \verb|[]|) \\
 \hline
-Network & \verb|'_send'(_?, GlobalName?, Key?)| & Send madGLP message to remote agent \\
+Network & \verb|procedure(X) '_send'(X?, GlobalName?, Key?).| & Send madGLP message to remote agent \\
  & \verb|'_authorise_link'(_?, _?)| & Release or drop a reported held link \\
  & \verb|'_peer_address'(Key?, PeerAddress)| & Address at which the layer observes a peer \\
  & \verb|'_punch_udp'(String?)| & Open a path to an address \\
