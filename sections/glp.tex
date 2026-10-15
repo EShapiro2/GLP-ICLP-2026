@@ -99,7 +99,7 @@ A transition system $cGLP = (\calC, c_0, \calT, {\sim})$ is a \temph{cGLP transi
     \item $c_0 = (G_0, \emptyset)$
     \item $\calT$ is the set of all transitions $(G, \sigma) \rightarrow (G', \sigma')$ satisfying either:
     \begin{enumerate}
-        \item \textbf{Reduce:} there exists unit goal $A \in G$ such that $C \in P$ is the first clause for which the GLP reduction of $A$ with $C$ succeeds with result $(B, \hat\sigma)$, $G' = (G \setminus \{A\} \cup B)\hat\sigma$, and $\sigma' = \sigma \circ \hat\sigma?$
+        \item \textbf{Reduce:} there exists unit goal $A \in G$ such that $C \in P$ is the first clause for which the GLP reduction of $A$ with $C$ succeeds with result $(B, \hat\sigma)$, $G' = (G \setminus \{A\}) \cup B\rho$, and $\sigma' = \sigma \circ \tau?$, where $\hat\sigma_H$ and $\hat\sigma_A$ are the restrictions of $\hat\sigma$ to the writers of the renamed head $H$ (Definition~\ref{def:glp-reduction}) and to those of $A$, $\rho = \hat\sigma_H \cup \hat\sigma_H?$, and $\tau = \{Y := S\rho \mid (Y := S) \in \hat\sigma_A\}$
         \item \textbf{Communicate:} $\{X? := T\} \in \sigma$, $X?\in G$, $G' = G\{X? := T\}$, and $\sigma' = \sigma$
     \end{enumerate}
     \item ${\sim}$, the \temph{cGLP transition equivalence}, relates $t_1 \sim t_2$ iff either both are Reduce transitions reducing the same goal (by identity, Definition~\ref{def:goal-identity}) with the same clause, or both are Communicate transitions applying the counterpart of the same writer assignment to the same goal (by identity)
@@ -174,20 +174,13 @@ The ground positions are those the catalogue's Ground column marks (\appref{appe
 
 \begin{definition}[Ground Instantiation, SRSW of a Guarded Clause]
 \label{def:guarded-srsw}
-A \temph{ground instantiation} of a guarded clause $C$ is a substitution $\theta$ that maps each ground-guarded writer $X$ of $C$ and its reader $X?$ to the same ground term, and no other variable. A guarded clause $C = H$ \verb|:-| $G$ \verb"|" $B$ \temph{satisfies SRSW} if, for every ground instantiation $\theta$ of $C$, $(H$ \verb|:-| $B)\theta$ satisfies SO and a variable occurs in $C\theta$ iff its paired variable does.
+A \temph{ground instantiation} of a guarded clause $C$ is $\theta \cup \theta?$, for a writers substitution $\theta$ whose domain is the set of ground-guarded writers of $C$ and whose terms are ground. A guarded clause $C = H$ \verb|:-| $G$ \verb"|" $B$ \temph{satisfies SRSW} if, for every ground instantiation $\bar\theta$ of $C$, $(H$ \verb|:-| $B)\bar\theta$ satisfies SO and a variable occurs in $C\bar\theta$ iff its paired variable does.
 \end{definition}
 
-\begin{definition}[Guarded Reduction]
+\begin{definition}[GLP Reduction of a Guarded Clause]
 \label{def:guarded-reduction}
-Given a GLP unit goal $A$ and a guarded clause $C$ satisfying SRSW, with $H$ \verb|:-| $G$ \verb"|" $B$ being the result of the GLP renaming of $C$ apart from $A$, let $\theta_A$, if it exists, be the ground instantiation of $H$ \verb|:-| $G$ \verb"|" $B$ with $X\theta_A = A|_\pi$ for every ground-guarded writer $X$ and every position $\pi$ of $X$ in $H$, where $A|_\pi$ is the subterm of $A$ at $\pi$. The \temph{guarded reduction} of $A$ with $C$ \temph{succeeds with result} $(B\theta_A, \hat\sigma)$ if $\theta_A$ exists, $\hat\sigma$ is a writer mgu of $A$ and $H\theta_A$, and $G\theta_A\hat\sigma?$ succeeds. In a cGLP Reduce transition (Definition~\ref{def:cglp-ts}), the GLP reduction of $A$ with a guarded clause is its guarded reduction.
+Given a GLP unit goal $A$ and a guarded clause $C$ satisfying SRSW, with $H$ \verb|:-| $G$ \verb"|" $B$ being the result of the GLP renaming of $C$ apart from $A$, the \temph{GLP reduction} of $A$ with $C$ \temph{succeeds with result} $(B, \hat\sigma)$ if $A$ and $H$ have a writer mgu $\hat\sigma$ and $G\hat\sigma_H?$ succeeds, $\hat\sigma_H$ being the restriction of $\hat\sigma$ to the writers of $H$.
 \end{definition}
-
-Let $A$, $C$, $H$, $G$, $B$ and $\theta_A$ be as in Definition~\ref{def:guarded-reduction}.
-
-\begin{restatable}[Guarded Reduction]{proposition}{propGuardedReduction}
-\label{prop:guarded-reduction}
-If the guarded reduction of $A$ with $C$ succeeds with result $(B\theta_A, \hat\sigma)$, then $(H$ \texttt{:-} $B)\theta_A$ satisfies SO and the GLP reduction of $A$ with $(H$ \texttt{:-} $B)\theta_A$ succeeds with result $(B\theta_A, \hat\sigma)$.
-\end{restatable}
 
 \begin{restatable}[SO Preservation with Guards]{corollary}{corSOGuards}
 \label{cor:so-guards}
