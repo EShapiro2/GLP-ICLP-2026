@@ -164,9 +164,35 @@ Definition~\ref{def:glp-reduction} of a GLP goal/clause reduction is augmented t
 \begin{remark}[Guards and SRSW]
 \label{rem:guards-srsw}
 Guard occurrences count toward SRSW satisfaction: if $X?$ occurs in a guard, its paired writer $X$ must occur in the head and $X?$ may additionally occur once in the body.
-%
-Furthermore, if the success of a guard implies that $X?$ is bound to a ground term, then both $X$ and $X?$ may occur multiple times in the clause.  $X?$ may then occur several times in a goal, and each occurrence receives the ground term, since Communicate keeps the assignment (Definition~\ref{def:cglp-ts}). The groundness-implying guards are those the catalogue's Ground column marks (Appendix~\ref{appendix:guards-system}).
 \end{remark}
+
+\begin{definition}[Ground Position, Ground-Guarded Writer]
+\label{def:ground-guarded}
+A guard predicate $g/n$ has a set $\mathit{gr}(g/n) \subseteq \{1,\ldots,n\}$ of \temph{ground positions}: $i \in \mathit{gr}(g/n)$ iff the success of $g(T_1,\ldots,T_n)$ implies that $T_i$ is ground. A writer $X$ is \temph{ground-guarded} in a guarded clause $H$ \verb|:-| $G$ \verb"|" $B$ if $X?$ occurs in $T_i$ for some $g(T_1,\ldots,T_n) \in G$ and $i \in \mathit{gr}(g/n)$.
+\end{definition}
+The ground positions are those the catalogue's Ground column marks (\appref{appendix:guards-system}{\arxivref}).
+
+\begin{definition}[Ground Instantiation, SRSW of a Guarded Clause]
+\label{def:guarded-srsw}
+A \temph{ground instantiation} of a guarded clause $C$ is a substitution $\theta$ that maps each ground-guarded writer $X$ of $C$ and its reader $X?$ to the same ground term, and no other variable. A guarded clause $C = H$ \verb|:-| $G$ \verb"|" $B$ \temph{satisfies SRSW} if, for every ground instantiation $\theta$ of $C$, $(H$ \verb|:-| $B)\theta$ satisfies SO and a variable occurs in $C\theta$ iff its paired variable does.
+\end{definition}
+
+\begin{definition}[Guarded Reduction]
+\label{def:guarded-reduction}
+Given a GLP unit goal $A$ and a guarded clause $C$ satisfying SRSW, with $H$ \verb|:-| $G$ \verb"|" $B$ being the result of the GLP renaming of $C$ apart from $A$, let $\theta_A$, if it exists, be the ground instantiation of $H$ \verb|:-| $G$ \verb"|" $B$ with $X\theta_A = A|_\pi$ for every ground-guarded writer $X$ and every position $\pi$ of $X$ in $H$, where $A|_\pi$ is the subterm of $A$ at $\pi$. The \temph{guarded reduction} of $A$ with $C$ \temph{succeeds with result} $(B\theta_A, \hat\sigma)$ if $\theta_A$ exists, $\hat\sigma$ is a writer mgu of $A$ and $H\theta_A$, and $G\theta_A\hat\sigma?$ succeeds. In a cGLP Reduce transition (Definition~\ref{def:cglp-ts}), the GLP reduction of $A$ with a guarded clause is its guarded reduction.
+\end{definition}
+
+Let $A$, $C$, $H$, $G$, $B$ and $\theta_A$ be as in Definition~\ref{def:guarded-reduction}.
+
+\begin{restatable}[Guarded Reduction]{proposition}{propGuardedReduction}
+\label{prop:guarded-reduction}
+If the guarded reduction of $A$ with $C$ succeeds with result $(B\theta_A, \hat\sigma)$, then $(H$ \texttt{:-} $B)\theta_A$ satisfies SO and the GLP reduction of $A$ with $(H$ \texttt{:-} $B)\theta_A$ succeeds with result $(B\theta_A, \hat\sigma)$.
+\end{restatable}
+
+\begin{restatable}[SO Preservation with Guards]{corollary}{corSOGuards}
+\label{cor:so-guards}
+Proposition~\ref{prop:so-preservation} holds for programs of guarded clauses satisfying SRSW.
+\end{restatable}
 
 \begin{remark}[Anonymous Variables]
 \label{rem:anonymous-variables}

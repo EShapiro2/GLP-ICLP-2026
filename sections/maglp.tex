@@ -38,7 +38,7 @@ $$
 Given an equivalence ${\sim}$ on $R$, its \temph{$P$-closure} ${\sim}{\uparrow}P$ is the relation on $R{\uparrow}P$ with $\hat t \mathrel{({\sim}{\uparrow}P)} \hat t'$ iff $\hat t \in t{\uparrow}P$ and $\hat t' \in t'{\uparrow}P$ for some $t \sim t'$.
 \end{definition}
 
-Namely, the closure over $P\supseteq Q$ of a transaction $t$ over $Q$ includes all transitions $t'$ over $P$ in which members of $Q$ do the same in $t$ and in $t'$, and the rest remain in their current (arbitrary) state. The closure likewise carries any equivalence on transactions to one on the induced transitions: since distinct transactions over the same participants have disjoint closures, ${\sim}{\uparrow}P$ is an equivalence whenever ${\sim}$ is.
+Namely, the closure over $P\supseteq Q$ of a transaction $t$ over $Q$ includes all transitions $t'$ over $P$ in which members of $Q$ do the same in $t$ and in $t'$, and the rest remain in their current (arbitrary) state. The closure likewise carries any equivalence on transactions to one on the induced transitions: where every participant of every transaction in $R$ changes its state, distinct transactions in $R$ have disjoint closures, and ${\sim}{\uparrow}P$ is an equivalence whenever ${\sim}$ is.
 
 \begin{definition}[Transactions-Based Multiagent Transition System]\label{def:tbmts}
 Given agents $P \subset \Pi$, local states $S$ with initial local state $s_0\in S$, a set of transactions $R$, each $t\in R$ over some $Q\subseteq P$ and $S$, and an equivalence ${\sim}$ on $R$, the \temph{transactions-based multiagent transition system} over $P$, $S$, $R$, and ${\sim}$ is the multiagent transition system $TS= (S^P,\{s_0\}^P,R{\uparrow}P,{\sim}{\uparrow}P)$.
@@ -60,12 +60,16 @@ We resolve this in two steps. First, we employ only anonymous logic variables ``
 Second, the Cold-call transaction enables agents to bootstrap communication by establishing shared variables through the network infrastructure, realising the cold-call protocol for connecting previously-disconnected agents.
 
 
-\begin{definition}[Multiagent GLP]\label{definition:maGLP}
-Given agents $P\subset \Pi$ and GLP program $M$, the \temph{maGLP transition system} over $P$ and $M$ is the transactions-based multiagent transition system (Definition~\ref{def:tbmts}) over $P$, local states being asynchronous resolvents $(G_p, \sigma_p)$ over $M$, initial local state $s_0 = (\{\verb|agent(ch(_?,_),ch(_?,_))|\}, \emptyset)$, the following transactions $c\rightarrow c'$, and the equivalence ${\sim}$ given below:
-\begin{enumerate}
-    \item \textbf{Reduce $p$:} A unary transaction with participant $p$ where $c_p \rightarrow c'_p$ is a cGLP Reduce transition (Definition~\ref{def:cglp-ts}).
+\begin{definition}[Variables of an Agent]\label{def:agent-variables}
+Let $\calV_p \subset \calV$, for $p \in \Pi$, be pairwise disjoint infinite sets of writers. The \temph{variables of agent $p$} are $\hat\calV_p = \calV_p \cup \{X? \mid X \in \calV_p\}$.
+\end{definition}
 
-    \item \textbf{Communicate $p$ to $q$:} A transaction with participants $p,q\in P$ where $\{X? := T\} \in \sigma_p$, $X?$ occurs in $G_q$, $\sigma'_p = \sigma_p$, and $c'_q = (G_q\{X? := T\}, \sigma_q)$.
+\begin{definition}[Multiagent GLP]\label{definition:maGLP}
+Given agents $P\subset \Pi$ and GLP program $M$, the \temph{maGLP transition system} over $P$ and $M$ is the transactions-based multiagent transition system (Definition~\ref{def:tbmts}) over $P$, local states being asynchronous resolvents $(G_p, \sigma_p)$ over $M$, initial local state $s_0 = (\{\verb|agent(ch(_?,_),ch(_?,_))|\}, \emptyset)$, whose anonymous variables at agent $p$ are variables of $\hat\calV_p$, the following transactions $c\rightarrow c'$, and the equivalence ${\sim}$ given below:
+\begin{enumerate}
+    \item \textbf{Reduce $p$:} A unary transaction with participant $p$ where $c_p \rightarrow c'_p$ is a cGLP Reduce transition (Definition~\ref{def:cglp-ts}) whose GLP renaming maps the clause into $\hat\calV_p$.
+
+    \item \textbf{Communicate $p$ to $q$:} A transaction with participants $p,q\in P$ where $\{X? := T\} \in \sigma_p$, $X?$ occurs in $G_q$, and $c'_p = (G_p, \sigma_p \setminus \{X? := T\})$ and $c'_q = (G_q\{X? := T\}, \sigma_q)$ if $p \ne q$, and $c'_p = (G_p\{X? := T\}, \sigma_p \setminus \{X? := T\})$ if $p = q$.
 
     \item \textbf{Cold-call $p$ to $q$:} A binary transaction with participants $p\ne q \in P$ where the network output stream in $c_p$ has a new message \verb|msg|$(q,X)$, $c'_p$ is the result of advancing the network output stream in $c_p$, and $c'_q$ is the result of adding \verb|msg|$(q,X)$ to the network input stream in $c_q$.
 
@@ -73,7 +77,7 @@ Given agents $P\subset \Pi$ and GLP program $M$, the \temph{maGLP transition sys
 \end{enumerate}
 \end{definition}
 
-Note that Communicate may be unary or binary, depending on whether $p=q$.  It keeps the assignment in $\sigma_p$, as cGLP does, so that every occurrence of $X?$ receives it, at $q$ or at any other agent (Remark~\ref{rem:guards-srsw}).  Communicate transfers assignments from writers to readers between agents sharing a paired reader and writer.  Cold-call transfers a term with its variables to $q$ through the network streams established in each agent's initial configuration, enabling the creation of paired variables among previously-disconnected agents.
+Note that Communicate may be unary or binary, depending on whether $p=q$.  Every participant of every maGLP transaction changes its state, so ${\sim}{\uparrow}P$ is an equivalence (Section~\ref{sec:mts}).  Communicate transfers assignments from writers to readers between agents sharing a paired reader and writer.  Cold-call transfers a term with its variables to $q$ through the network streams established in each agent's initial configuration, enabling the creation of paired variables among previously-disconnected agents.
 Cold-call is the exception, as once agents share a paired variable they can use it to communicate indefinitely; moreover, an agent with two friends (with which it shares channels) may introduce them to each other, also eschewing the need for a Cold-call.
 
 %------------------------------------------------------------------------------
