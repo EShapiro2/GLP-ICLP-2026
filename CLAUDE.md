@@ -8,7 +8,7 @@ Directory `/Users/udi/Grassroots/GLP-Spec`; remote `GLP-ICLP-2026`; main file `m
 
 ## Startup and handovers
 
-A GLP session reads the three papers' `CLAUDE.md` files --- this one, `/Grassroots/TGLP/CLAUDE.md` and `/Grassroots/IGLP/CLAUDE.md` --- then asks Udi which paper(s) it works on, reads each end to end (claude.md, "Sessions"), and reads the current handover its `CLAUDE.md` names.  This paper's current handover is `docs/handover-2026-10-12.md` (GLP #5, 2026-10-12); TGLP's is named in its `CLAUDE.md`; IGLP has none.
+A GLP session reads the three papers' `CLAUDE.md` files --- this one, `/Grassroots/TGLP/CLAUDE.md` and `/Grassroots/IGLP/CLAUDE.md` --- then asks Udi which paper(s) it works on, reads each end to end (claude.md, "Sessions"), and reads the current handover its `CLAUDE.md` names.  The current handover, for all three papers, is `docs/handover-2026-10-15.md` (GLP #7, 2026-10-15).
 
 ## Rules specific to this project
 
