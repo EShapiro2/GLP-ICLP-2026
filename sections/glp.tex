@@ -155,7 +155,7 @@ GLP clauses may include \emph{guards}---tests that determine clause applicabilit
 
 \begin{definition}[Guarded Clause]
 \label{def:guarded-clause}
-A \temph{guarded clause} has the form $H$ \verb|:-| $G$ \verb"|" $B$, where $H$ is the head, $G$ is a conjunction of guard predicates, and $B$ is the body. The guard separator ``\verb"|"'' is interpreted logically as a conjunction.  Guard arguments are readers paired to head writers.
+A \temph{guarded clause} has the form $H$ \verb|:-| $G$ \verb"|" $B$, where $H$ is the head, $G$ is a conjunction of guard predicates, and $B$ is the body. The guard separator ``\verb"|"'' is interpreted logically as a conjunction.  The arguments of a guard are readers paired to head writers; the arguments of a \temph{defined guard}, a guard predicate defined by a unit clause (\appref{appendix:guards-system}{\arxivref}), may also be writers of the clause.
 \end{definition}
 
 Guards have three-valued semantics. Each guard predicate explicitly defines its \emph{success} condition. A guard \emph{suspends} if it does not succeed but some instance of it under a readers substitution would succeed. A guard \emph{fails} if no such instance exists. A guard conjunction succeeds if all members succeed; it suspends if any member suspends and none fail; it fails if any member fails.
@@ -164,7 +164,7 @@ Definition~\ref{def:glp-reduction} of a GLP goal/clause reduction is augmented t
 
 \begin{remark}[Guards and SRSW]
 \label{rem:guards-srsw}
-Guard occurrences count toward SRSW satisfaction: if $X?$ occurs in a guard, its paired writer $X$ must occur in the head and $X?$ may additionally occur once in the body.
+Guard occurrences count toward SRSW satisfaction: if $X?$ occurs in a guard, its paired writer $X$ must occur in the head and $X?$ may additionally occur once in the body; if $X$ occurs in a defined guard, $X?$ occurs in the clause.
 \end{remark}
 
 \begin{definition}[Ground Position, Ground-Guarded Writer]
@@ -180,8 +180,10 @@ A \temph{ground instantiation} of a guarded clause $C$ is $\theta \cup \theta?$,
 
 \begin{definition}[GLP Reduction of a Guarded Clause]
 \label{def:guarded-reduction}
-Given a GLP unit goal $A$ and a guarded clause $C$ satisfying SRSW, with $H$ \verb|:-| $G$ \verb"|" $B$ being the result of the GLP renaming of $C$ apart from $A$, the \temph{GLP reduction} of $A$ with $C$ \temph{succeeds with result} $(B, \hat\sigma)$ if $A$ and $H$ have a writer mgu $\hat\sigma$ and $G\hat\sigma?$ succeeds.
+Given a GLP unit goal $A$ and a guarded clause $C$ satisfying SRSW, with $H$ \verb|:-| $G$ \verb"|" $B$ being the result of the GLP renaming of $C$ apart from $A$, the \temph{GLP reduction} of $A$ with $C$ \temph{succeeds with result} $(B, \hat\sigma \cup \hat\tau)$ if $A$ and $H$ have a writer mgu $\hat\sigma$ and $G(\hat\sigma?)^\star$ succeeds with $\hat\tau$, the union of the writer mgus of the term matchings of its defined guards, each with its unit clause renamed apart.
 \end{definition}
+
+A defined guard assigns the writers of the clause among its arguments, and the writers in the values of its readers; cGLP Reduce (Definition~\ref{def:cglp-ts}) applies the former to the body and communicates the latter, as it does the writer mgu's.
 
 \begin{restatable}[SO Preservation with Guards]{corollary}{corSOGuards}
 \label{cor:so-guards}
