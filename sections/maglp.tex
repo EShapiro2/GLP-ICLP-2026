@@ -8,7 +8,7 @@ We extend GLP to multiple agents: Recall the notion of multiagent transition sys
 \subsection{Multiagent Transition Systems}
 \label{sec:mts}
 %------------------------------------------------------------------------------
-We assume a potentially infinite set of \emph{agents} $\Pi$, but consider only finite subsets of it, so when we refer to a particular set of agents $P \subset \Pi$ we assume $P$ to be nonempty and finite. We use $\subset$ to denote the strict subset relation and $\subseteq$ when equality is also possible.
+We assume a countable set of \emph{agents} $\Pi$, but consider only finite subsets of it, so when we refer to a particular set of agents $P \subset \Pi$ we assume $P$ to be nonempty and finite. We use $\subset$ to denote the strict subset relation and $\subseteq$ when equality is also possible.
 
 We use $S^P$ to denote the set $S$ indexed by the set $P$, and if $c\in S^P$ we use $c_p$ to denote the member of $c$ indexed by $p\in P$. Intuitively, think of such a $c\in S^P$ as an array of cells indexed by members of $P$ with cell values in $S$.
 
@@ -19,7 +19,7 @@ Given agents $Q \subset \Pi$ and an arbitrary set $S$ of \temph{local states}, a
 
 
 \begin{definition}[Multiagent Transition System]\label{def:mts}
-Given agents $P \subset \Pi$ and an arbitrary set $S$ of \temph{local states} with a designated \temph{initial local state} $s_0\in S$, a \temph{multiagent transition system} over $P$ and $S$ is a transition system $TS= (C,c_0,T,{\sim})$ with \temph{configurations} $C:= S^P$, \temph{initial configuration} $c_0:= \{s_0\}^P$, \temph{transitions} $T\subseteq C^2$ being a set of transactions over $P$ and $S$, and ${\sim}$ an equivalence on $T$.
+Given agents $P \subset \Pi$ and an arbitrary set $S$ of \temph{local states} with a designated \temph{initial local state} $s_0\in S$, a \temph{multiagent transition system} over $P$ and $S$ is a transition system $TS= (C,c_0,T,{\sim})$ with \temph{configurations} $C:= S^P$, \temph{initial configuration} $c_0:= \{s_0\}^P$, \temph{transitions} $T\subseteq C^2$ being a set of transactions over $P$ and $S$, and ${\sim}$ a partial equivalence on $T$.
 \end{definition}
 
 Rather than specifying a multiagent transition system over a set of agents $P$ directly, we specify it via atomic transactions.
@@ -35,13 +35,13 @@ If $R$ is a set of transactions, each $t\in R$ over some $Q\subseteq P$ and $S$,
 $$
 R{\uparrow}P := \bigcup_{t\in R} t{\uparrow}P
 $$
-Given an equivalence ${\sim}$ on $R$, its \temph{$P$-closure} ${\sim}{\uparrow}P$ is the relation on $R{\uparrow}P$ with $\hat t \mathrel{({\sim}{\uparrow}P)} \hat t'$ iff $\hat t \in t{\uparrow}P$ and $\hat t' \in t'{\uparrow}P$ for some $t \sim t'$.
+Given a partial equivalence ${\sim}$ on $R$, its \temph{$P$-closure} ${\sim}{\uparrow}P$ is the relation on $R{\uparrow}P$ with $\hat t \mathrel{({\sim}{\uparrow}P)} \hat t'$ iff $\hat t \in t{\uparrow}P$ and $\hat t' \in t'{\uparrow}P$ for some $t \sim t'$.
 \end{definition}
 
-Namely, the closure over $P\supseteq Q$ of a transaction $t$ over $Q$ includes all transitions $t'$ over $P$ in which members of $Q$ do the same in $t$ and in $t'$, and the rest remain in their current (arbitrary) state. The closure likewise carries any equivalence on transactions to one on the induced transitions: where every participant of every transaction in $R$ changes its state, distinct transactions in $R$ have disjoint closures, and ${\sim}{\uparrow}P$ is an equivalence whenever ${\sim}$ is.
+Namely, the closure over $P\supseteq Q$ of a transaction $t$ over $Q$ includes all transitions $t'$ over $P$ in which members of $Q$ do the same in $t$ and in $t'$, and the rest remain in their current (arbitrary) state. The closure likewise carries any partial equivalence on transactions to one on the induced transitions: where every participant of every transaction in $R$ changes its state, distinct transactions in $R$ have disjoint closures, and ${\sim}{\uparrow}P$ is a partial equivalence whenever ${\sim}$ is.
 
 \begin{definition}[Transactions-Based Multiagent Transition System]\label{def:tbmts}
-Given agents $P \subset \Pi$, local states $S$ with initial local state $s_0\in S$, a set of transactions $R$, each $t\in R$ over some $Q\subseteq P$ and $S$, and an equivalence ${\sim}$ on $R$, the \temph{transactions-based multiagent transition system} over $P$, $S$, $R$, and ${\sim}$ is the multiagent transition system $TS= (S^P,\{s_0\}^P,R{\uparrow}P,{\sim}{\uparrow}P)$.
+Given agents $P \subset \Pi$, local states $S$ with initial local state $s_0\in S$, a set of transactions $R$, each $t\in R$ over some $Q\subseteq P$ and $S$, and a partial equivalence ${\sim}$ on $R$, the \temph{transactions-based multiagent transition system} over $P$, $S$, $R$, and ${\sim}$ is the multiagent transition system $TS= (S^P,\{s_0\}^P,R{\uparrow}P,{\sim}{\uparrow}P)$.
 \end{definition}
 
 
@@ -55,7 +55,7 @@ In extending GLP to multiple agents, each agent maintains its own asynchronous r
 
 A key difference between cGLP and maGLP is in the initial state. In a multiagent transition system all agents must have the same initial local state $s_0$ (Definition~\ref{def:mts}),  precluding the initial sharing of logic variables, as this would imply different initial states for different agents.
 %
-We resolve this in two steps. First, we employ only anonymous logic variables ``\verb|_|'' in the initial local states of agents: Anonymous variables are, on the one hand, syntactically identical, hence allow all initial states to be syntactically identical, and on the other hand represent unique variables, hence semantically all initial goals have unique, local, non-shared variables. The initial state of all agents is the atomic goal \verb|agent(ch(_?,_),ch(_?,_))|, providing two bidirectional channels: the first to the person operating the machine, and the second to the network.  The runtime writes its two anonymous readers: the person's responses to the first, and other agents' messages to the second (Remark~\ref{rem:anonymous-variables}). The first channel is a bidirectional stream of GLP messages between the machine and the person, mediated by runtime UI support below the GLP layer and by physical UI hardware; messages flowing toward the person are rendered as UI elements, and the person's responses flow back as GLP messages. With appropriate UI runtime support, a GLP message to the user may contain a writer, in which case the runtime presents it as a question and an eventual response from the person becomes the corresponding assignment. The second channel carries communication with other agents.
+We resolve this in two steps. First, we employ only anonymous logic variables ``\verb|_|'' in the initial local states of agents: Anonymous variables are, on the one hand, syntactically identical, hence allow all initial states to be syntactically identical, and on the other hand represent unique variables, hence semantically all initial goals have unique, local, non-shared variables. The initial state of all agents is the atomic goal \verb|agent(ch(_?,_),ch(_?,_))|, providing two bidirectional channels: the first to the person operating the machine, and the second to the network.  The runtime writes its two anonymous readers: the person's responses to the first (the Input transaction below), and other agents' messages to the second (the Cold-call transaction below; Remark~\ref{rem:anonymous-variables}). The first channel is a bidirectional stream of GLP messages between the machine and the person, mediated by runtime UI support below the GLP layer and by physical UI hardware; messages flowing toward the person are rendered as UI elements, and the person's responses flow back as GLP messages. With appropriate UI runtime support, a GLP message to the user may contain a writer, in which case the runtime presents it as a question and an eventual response from the person becomes the corresponding assignment. The second channel carries communication with other agents.
 
 Second, the Cold-call transaction enables agents to bootstrap communication by establishing shared variables through the network infrastructure, realising the cold-call protocol for connecting previously-disconnected agents.
 
@@ -73,11 +73,13 @@ Given agents $P\subset \Pi$ and GLP program $M$, the \temph{maGLP transition sys
 
     \item \textbf{Cold-call $p$ to $q$:} A binary transaction with participants $p\ne q \in P$ where the network output stream in $c_p$ has a new message \verb|msg|$(q,X)$, $c'_p$ is the result of advancing the network output stream in $c_p$, and $c'_q$ is the result of adding \verb|msg|$(q,X)$ to the network input stream in $c_q$.
 
-    \item ${\sim}$, the \temph{maGLP transaction equivalence} on the transactions above, relates $t_1 \sim t_2$ iff both are Reduce transactions at the same agent $p$ reducing the same goal (by identity, Definition~\ref{def:goal-identity}) with the same clause, both are Communicate transactions from the same $p$ to the same $q$ applying the counterpart of the same writer assignment to the same goal (by identity), or both are Cold-call transactions from the same $p$ to the same $q$ delivering the same message.
+    \item \textbf{Input $p$:} A unary transaction with participant $p$ where $c'_p = (G_p, \sigma_p \cup \{X? := T\})$, $X?$ occurs in $G_p$, $X$ is the person's --- the writer of the tail of the person's input stream, or a writer in a message on the person's output stream in $c_p$ --- and $T$ is a term whose variables are fresh variables of $\hat\calV_p$.
+
+    \item ${\sim}$, the \temph{maGLP transaction equivalence} on the transactions above, relates $t_1 \sim t_2$ iff both are Reduce transactions at the same agent $p$ reducing the same goal (by identity, Definition~\ref{def:goal-identity}) with the same clause, both are Communicate transactions from the same $p$ to the same $q$ applying the counterpart of the same writer assignment to the same goal (by identity), or both are Cold-call transactions from the same $p$ to the same $q$ delivering the same message; an Input transaction is related to none.
 \end{enumerate}
 \end{definition}
 
-Note that Communicate may be unary or binary, depending on whether $p=q$.  Every participant of every maGLP transaction changes its state, so ${\sim}{\uparrow}P$ is an equivalence (Section~\ref{sec:mts}).  Communicate transfers assignments from writers to readers between agents sharing a paired reader and writer.  Cold-call transfers a term with its variables to $q$ through the network streams established in each agent's initial configuration, enabling the creation of paired variables among previously-disconnected agents.
+Note that Communicate may be unary or binary, depending on whether $p=q$.  Every participant of every maGLP transaction changes its state, so ${\sim}{\uparrow}P$ is a partial equivalence (Section~\ref{sec:mts}).  Input is the person's act at their own agent, writing what the program handed them: the tail of the input stream, or a writer in a question the program put on the output stream.  It belongs to no class, since the person is under no obligation to act, as a volition change is in~\cite{lewis2026volitional}; what the person writes may name any agent, and this is how an agent learns of an agent it has not met.  Communicate transfers assignments from writers to readers between agents sharing a paired reader and writer.  Cold-call transfers a term with its variables to $q$ through the network streams established in each agent's initial configuration, enabling the creation of paired variables among previously-disconnected agents.
 Cold-call is the exception, as once agents share a paired variable they can use it to communicate indefinitely; moreover, an agent with two friends (with which it shares channels) may introduce them to each other, also eschewing the need for a Cold-call.
 
 %------------------------------------------------------------------------------
@@ -97,11 +99,11 @@ If the initial goals of all agents satisfy SO, then every goal in every agent's 
 An maGLP run is \temph{proper} if the run at each agent is proper (Definition~\ref{def:cglp-proper-run}). The \temph{outcome} of a proper maGLP run is the tuple of per-agent outcomes.
 \end{definition}
 
-To relate maGLP to deduction, consider the \temph{lifted system} $L$: the cGLP transition system whose resolvent is the union of all agents' local resolvents, whose initial goal includes a \texttt{network} goal with channels paired to each agent's network channels, and whose program $M'$ is $M$ augmented with the GLP definition of \texttt{network}.
+To relate maGLP to deduction, consider the \temph{lifted system} $L_r$ of a finite proper maGLP run $r$: the cGLP transition system whose resolvent is the union of all agents' local resolvents, whose initial goal includes a \texttt{network} goal with channels paired to each agent's network channels and, for each agent $p$, a \texttt{person}$_p$ goal with channels paired to $p$'s person channel, and whose program $M'_r$ is $M$ augmented with the GLP definition of \texttt{network} and with a definition of each \texttt{person}$_p$ whose clauses write, in order, the terms the Input transactions of $r$ at $p$ write.
 
 \begin{restatable}{proposition}{propMaGLPDeduction}
 \label{prop:maglp-deduction}
-Every proper maGLP run over $P$ and $M$ is simulated by a proper cGLP run of $L$ whose outcome is a logical consequence of $M'/?$.
+Every finite proper maGLP run $r$ over $P$ and $M$ is simulated by a proper cGLP run of $L_r$ whose outcome is a logical consequence of $M'_r/?$.
 \end{restatable}
 
 Every maGLP run is safe, so correctness (Definition~\ref{def:ts}) reduces to liveness.

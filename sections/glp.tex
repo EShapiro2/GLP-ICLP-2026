@@ -56,11 +56,12 @@ and the goal \verb=merge([1,2,3|Xs?],[a,b|Ys?],Zs)=, which satisfies SO; each cl
 
 \begin{definition}[Transition System, Computation, Run, Safe, Live, Correct (cf.~\cite{shapiro2021multiagent,lewis2026volitional})]
 \label{def:ts}
-A \temph{transition system} is a tuple $TS = (C, c_0, T, {\sim})$ where $C$ is an arbitrary set of \temph{configurations}, $c_0 \in C$ a designated \temph{initial configuration}, $T \subseteq C \times C$ a set of \temph{transitions}, each a pair $c \rightarrow c'$ of non-identical configurations $c \ne c' \in C$, and ${\sim}$ an equivalence relation on $T$; we write $[t]$ for the class of $t \in T$ under ${\sim}$.
+A \temph{transition system} is a tuple $TS = (C, c_0, T, {\sim})$ where $C$ is an arbitrary set of \temph{configurations}, $c_0 \in C$ a designated \temph{initial configuration}, $T \subseteq C \times C$ a set of \temph{transitions}, each a pair $c \rightarrow c'$ of non-identical configurations $c \ne c' \in C$, and ${\sim}$ a \temph{partial equivalence relation} on $T$, symmetric and transitive; its domain $\{t \in T : t \sim t\}$ is partitioned into countably many \temph{classes}, $[t]$ being the class of $t$, and a transition outside the domain belongs to no class.
 
 A \temph{computation} is a (nonempty, finite or infinite) sequence of configurations $c_1, c_2, \ldots$; it is a \temph{run} if $c_1 = c_0$, and \temph{safe} if $c_i \rightarrow c_{i+1} \in T$ for every two consecutive configurations. We write $c \xrightarrow{*} c'$ for the existence of a safe computation from $c$ to $c'$ (empty if $c = c'$). A class $[t] \in T/{\sim}$ is \temph{enabled} in $c$ if $c \rightarrow c' \in [t]$ for some $c'$. A run is \temph{live} if no class $[t]$ is enabled in every configuration of some suffix in which no member of $[t]$ occurs, and \temph{correct} if it is safe and live.
 \end{definition}
 
+A transition in no class may occur in a correct run and is never required to~\cite{lewis2026volitional}. The ${\sim}$ of cGLP below is an equivalence, every transition in a class; that of maGLP (Section~\ref{sec:maglp}) leaves the person's input outside its domain.
 
 \begin{definition}[Substitutions and Assignments]
 \label{def:writers-assignment}

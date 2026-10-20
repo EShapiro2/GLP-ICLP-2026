@@ -2,26 +2,25 @@
 \section{Multiagent GLP is Grassroots}\label{sec:grassroots}
 %==============================================================================
 
-This section establishes that maGLP is grassroots. We define the notion of grassroots following~\cite{lewis2026volitional}; formal definitions appear in \appref{appendix:grassroots-defs}{\arxivref}.
+This section establishes that maGLP is grassroots. We recall the notion of grassroots from~\cite{lewis2026volitional}; the formal definitions appear in \appref{appendix:grassroots-defs}{\arxivref}.
 
 Informally, a protocol is \emph{grassroots} if two disjoint groups of agents can each operate independently---their interleaved correct runs are correct runs of the combined system---yet the combined system offers genuinely new behaviours that neither group could produce on its own. The first requirement is \emph{obliviousness}; the second is \emph{interactivity}.
 
-The Cold-call transaction (Definition~\ref{definition:maGLP}) is the fundamental interactive transaction of maGLP. It allows an agent $q$ in one group to connect to an agent $p$ in another, establishing shared variables that span both groups---a behaviour that no interleaving of independent runs of the two groups could produce.
+The Cold-call transaction (Definition~\ref{definition:maGLP}) is the fundamental interactive transaction of maGLP. It allows an agent $p$ in one group to connect to an agent $q$ in another, establishing shared variables that span both groups---a behaviour that no interleaving of independent runs of the two groups could produce. An agent $p$ cold-calls $q$ once $q$ is named in its state, and $p$ learns of an agent it has not met from the person, by the Input transaction.
+
+An agent is a constant of GLP. A group of agents running on its own is one whose members know no agent outside it.
+
+\begin{definition}[maGLP Protocol]\label{definition:maglp-protocol}
+Let $M$ be a GLP program and, for a finite $P \subset \Pi$, let $S(P)$ be the set of asynchronous resolvents over $M$ in which no agent outside $P$ occurs. The \temph{maGLP protocol over $M$} assigns to each $P$ the maGLP transition system over $P$ and $M$ (Definition~\ref{definition:maGLP}) with its configurations restricted to $S(P)^P$.
+\end{definition}
+
+\begin{definition}[Names No Agent, Uses Cold Calls]\label{definition:uses-cold-calls}
+A GLP program $M$ \temph{names no agent} if no agent occurs in $M$. It \temph{uses cold calls} if for every local state $s$ of an agent $p$ reachable in a run of the maGLP protocol over $M$ and every agent $q$, some Input $p$ from $s$ writing a term in which $q$ occurs, followed by Reduce $p$ and Communicate $p$ to $p$ transactions, reaches a local state in which Cold-call $p$ to $q$ is enabled.
+\end{definition}
 
 \begin{restatable}{theorem}{thmMaGLPGrassroots}
 \label{theorem:maGLP-grassroots}
-The maGLP protocol is grassroots.
-\end{restatable}
-
-The grassroots property of maGLP extends to applications built on top of it, provided they use the cold-call mechanism.
-
-\begin{definition}[GLP Application]
-A \temph{GLP application} is a GLP program $M$ together with the maGLP infrastructure. An application \temph{uses cold-calls} if agents can execute the Cold-call transaction to establish communication with previously-disconnected agents.
-\end{definition}
-
-\begin{restatable}{proposition}{propAppGrassroots}
-\label{prop:app-grassroots}
-Any GLP application that uses cold-calls is grassroots.
+The maGLP protocol over a program that names no agent and uses cold calls is grassroots.
 \end{restatable}
 
 \begin{restatable}{corollary}{corSocialGraphGrassroots}
