@@ -180,6 +180,8 @@ The distinction is not one of mechanism: both are ordinary GLP clauses, both may
 
 Both tables list those in root scope, where every program reaches them; a system module may define others for its own use, and those belong to that module rather than to the language.
 
+A program declares every procedure it defines, with no \verb|_| or \verb|_?| in a declaration or in a type definition; the two stand only in a signature of these tables that takes any term, as \verb|run/2| and \verb|..=| do.
+
 \begin{center}
 {\small
 \begin{tabular}{ll}
