@@ -118,6 +118,7 @@ Arithmetic & \verb|'_add'(Number?, Number?, Number)| & Addition \\
  & \verb|'_abs'(Number?, Number)| & Absolute value \\
 \hline
 Random & \verb|'_random'(Integer?, Integer?, Integer, Integer)| & Seeded random integer \\
+ & \verb|'_split_random_seed'(Integer?, Integer, Integer)| & Two independent seeds from one \\
 \hline
 Math & \verb|'_sqrt'(Number?, Number)| & Square root \\
  & \verb|'_sin'(Number?, Number)| & Sine \\
@@ -189,6 +190,7 @@ Both tables list those in root scope, where every program reaches them; a system
 \verb|procedure now(Integer).| & Current Unix timestamp (milliseconds) \\
 \verb|procedure :=(Number, Exp?).| & Arithmetic evaluation and assignment \\
 \verb|procedure random(Integer?, Integer?, Integer, Integer).| & Seeded random integer \\
+\verb|procedure split_random_seed(Integer?, Integer, Integer).| & Two independent seeds from one \\
 \verb|procedure self_module(Module).| & The caller's own module, as a value \\
 \verb|procedure run(_?, Module?).| & Activate a module value, post a goal to it \\
 \verb|procedure run(_?, Constant?, Module?).| & As \verb|run/2|, under a required type identity \\
@@ -239,6 +241,9 @@ Arithmetic assignment is defined recursively: each clause pattern-matches on an 
 
 \mypara{Seeded random numbers (\texttt{random/4})}
 \verb|random(Seed, N, Value, NextSeed)| binds \verb|Value| to a pseudo-random integer with $1 \leq \mathtt{Value} \leq \mathtt{N}$, and \verb|NextSeed| to the seed of the next draw, given a ground seed \verb|Seed| and a ground bound $\mathtt{N} \geq 1$. It is a body goal, not a guard; the clause is guarded by \verb|integer(Seed?), integer(N?), N? >= 1| and invokes the \verb|'_random'| body kernel. \verb|NextSeed| is determined by \verb|Seed| alone; \verb|Value| by \verb|Seed| and \verb|N|. The seed stream is therefore independent of the bound requested, and a computation that threads \verb|NextSeed| from each draw into the next reproduces exactly from its initial seed.
+
+\mypara{Splitting a seed (\texttt{split\_random\_seed/3})}
+\verb|split_random_seed(Seed, S1, S2)| assigns \verb|S1| and \verb|S2| two seeds determined by \verb|Seed|, such that the sequences of draws from \verb|Seed|, from \verb|S1| and from \verb|S2| are independent streams; a splittable generator, such as SplitMix, implements it. It is a body goal, not a guard; the clause is guarded by \verb|integer(Seed?)| and invokes the \verb|'_split_random_seed'| body kernel. A computation that draws from several seeds made by splitting one seed reproduces exactly from that seed.
 
 \mypara{Output to the person (\texttt{send\_to\_user/1})}
 \verb|send_to_user(Stream)| emits each element of \verb|Stream|, a stream of any one type, to the person operating the agent, in order, and ends when the stream ends. Its clause is guarded by \verb|ground| on the element and invokes the \verb|'_output'| body kernel. A module reaches the person through this predicate; naming \verb|'_output'| in call position is admitted only to a system module.
@@ -292,5 +297,5 @@ The level is the program's to set and cannot be the layer's, for a reason that d
 
 \verb|merge/3| remains the right construct where two streams are merged, or where the merge tree itself carries meaning --- a merge goal that is also the point at which a process terminates. \verb|mwm/2| is for many-to-one merging, which is the common case in a program routing many senders to one receiver.
 
-The complete definitions of \verb|:=|, \verb|now|, \verb|=..|, \verb|..=|, \verb|random|, \verb|send_to_user|, \verb|send_to_net|, \verb|self_module|, \verb|decompose_module|, \verb|run|, \verb|self_key|, \verb|sign|, \verb|signature|, \verb|authorise_link| and \verb|mwm| are in \verb|programs/self.glp| of the public GLP repository.
+The complete definitions of \verb|:=|, \verb|now|, \verb|=..|, \verb|..=|, \verb|random|, \verb|split_random_seed|, \verb|send_to_user|, \verb|send_to_net|, \verb|self_module|, \verb|decompose_module|, \verb|run|, \verb|self_key|, \verb|sign|, \verb|signature|, \verb|authorise_link| and \verb|mwm| are in \verb|programs/self.glp| of the public GLP repository.
 
