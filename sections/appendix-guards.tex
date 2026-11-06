@@ -141,6 +141,9 @@ Conversion & \verb|'_integer'(Number?, Integer)| & Convert to integer \\
 Structure & \verb|'_list_to_tuple'(Stream(_)?, _)| & List to compound term \\
  & \verb|'_tuple_to_list'(_?, Stream(_))| & Compound term to list \\
 \hline
+Text & \verb|'_string_concat'(List(String)?, String)| & Concatenation of strings \\
+ & \verb|'_term_to_string'(_?, String)| & The text the reader reads as a term \\
+\hline
 Time & \verb|'_now'(Integer)| & Current Unix timestamp (ms) \\
 \hline
 Simulation & \verb|'_start_clock'(Integer?)| & Start the simulated clock \\
@@ -193,6 +196,8 @@ A program declares every procedure it defines, with no \verb|_| or \verb|_?| in 
 \hline
 \verb|procedure =..(_, Stream(_)?).| & Term composition \\
 \verb|procedure ..=(Stream(_), _?).| & Term decomposition \\
+\verb|procedure string_concat(List(String)?, String).| & Concatenation of strings \\
+\verb|procedure term_to_string(_?, String).| & The text the reader reads as a term \\
 \verb|procedure now(Integer).| & Current Unix timestamp (milliseconds) \\
 \verb|procedure :=(Number, Exp?).| & Arithmetic evaluation and assignment \\
 \verb|procedure random(Integer?, Integer?, Integer, Integer).| & Seeded random integer \\
@@ -262,7 +267,10 @@ The clock's generator is that of \verb|random/4|, its state a seed. A draw repla
 A program takes a step in the body of a clause guarded by \verb|when_idle|: the guard tests that the machine has no Reduce or Communicate to make, and the step is taken after it, a guard changing nothing. So every goal has been reduced as far as it can be at the present simulated time before the clock moves, and a goal waiting on a token is reduced once its time has come. The clock is of one machine, as \verb|when_idle| is. The three predicates implement the rated goal and the Release transition of Stochastic GLP~\cite{shapiro2026sglp}: the queue, the draws and the clock are the engine's, as they were the emulator's in the implementation of the stochastic pi-calculus in Flat Concurrent Prolog~\cite{priami2001application}, by Gillespie's method~\cite{gillespie1977exact}.
 
 \mypara{Output to the person (\texttt{send\_to\_user/1})}
-\verb|send_to_user(Stream)| emits each element of \verb|Stream|, a stream of any one type, to the person operating the agent, in order, and ends when the stream ends. Its clause is guarded by \verb|ground| on the element and invokes the \verb|'_output'| body kernel. A module reaches the person through this predicate; naming \verb|'_output'| in call position is admitted only to a system module.
+\verb|send_to_user(Stream)| emits each element of \verb|Stream|, a stream of any one type, to the person operating the agent, in order, and ends when the stream ends. Its clause is guarded by \verb|ground| on the element and invokes the \verb|'_output'| body kernel. A module reaches the person through this predicate; naming \verb|'_output'| in call position is admitted only to a system module. Where the person is a terminal, each element is printed on a line of its own, a string as its characters.
+
+\mypara{Text (\texttt{string\_concat/2}, \texttt{term\_to\_string/2})}
+\verb|string_concat(Ss, S)| assigns \verb|S| the string of the characters of the strings of the list \verb|Ss|, one after another; the empty list contributes the characters \verb|[]|. Its clause is guarded by \verb|ground(Ss?)| and invokes the \verb|'_string_concat'| body kernel, which aborts where an element is not a string. \verb|term_to_string(T, S)| assigns \verb|S| a text that the reader reads as the ground term \verb|T|: a string the reader would read unquoted as anything else in single quotes, a number as the reader reads it back, a structure as its functor so written, an opening parenthesis, its arguments and a closing parenthesis, and a list as \verb|[a, b]| or \verb~[a, b | T]~, arguments and elements separated by a comma and a space, so that a term has one text at every agent. Its clause is guarded by \verb|ground(T?)| and invokes the \verb|'_term_to_string'| body kernel. A program that prints GLP source, as a compiler does, builds each line as a string by these two, a constant of the source by \verb|term_to_string/2| and a variable or a type \verb|T?| by \verb|string_concat/2|, and prints it by \verb|send_to_user/1|.
 
 \mypara{Output to the network (\texttt{send\_to\_net/1})}
 \verb|send_to_net(Stream)| sends each element of \verb|Stream|, a term \verb|msg(Q, T)| of type \verb|NetMsg(X) ::= msg(Key, X)| with \verb|Q| the key of an agent, to agent \verb|Q|, in order, and ends when the stream ends: it is how a program writes the network output stream of Definition~\ref{definition:maGLP}, whose Cold-call carries \verb|msg(Q, T)| to the network input stream of \verb|Q|. Its clause is guarded by \verb|ground| on \verb|Q| and invokes the \verb|'_send'| body kernel on \verb|msg(Q?, T?)|, the link \verb|'_w'(Q?, 0)| and \verb|Q?|. A module reaches the network through this predicate; naming \verb|'_send'| in call position is admitted only to a system module.
@@ -313,5 +321,5 @@ The level is the program's to set and cannot be the layer's, for a reason that d
 
 \verb|merge/3| remains the right construct where two streams are merged, or where the merge tree itself carries meaning --- a merge goal that is also the point at which a process terminates. \verb|mwm/2| is for many-to-one merging, which is the common case in a program routing many senders to one receiver.
 
-The complete definitions of \verb|:=|, \verb|now|, \verb|=..|, \verb|..=|, \verb|random|, \verb|split_random_seed|, \verb|start_clock|, \verb|rated|, \verb|step_clock|, \verb|send_to_user|, \verb|send_to_net|, \verb|self_module|, \verb|decompose_module|, \verb|run|, \verb|self_key|, \verb|sign|, \verb|signature|, \verb|authorise_link| and \verb|mwm| are in \verb|programs/self.glp| of the public GLP repository.
+The complete definitions of \verb|:=|, \verb|now|, \verb|=..|, \verb|..=|, \verb|string_concat|, \verb|term_to_string|, \verb|random|, \verb|split_random_seed|, \verb|start_clock|, \verb|rated|, \verb|step_clock|, \verb|send_to_user|, \verb|send_to_net|, \verb|self_module|, \verb|decompose_module|, \verb|run|, \verb|self_key|, \verb|sign|, \verb|signature|, \verb|authorise_link| and \verb|mwm| are in \verb|programs/self.glp| of the public GLP repository.
 
