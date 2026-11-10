@@ -164,7 +164,7 @@ Definition~\ref{def:glp-reduction} of a GLP goal/clause reduction is augmented t
 
 \begin{remark}[Guards and SRSW]
 \label{rem:guards-srsw}
-Guard occurrences count toward SRSW satisfaction: if $X?$ occurs in a guard, its paired writer $X$ must occur in the head and $X?$ may additionally occur once in the body; if $X$ occurs in a defined guard, $X?$ occurs in the clause; if $X$ occurs in a \verb|widowed| guard, $X?$ occurs in the head, $X$ in the guard, and neither elsewhere in the clause; and if $X?$ occurs in a \verb|widowed| guard, $X$ occurs in the head, $X?$ in the guard, and neither elsewhere in the clause.
+Guard occurrences count toward SRSW satisfaction: if $X?$ occurs in a guard, its paired writer $X$ must occur in the head and $X?$ may additionally occur once in the body; if $X$ occurs in a defined guard, $X?$ occurs in the clause; if $X$ occurs in a \verb|widowed_writer| guard, $X?$ occurs in the head, $X$ in the guard, and neither elsewhere in the clause; and if $X?$ occurs in a \verb|widowed_reader| guard, $X$ occurs in the head, $X?$ in the guard, and neither elsewhere in the clause.
 \end{remark}
 
 \begin{definition}[Ground Position, Ground-Guarded Writer]
@@ -175,7 +175,7 @@ The ground positions are those the catalogue's Ground column marks (\appref{appe
 
 \begin{definition}[Ground Instantiation, SRSW of a Guarded Clause]
 \label{def:guarded-srsw}
-A \temph{ground instantiation} of a guarded clause $C$ is $\theta \cup \theta?$, for a writers substitution $\theta$ whose domain is the set of ground-guarded writers of $C$ and whose terms are ground. A guarded clause $C = H$ \verb|:-| $G$ \verb"|" $B$ \temph{satisfies SRSW} if, for every ground instantiation $\bar\theta$ of $C$, $(H$ \verb|:-| $B)\bar\theta$ satisfies SO and a variable occurs in $C\bar\theta$ iff its paired variable does, but for a variable occurring in a \verb|widowed| guard of $C$, whose paired variable occurs in the head of $C$, and neither occurs elsewhere in $C$.
+A \temph{ground instantiation} of a guarded clause $C$ is $\theta \cup \theta?$, for a writers substitution $\theta$ whose domain is the set of ground-guarded writers of $C$ and whose terms are ground. A guarded clause $C = H$ \verb|:-| $G$ \verb"|" $B$ \temph{satisfies SRSW} if, for every ground instantiation $\bar\theta$ of $C$, $(H$ \verb|:-| $B)\bar\theta$ satisfies SO and a variable occurs in $C\bar\theta$ iff its paired variable does, but for a variable occurring in a \verb|widowed_writer| or \verb|widowed_reader| guard of $C$, whose paired variable occurs in the head of $C$, and neither occurs elsewhere in $C$.
 \end{definition}
 
 \begin{definition}[GLP Reduction of a Guarded Clause]
