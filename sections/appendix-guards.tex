@@ -25,7 +25,7 @@ Guards provide read-only access to the runtime state of GLP computation; a defin
 \verb|known| & \verb|procedure known(_?).| & no \\
 \verb|unknown| & \verb|procedure unknown(_?).| & no \\
 \verb|no_readers| & \verb|procedure no_readers(_?).| & no \\
-\verb|widowed| & \verb|procedure widowed(_).| & no \\
+\verb|widowed| & \verb|procedure widowed(_).|, \verb|procedure widowed(_?).| & no \\
 \verb|module| & \verb|procedure module(Module?).| & yes \\
 \verb|@<| & \verb|procedure @<(Constant?, Constant?).| & yes \\
 \verb|is_mutual_ref| & \verb|procedure is_mutual_ref(MutualRef?).| & no \\
@@ -37,7 +37,7 @@ Guards provide read-only access to the runtime state of GLP computation; a defin
 
 \verb|otherwise| succeeds if all previous clauses for this procedure fail.
 
-\verb|widowed(X)| succeeds when \verb|X| is a writer whose paired reader occurs nowhere in the agent's state, having been dropped, and suspends while the reader occurs. A reader sent to another agent occurs in the link the agent keeps for it, so a writer whose reader was sent away is not widowed.
+\verb|widowed| takes a writer or a reader, the one guard declared in both modes. \verb|widowed(X)|, \verb|X| a writer, succeeds when the reader paired to the writer \verb|X| stands for occurs in no goal of the agent and in no link end the agent holds, the goal being reduced not counted, and suspends while it occurs in one. \verb|widowed(X?)|, \verb|X?| a reader, succeeds when the paired writer occurs in no goal of the agent and in no link end the agent holds, the goal being reduced not counted, and suspends while it occurs in one. A variable sent to another agent occurs in the link end the agent keeps for it until that end is retired, which the companion implementation paper specifies~\cite{shapiro2026implementing}: an agent that crashed retires every link end at its restart, and its peers retire their ends of the links with it when they learn of the crash. So a writer whose reader was sent away is not widowed while the link stands; and a reader whose writer is at a peer that crashed, and a writer whose reader is there, are widowed once the agent learns of the crash, and a program waiting on either can take a clause guarded by \verb|widowed| in place of the one that waits.
 
 \verb|=?=| succeeds if both arguments are ground and equal. \verb|=?\=| succeeds if no readers substitution makes them ground and equal.
 
