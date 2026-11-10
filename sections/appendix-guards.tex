@@ -8,42 +8,41 @@ The predefined types, available in every GLP program, are \verb|Stream(X)|, \ver
 Some predefined types name a structure another already denotes. Type identity being structural, the checker treats such a pair as one type and will accept either where the other is declared; the second name buys no checking. It is declared all the same, for two reasons. It says what a value is for where the structure alone does not --- a key and a hash are both strings and are not the same thing to a reader --- and it localises a later change of representation to one definition rather than to every declaration that would otherwise have named the structure directly.
 
 \mypara{Guard predicates}
-Guards provide read-only access to the runtime state of GLP computation; a defined guard (below) also assigns writers. A guard appears after the clause head, separated by \verb=|=, and must be satisfied for the clause to be selected. The ``Ground'' column indicates whether success of the guard implies that the argument is ground; such guards permit multiple occurrences of both the writer and the reader in the clause (Definitions~\ref{def:ground-guarded} and~\ref{def:guarded-srsw}).
+Guards provide read-only access to the runtime state of GLP computation; a defined guard (below) also assigns writers. A guard appears after the clause head, separated by \verb=|=, and must be satisfied for the clause to be selected. The ``Ground'' column indicates whether success of the guard implies that the argument is ground; such guards permit multiple occurrences of both the writer and the reader in the clause (Definitions~\ref{def:ground-guarded} and~\ref{def:guarded-srsw}). A guard suspends while no instance of its argument under a readers substitution decides it (Section~\ref{sec:guards}).
 
 \begin{center}
-\begin{tabular}{lll}
-\textbf{Guard} & \textbf{Signature} & \textbf{Ground} \\
+{\footnotesize
+\begin{tabular}{@{}llp{0.31\textwidth}l@{}}
+\textbf{Guard} & \textbf{Signature} & \textbf{Succeeds when} & \textbf{Ground} \\
 \hline
-\verb|integer| & \verb|procedure integer(Integer?).| & yes \\
-\verb|number| & \verb|procedure number(Number?).| & yes \\
-\verb|real| & \verb|procedure real(Real?).| & yes \\
-\verb|string| & \verb|procedure string(String?).| & yes \\
-\verb|constant| & \verb|procedure constant(Constant?).| & yes \\
-\verb|compound| & \verb|procedure compound(_?).| & no \\
-\verb|list| & \verb|procedure list(_?).| & no \\
-\verb|ground| & \verb|procedure ground(_?).| & yes \\
-\verb|known| & \verb|procedure known(_?).| & no \\
-\verb|unknown| & \verb|procedure unknown(_?).| & no \\
-\verb|no_readers| & \verb|procedure no_readers(_?).| & no \\
-\verb|widowed| & \verb|procedure widowed(_).|, \verb|procedure widowed(_?).| & no \\
-\verb|module| & \verb|procedure module(Module?).| & yes \\
-\verb|@<| & \verb|procedure @<(Constant?, Constant?).| & yes \\
-\verb|is_mutual_ref| & \verb|procedure is_mutual_ref(MutualRef?).| & no \\
-\verb|otherwise| & (no arguments) & --- \\
-\verb|=?=| & \verb|procedure =?=(_?, _?).| & yes (both) \\
-\verb|=?\=| & \verb|procedure =?\=(_?, _?).| & no \\
+\verb|integer| & \verb|procedure integer(Integer?).| & the argument is an integer & yes \\
+\verb|real| & \verb|procedure real(Real?).| & the argument is a real & yes \\
+\verb|number| & \verb|procedure number(Number?).| & the argument is a number & yes \\
+\verb|string| & \verb|procedure string(String?).| & the argument is a string & yes \\
+\verb|constant| & \verb|procedure constant(Constant?).| & the argument is a constant & yes \\
+\verb|module| & \verb|procedure module(Module?).| & the argument is a module & yes \\
+\verb|compound| & \verb|procedure compound(_?).| & the argument is a compound term & no \\
+\verb|list| & \verb|procedure list(_?).| & the argument is the empty list or a list cell & no \\
+\verb|ground| & \verb|procedure ground(_?).| & the argument is ground & yes \\
+\verb|known| & \verb|procedure known(_?).| & the argument is assigned a term & no \\
+\verb|unknown| & \verb|procedure unknown(_?).| & the argument is an unassigned variable & no \\
+\verb|no_readers| & \verb|procedure no_readers(_?).| & no reader occurs in the argument & no \\
+\verb|widowed| & \verb|procedure widowed(_).| & the reader paired to the writer the argument stands for occurs in no goal of the agent and in no link end the agent holds, the goal being reduced not counted & no \\
+\verb|widowed| & \verb|procedure widowed(_?).| & the writer paired to the reader the argument stands for occurs in no goal of the agent and in no link end the agent holds, the goal being reduced not counted & no \\
+\verb|is_mutual_ref| & \verb|procedure is_mutual_ref(MutualRef?).| & the argument is a mutual reference & no \\
+\verb|@<| & \verb|procedure @<(Constant?, Constant?).| & both arguments are ground constants and the first precedes the second in the standard order & yes \\
+\verb|=?=| & \verb|procedure =?=(_?, _?).| & both arguments are ground and equal & yes (both) \\
+\verb|=?\=| & \verb|procedure =?\=(_?, _?).| & no readers substitution makes the arguments ground and equal & no \\
+\verb|otherwise| & (no arguments) & every previous clause of the procedure fails & --- \\
 \end{tabular}
+}
 \end{center}
 
-\verb|otherwise| succeeds if all previous clauses for this procedure fail.
+The standard order of constants: a number precedes a string; numbers compare by value, and strings by the codes of their characters, lexicographically; the empty list orders as the string \verb|[]|.
 
-\verb|widowed| takes a writer or a reader, the one guard declared in both modes. \verb|widowed(X)|, \verb|X| a writer, succeeds when the reader paired to the writer \verb|X| stands for occurs in no goal of the agent and in no link end the agent holds, the goal being reduced not counted, and suspends while it occurs in one. \verb|widowed(X?)|, \verb|X?| a reader, succeeds when the paired writer occurs in no goal of the agent and in no link end the agent holds, the goal being reduced not counted, and suspends while it occurs in one. A variable sent to another agent occurs in the link end the agent keeps for it until that end is retired, which the companion implementation paper specifies~\cite{shapiro2026implementing}: an agent that crashed retires every link end at its restart, and its peers retire their ends of the links with it when they learn of the crash. So a writer whose reader was sent away is not widowed while the link stands; and a reader whose writer is at a peer that crashed, and a writer whose reader is there, are widowed once the agent learns of the crash, and a program waiting on either can take a clause guarded by \verb|widowed| in place of the one that waits.
+A variable sent to another agent occurs in the link end the agent keeps for it until that end is retired, which the companion implementation paper specifies~\cite{shapiro2026implementing}: an agent that crashed retires every link end at its restart, and its peers retire their ends of the links with it when they learn of the crash. So a writer whose reader was sent away is not widowed while the link stands; a reader whose writer is at a peer that crashed, and a writer whose reader is there, are widowed once the agent learns of the crash, and a program waiting on either can take a clause guarded by \verb|widowed| in place of the one that waits.
 
-\verb|=?=| succeeds if both arguments are ground and equal. \verb|=?\=| succeeds if no readers substitution makes them ground and equal.
-
-\verb|@<| succeeds if both arguments are ground constants and the first precedes the second in the standard order of constants: a number precedes a string; numbers compare by value, and strings by the codes of their characters, lexicographically; the empty list orders as the string \verb|[]|.
-
-\verb|is_mutual_ref| succeeds if its argument is a mutual reference, the handle through which \verb|mwm/2| appends to the tail of its output stream in constant time. It is admitted only to a system module, as are the body kernels that create, append through and close a mutual reference: no other module can obtain one, so no other module can put the guard to use.
+\verb|is_mutual_ref| is admitted only to a system module, as are the body kernels that create, append through and close a mutual reference, the handle through which \verb|mwm/2| appends to the tail of its output stream in constant time: no other module can obtain one, so no other module can put the guard to use.
 
 \mypara{Arithmetic comparison guards}
 Arithmetic comparison guards evaluate their arguments as arithmetic expressions of type \verb|Exp| and compare the results; an argument with no value --- a zero divisor, a non-integer under \verb|//| or \verb|mod|, an argument outside a function's domain --- fails the guard. Success implies both arguments are ground.
