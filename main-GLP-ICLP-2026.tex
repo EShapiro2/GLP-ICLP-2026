@@ -53,8 +53,7 @@
 % Build flag: include appendices?
 % Set \appendixtrue for arXiv (full) version, \appendixfalse for ICLP submission.
 \newif\ifappendix
-\appendixfalse
-%\appendixtrue
+\appendixtrue
 % Conditional appendix reference.
 % Usage: \appref{appendix:foo}{fallback text when appendix is omitted}
 % With appendix on:  produces "Appendix~\ref{appendix:foo}"
@@ -137,8 +136,7 @@
 \providecommand{\thisvolume}[1]{this volume of EPTCS, Open Publishing Association}
 
 % EPTCS extracts \title verbatim into arXiv metadata: keep it literal (no \\, no conditionals).
-% For the arXiv (\appendixtrue) build, append " (Full Version)" by hand.
-\title{GLP: A Grassroots, Multiagent, Concurrent, Logic Programming Language for AI (Full Version)}
+\title{GLP: A Grassroots, Multiagent, Concurrent, Logic Programming Language for AI\ifappendix{} (Full Version)\fi}
 
 \author{Ehud Shapiro
 \institute{London School of Economics and Weizmann Institute of Science}
