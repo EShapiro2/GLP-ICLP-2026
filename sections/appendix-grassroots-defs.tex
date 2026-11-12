@@ -72,10 +72,8 @@ A set of transactions $R$ over a local-states function $S$ is \temph{contained} 
 \end{definition}
 
 \begin{definition}[Transactions-Based Protocol~\cite{lewis2026volitional}]\label{definition:tb-protocol}
-Let $S$ be a local-states function, $R$ a set of transactions over $S$, in which distinct transactions have disjoint $P$-closures for every $P \subset \Pi$, with a partial equivalence $\sim$, and $I$ a set of \temph{inputs} over $S$, each a unary transaction over one participant $p$ and $S(Q')$ for some $Q' \ni p$. The \temph{protocol $\calF$ over $R$, $I$, $S$, and $\sim$} is defined by $\calF(P) := (C(P), c_0(P), R(P){\uparrow}P \cup I(P){\uparrow}P, {\sim}{\uparrow}P)$ for each $P \subset \Pi$, where $R(P){\uparrow}P$, $I(P){\uparrow}P$ and ${\sim}{\uparrow}P$ are the $P$-closures (Definition~\ref{def:closure}) of $R(P)$, of $I(P)$, and of $\sim$ restricted to $R(P)$; a transition of $I(P){\uparrow}P$ is in no class.
+Let $S$ be a local-states function and $R$ a set of transactions over $S$, in which distinct transactions have disjoint $P$-closures for every $P \subset \Pi$, with a partial equivalence $\sim$. The \temph{protocol $\calF$ over $R$, $S$, and $\sim$} is defined by $\calF(P) := (C(P), c_0(P), R(P){\uparrow}P, {\sim}{\uparrow}P)$ for each $P \subset \Pi$, where $R(P){\uparrow}P$ and ${\sim}{\uparrow}P$ are the $P$-closures (Definition~\ref{def:closure}) of $R(P)$ and of $\sim$ restricted to $R(P)$.
 \end{definition}
-
-An input is a person's act at their own machine~\cite{lewis2026volitional}, such as naming an agent or entering a text or a number. It is unary, so it is never an interaction, and in no class, so no run owes it; containment is asked of $R$ and not of $I$. In maGLP the Input transaction (Definition~\ref{definition:maGLP}) is an input, and may bring into an agent's state the name of an agent outside its group.
 
 Since liveness applies to all classes, any class $[t]$ in $R(P \cup P')/{\sim}$ whose transactions have participants spanning both $P$ and $P'$ could obstruct obliviousness if enabled in an interleaving; so could a class whose transactions have participants in $P$ and that is not a class of $\calF(P)$, which containment excludes.
 
@@ -84,7 +82,18 @@ Since liveness applies to all classes, any class $[t]$ in $R(P \cup P')/{\sim}$ 
 A transactions-based protocol over a contained set of transactions is oblivious provided that for every disjoint nonempty $P, P' \subset \Pi$, no class whose transactions have participants spanning both $P$ and $P'$ is ever enabled in any interleaving of correct runs of $\calF(P)$ and $\calF(P')$.
 \end{proposition}
 
+In maGLP the person acts: the Input transaction (Definition~\ref{definition:maGLP}) is the person's, belongs to no class, and may bring into an agent's state the name of an agent outside its group. It is the machine-layer counterpart of a volition change in~\cite{lewis2026volitional}, and is added to a transactions-based protocol as follows.
+
+\begin{definition}[Transactions-Based Protocol with Input]\label{definition:tb-protocol-input}
+Let $\calF$ be the protocol over $R$, $S$, and $\sim$, and $I$ a set of unary transactions over $S$, each $t \in I$ over one participant $p$ and $S(Q')$ for some $Q' \ni p$. The \temph{protocol over $R$, $S$, $\sim$ and input $I$} is $\calF^I$ with $\calF^I(P) := (C(P), c_0(P), R(P){\uparrow}P \cup I(P){\uparrow}P, {\sim}{\uparrow}P)$ for each $P \subset \Pi$; a transition of $I(P){\uparrow}P$ is in no class.
+\end{definition}
+
+\begin{restatable}[Obliviousness Condition with Input]{proposition}{propObliviousInput}
+\label{proposition:oblivious-input}
+A transactions-based protocol with input over a contained set of transactions is oblivious provided that for every disjoint nonempty $P, P' \subset \Pi$, no class whose transactions have participants spanning both $P$ and $P'$ is ever enabled in any interleaving of correct runs of $\calF^I(P)$ and $\calF^I(P')$.
+\end{restatable}
+
 \begin{restatable}[Transactions-Based Grassroots]{theorem}{thmInteractiveGrassroots}
 \label{theorem:interactive-grassroots}
-A transactions-based protocol over a contained set of transactions that satisfies the condition of Proposition~\ref{proposition:oblivious} and is interactive is grassroots.
+A transactions-based protocol with input that satisfies the condition of Proposition~\ref{proposition:oblivious-input} and is interactive is grassroots.
 \end{restatable}
