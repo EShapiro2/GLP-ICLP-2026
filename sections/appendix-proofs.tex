@@ -14,7 +14,7 @@ The $/\!?$ operator replaces every reader $X?$ by its paired writer $X$, transfo
 
 Consider a cGLP transition $(G, \sigma) \rightarrow (G', \sigma')$:
 \begin{itemize}
-    \item \emph{Reduce transition}: Goal $A$ reduces with clause $C$ via writer mgu $\hat\sigma$, and $(\hat\sigma?)^\star$ is applied to the body. Applying $/\!?$, the clause $C/?$ is an LP clause, and $A/?$ unifies with the head $H/?$ via the mgu $\hat\sigma/? = (\hat\sigma?)^\star/?$ (since writers map to writers), which LP applies to the body. This is a valid LP reduction.
+    \item \emph{Reduce transition}: Goal $A$ reduces with clause $C$ via writer mgu $\hat\sigma$, and $(\hat\sigma?)^\star$ is applied to the body. Applying $/\!?$, the clause $C/?$ is an LP clause, and $A/?$ unifies with the head $H/?$ via the mgu $\hat\sigma/? = (\hat\sigma?)^\star/?$ (since writers map to writers, and $\hat\sigma$ is acyclic, Definition~\ref{def:cglp-ts}), which LP applies to the body. This is a valid LP reduction.
     \item \emph{Communicate transition}: A reader $X? \in G$ is replaced by the value $T$ assigned to its paired writer. Under $/\!?$, both $X?$ and $X$ map to $X$, so this transition becomes the identity---the variable $X$ is already assigned $T$ in the LP view.
 \end{itemize}
 
@@ -77,7 +77,7 @@ Let $r = c^0 \rightarrow c^1 \rightarrow \cdots \rightarrow c^n$ be a finite pro
 
 The initial goal of $L_r$ is $\bigcup_{p \in P} G^0_p$ together with the \verb|network| goal and the \verb|person|$_p$ goals. It satisfies SO: within each agent's initial goal every variable occurs once, the agents' initial goals are variable-disjoint, the variables of each agent's being its own (Definition~\ref{def:agent-variables}), and each agent's network-channel variables are paired one-for-one with those of the \verb|network| goal, and its person-channel variables with those of its \verb|person|$_p$ goal. Hence by SO Preservation (Proposition~\ref{prop:so-preservation}) every goal of $\hat r$ satisfies SO. We simulate each maGLP transaction.
 
-\emph{Reduce $p$.} The step is a cGLP Reduce of some $A \in G^k_p$ with a clause $C \in M \subseteq M'_r$. Since $G^k_p$ is part of the goal of $\hat r$ and $C \in M'_r$, the identical reduction is a cGLP Reduce step of $L_r$, updating the goal and the substitution exactly as in maGLP and leaving the other agents' goals and the \verb|network| and \verb|person| goals untouched.
+\emph{Reduce $p$.} The step is a cGLP Reduce of some $A \in G^k_p$ with a clause $C \in M \subseteq M'_r$. Since $G^k_p$ is part of the goal of $\hat r$ and $C \in M'_r$, and $r$ is acyclic, the identical reduction is a cGLP Reduce step of $L_r$, updating the goal and the substitution exactly as in maGLP and leaving the other agents' goals and the \verb|network| and \verb|person| goals untouched.
 
 \emph{Input $p$.} The step adds $\{X? := T\}$ to $\sigma^k_p$, $X$ the writer of the tail of $p$'s person input stream or a writer in a message $p$ put on its person output stream. In $L_r$ the \verb|person|$_p$ goal holds $X$: the input stream's tail from the initial goal, and a message's writer once a Communicate delivers the message to it, which $\hat r$ takes first where $r$ has not. The clause of \verb|person|$_p$ for this input has $T$ at the position of $X$, so the Reduce of the \verb|person|$_p$ goal with it has the writer mgu $\{X := T\}$, adding $\{X? := T\}$ to the substitution of $\hat r$, as in maGLP; $r$ is finite, so \verb|person|$_p$ has a clause per input.
 
