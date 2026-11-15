@@ -61,7 +61,7 @@ Arithmetic comparison guards evaluate their arguments as arithmetic expressions 
 \end{center}
 
 \mypara{Time guards}
-Time guards provide access to the system clock for scheduling and synchronization:
+Time guards provide access to the machine's clock for scheduling and synchronization:
 
 \begin{center}
 \begin{tabular}{ll}
@@ -72,7 +72,7 @@ Time guards provide access to the system clock for scheduling and synchronizatio
 \verb|when_idle| & (no arguments) \\
 \end{tabular}
 \end{center}
-\noindent\verb|wait(D)| suspends for \verb|D| milliseconds then succeeds. \verb|wait_until(T)| suspends until the current time is at or past timestamp~\verb|T| (Unix milliseconds), then succeeds. \verb|when_idle| suspends while the machine has a Reduce or a Communicate to make, and succeeds when it has none.
+\noindent\verb|wait(D)| suspends until the clock reads \verb|D| milliseconds more than it read when the wait began, then succeeds. \verb|wait_until(T)| suspends until the clock reads \verb|T| or more, then succeeds. \verb|when_idle| suspends while the machine has a Reduce or a Communicate to make, and succeeds when it has none.
 
 \mypara{Monotonicity and implications}
 \verb|ground/1|, \verb|no_readers/1|, \verb|known/1|, \verb|widowed_writer/1| and \verb|widowed_reader/1| are monotonic. \verb|ground(X)| implies both \verb|no_readers(X)| and \verb|known(X)|, which do not imply each other: \verb|no_readers(X)| succeeds but \verb|known(X)| fails for an unassigned writer; \verb|no_readers(f(X?))| suspends but \verb|known(f(X?))| succeeds.
@@ -146,7 +146,8 @@ Structure & \verb|'_list_to_tuple'(Stream(_)?, _)| & List to compound term \\
 Text & \verb|'_string_concat'(List(String)?, String)| & Concatenation of strings \\
  & \verb|'_term_to_string'(_?, String)| & The text the reader reads as a term \\
 \hline
-Time & \verb|'_now'(Integer)| & Current Unix timestamp (ms) \\
+Time & \verb|'_now'(Integer)| & The machine's clock, a Unix timestamp (ms) \\
+ & \verb|'_set_clock'(Integer?)| & Set the machine's clock \\
 \hline
 Simulation & \verb|'_start_clock'(Integer?)| & Start the simulated clock \\
  & \verb|'_rated'(Number?, Token)| & A token pending for an exponential delay \\
@@ -202,7 +203,8 @@ A program declares every procedure it defines, with no \verb|_| or \verb|_?| in 
 \verb|procedure ..=(Stream(_), _?).| & Term decomposition \\
 \verb|procedure string_concat(List(String)?, String).| & Concatenation of strings \\
 \verb|procedure term_to_string(_?, String).| & The text the reader reads as a term \\
-\verb|procedure now(Integer).| & Current Unix timestamp (milliseconds) \\
+\verb|procedure now(Integer).| & The machine's clock, a Unix timestamp (milliseconds) \\
+\verb|procedure set_clock(Integer?).| & Set the machine's clock \\
 \verb|procedure :=(Number, Exp?).| & Arithmetic evaluation and assignment \\
 \verb|procedure random(Integer?, Integer?, Integer, Integer).| & Seeded random integer \\
 \verb|procedure split_random_seed(Integer?, Integer, Integer).| & Two independent seeds from one \\
@@ -253,8 +255,8 @@ Composition and decomposition are two predicates, not one bidirectional predicat
 
 Both are needed, and a program that walks an arbitrary term needs both together: \verb|..=| to take a compound apart and recurse on its arguments, \verb|=..| to rebuild it from the results. Decomposition alone descends without returning, and composition alone cannot get started.
 
-\mypara{Clock access (\texttt{now/1})}
-Binds the argument to the current Unix timestamp in milliseconds since the epoch.
+\mypara{Clock access (\texttt{now/1}, \texttt{set\_clock/1})}
+A machine has a clock, which reads the system clock until it is set. \verb|now(T)| binds \verb|T| to the clock's reading, a Unix timestamp in milliseconds since the epoch. \verb|set_clock(T)| sets the clock to \verb|T|, and the clock runs on from \verb|T|; the clause is guarded by \verb|integer(T?)| and invokes the \verb|'_set_clock'| body kernel. A test or a play sets the clock to the date it needs, and only they may: the host that starts a machine says whether its clock may be set, and the application on a smartphone says it may not; there \verb|set_clock| aborts.
 
 \mypara{Arithmetic evaluation and assignment (\texttt{:=})}
 Arithmetic assignment is defined recursively: each clause pattern-matches on an arithmetic operator, guards verify that operands are of the required type, and the body invokes the corresponding body kernel. An \verb|otherwise| clause handles the case where operands are themselves expressions, evaluating them recursively before retrying.
@@ -266,7 +268,7 @@ Arithmetic assignment is defined recursively: each clause pattern-matches on an 
 \verb|split_random_seed(Seed, S1, S2)| assigns \verb|S1| and \verb|S2| two seeds determined by \verb|Seed|, such that the sequences of draws from \verb|Seed|, from \verb|S1| and from \verb|S2| are independent streams: \verb|S1| is the mix of \verb|Seed| plus the increment, and \verb|S2| the mix of \verb|Seed| plus twice the increment, the increment and the mix those of \verb|random/4|. It is a body goal, not a guard; the clause is guarded by \verb|integer(Seed?)| and invokes the \verb|'_split_random_seed'| body kernel. A computation that draws from several seeds made by splitting one seed reproduces exactly from that seed.
 
 \mypara{Simulated time (\texttt{start\_clock/1}, \texttt{rated/2}, \texttt{step\_clock/2})}
-A machine has a \emph{simulated clock}, a real number of seconds, and a queue of \emph{pending tokens}, each with an activation time; \verb|now/1| and the time guards read the system clock. The types are \verb|Token ::= go(Number) ; stop| and \verb|ClockStep ::= released(Number) ; stopped(Number)|. \verb|start_clock(Seed)| binds every pending token to \verb|stop|, sets the clock to 0, and seeds the clock's generator with \verb|Seed|; the clause is guarded by \verb|integer(Seed?)|. \verb|rated(Rate, Tok)| makes the token \verb|Tok| pending, with activation time the clock plus $D$, where $D$ is drawn from the exponential distribution with rate \verb|Rate| per second; the clause is guarded by \verb|number(Rate?), Rate? > 0|. \verb|step_clock(Horizon, Step)| takes one step of the clock, and the clause is guarded by \verb|number(Horizon?)|. Where a token is pending whose activation time $T$ is the least and at most \verb|Horizon|, the step sets the clock to $T$, binds that token to \verb|go(|$T$\verb|)| and assigns \verb|Step| the term \verb|released(|$T$\verb|)|; two tokens of one activation time are released in the order in which they were made pending. Otherwise the step binds every pending token to \verb|stop| and assigns \verb|Step| the term \verb|stopped(|$C$\verb|)|, $C$ being the clock. Each of the three is a body goal that invokes the body kernel of its name, and \verb|rated| and \verb|step_clock| abort before the first \verb|start_clock|.
+A machine has a \emph{simulated clock}, a real number of seconds, and a queue of \emph{pending tokens}, each with an activation time; \verb|now/1| and the time guards read the machine's clock. The types are \verb|Token ::= go(Number) ; stop| and \verb|ClockStep ::= released(Number) ; stopped(Number)|. \verb|start_clock(Seed)| binds every pending token to \verb|stop|, sets the clock to 0, and seeds the clock's generator with \verb|Seed|; the clause is guarded by \verb|integer(Seed?)|. \verb|rated(Rate, Tok)| makes the token \verb|Tok| pending, with activation time the clock plus $D$, where $D$ is drawn from the exponential distribution with rate \verb|Rate| per second; the clause is guarded by \verb|number(Rate?), Rate? > 0|. \verb|step_clock(Horizon, Step)| takes one step of the clock, and the clause is guarded by \verb|number(Horizon?)|. Where a token is pending whose activation time $T$ is the least and at most \verb|Horizon|, the step sets the clock to $T$, binds that token to \verb|go(|$T$\verb|)| and assigns \verb|Step| the term \verb|released(|$T$\verb|)|; two tokens of one activation time are released in the order in which they were made pending. Otherwise the step binds every pending token to \verb|stop| and assigns \verb|Step| the term \verb|stopped(|$C$\verb|)|, $C$ being the clock. Each of the three is a body goal that invokes the body kernel of its name, and \verb|rated| and \verb|step_clock| abort before the first \verb|start_clock|.
 
 The clock's generator is that of \verb|random/4|, its state a seed. A draw replaces the state by the state plus the increment, and $D = -\ln(U)/\mathtt{Rate}$, where $U$ is one plus the mix of the new state, taken as an unsigned 64-bit integer and shifted right by 11 bits, over $2^{53}$, so that $0 < U \le 1$. A computation that makes its tokens pending in the same order reproduces exactly from the seed.
 
@@ -335,5 +337,5 @@ The level is the program's to set and cannot be the layer's, for a reason that d
 
 \verb|merge/3| remains the right construct where two streams are merged, or where the merge tree itself carries meaning --- a merge goal that is also the point at which a process terminates. \verb|mwm/2| is for many-to-one merging, which is the common case in a program routing many senders to one receiver.
 
-The complete definitions of \verb|:=|, \verb|now|, \verb|=..|, \verb|..=|, \verb|string_concat|, \verb|term_to_string|, \verb|random|, \verb|split_random_seed|, \verb|start_clock|, \verb|rated|, \verb|step_clock|, \verb|send_to_user|, \verb|send_to_net|, \verb|self_module|, \verb|decompose_module|, \verb|run|, \verb|self_key|, \verb|sign|, \verb|signature|, \verb|authorise_link| and \verb|mwm| are in \verb|programs/self.glp| of the public GLP repository.
+The complete definitions of \verb|:=|, \verb|now|, \verb|set_clock|, \verb|=..|, \verb|..=|, \verb|string_concat|, \verb|term_to_string|, \verb|random|, \verb|split_random_seed|, \verb|start_clock|, \verb|rated|, \verb|step_clock|, \verb|send_to_user|, \verb|send_to_net|, \verb|self_module|, \verb|decompose_module|, \verb|run|, \verb|self_key|, \verb|sign|, \verb|signature|, \verb|authorise_link| and \verb|mwm| are in \verb|programs/self.glp| of the public GLP repository.
 
