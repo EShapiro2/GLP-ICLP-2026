@@ -99,11 +99,11 @@ If the initial goals of all agents satisfy SO, then every goal in every agent's 
 An maGLP run is \temph{proper} if the run at each agent is proper (Definition~\ref{def:cglp-proper-run}). The \temph{outcome} of a proper maGLP run is the tuple of per-agent outcomes.
 \end{definition}
 
-To relate maGLP to deduction, consider the \temph{lifted system} $L_r$ of a finite proper maGLP run $r$: the cGLP transition system whose resolvent is the union of all agents' local resolvents, whose initial goal includes a \texttt{network} goal with channels paired to each agent's network channels and, for each agent $p$, a \texttt{person}$_p$ goal with channels paired to $p$'s person channel, and whose program $M'_r$ is $M$ augmented with the GLP definition of \texttt{network} and with a definition of each \texttt{person}$_p$ whose clauses write, in order, the terms the Input transactions of $r$ at $p$ write.
+To relate maGLP to deduction, consider the \temph{lifted system} $L_r$ of a finite proper maGLP run $r$: the cGLP transition system whose resolvent is the union of all agents' local resolvents, whose initial goal includes a \texttt{network} goal with channels paired to each agent's network channels and, for each agent $p$, a \texttt{person}$_p$ goal with channels paired to $p$'s person channel, and whose program $M'_r$ is $M$ augmented with the GLP definition of \texttt{network} and with a definition of each \texttt{person}$_p$ whose clauses write, in order, the terms the Input transactions of $r$ at $p$ write. The run $r$ is \temph{acyclic} if the set of all the reader assignments its transactions add to the agents' substitutions is acyclic.
 
 \begin{restatable}{proposition}{propMaGLPDeduction}
 \label{prop:maglp-deduction}
-Every finite proper maGLP run $r$ over $P$ and $M$ is simulated by a proper cGLP run of $L_r$ whose outcome is a logical consequence of $M'_r/?$.
+Every finite proper acyclic maGLP run $r$ over $P$ and $M$ is simulated by a proper cGLP run of $L_r$ whose outcome is a logical consequence of $M'_r/?$.
 \end{restatable}
 
 Every maGLP run is safe, so correctness (Definition~\ref{def:ts}) reduces to liveness.
