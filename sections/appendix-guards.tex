@@ -27,8 +27,8 @@ Guards provide read-only access to the runtime state of GLP computation; a defin
 \verb|known| & \verb|procedure known(_?).| & the argument is assigned a term & no \\
 \verb|unknown| & \verb|procedure unknown(_?).| & the argument is an unassigned variable & no \\
 \verb|no_readers| & \verb|procedure no_readers(_?).| & no reader occurs in the argument & no \\
-\verb|widowed_writer| & \verb|procedure widowed_writer(_).| & the reader paired to the writer the argument stands for occurs in no goal of the agent and in no link end the agent holds, the goal being reduced not counted & no \\
-\verb|widowed_reader| & \verb|procedure widowed_reader(_?).| & the writer paired to the reader the argument stands for occurs in no goal of the agent and in no link end the agent holds, the goal being reduced not counted & no \\
+\verb|widowed_writer| & \verb|procedure widowed_writer(_).| & the reader paired to the writer the argument stands for is reachable from no goal of the agent, the goal being reduced not counted, and occurs in no link end the agent holds & no \\
+\verb|widowed_reader| & \verb|procedure widowed_reader(_?).| & the writer paired to the reader the argument stands for is reachable from no goal of the agent, the goal being reduced not counted, and occurs in no link end the agent holds & no \\
 \verb|is_mutual_ref| & \verb|procedure is_mutual_ref(MutualRef?).| & the argument is a mutual reference & no \\
 \verb|@<| & \verb|procedure @<(Constant?, Constant?).| & both arguments are ground constants and the first precedes the second in the standard order & yes \\
 \verb|=?=| & \verb|procedure =?=(_?, _?).| & both arguments are ground and equal & yes (both) \\
@@ -40,7 +40,7 @@ Guards provide read-only access to the runtime state of GLP computation; a defin
 
 The standard order of constants: a number precedes a string; numbers compare by value, and strings by the codes of their characters, lexicographically; the empty list orders as the string \verb|[]|.
 
-A variable sent to another agent occurs in the link end the agent keeps for it until that end is retired, which the companion implementation paper specifies~\cite{shapiro2026implementing}: an agent that crashed retires every link end at its restart, and its peers retire their ends of the links with it when they learn of the crash. So a writer whose reader was sent away is not widowed while the link stands; a reader whose writer is at a peer that crashed, and a writer whose reader is there, are widowed once the agent learns of the crash, and a program waiting on either can take a clause guarded by \verb|widowed_reader| or \verb|widowed_writer| in place of the one that waits.
+A variable is \emph{reachable} from a goal if it occurs in the goal, or in the term that a readers substitution of the agent, not yet communicated, assigns to a reader reachable from the goal. A variable sent to another agent occurs in the link end the agent keeps for it until that end is retired, which the companion implementation paper specifies~\cite{shapiro2026implementing}: an agent that crashed retires every link end at its restart, and its peers retire their ends of the links with it when they learn of the crash. So a writer whose reader was sent away is not widowed while the link stands; a reader whose writer is at a peer that crashed, and a writer whose reader is there, are widowed once the agent learns of the crash, and a program waiting on either can take a clause guarded by \verb|widowed_reader| or \verb|widowed_writer| in place of the one that waits.
 
 \verb|is_mutual_ref| is admitted only to a system module, as are the body kernels that create, append through and close a mutual reference, the handle through which \verb|mwm/2| appends to the tail of its output stream in constant time: no other module can obtain one, so no other module can put the guard to use.
 
