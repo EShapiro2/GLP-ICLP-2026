@@ -8,7 +8,7 @@ Directory `/Users/udi/Grassroots/GLP-Spec`; remote `GLP-ICLP-2026`; main file `m
 
 ## Startup and handovers
 
-A GLP session reads the three papers' `CLAUDE.md` files --- this one, `/Grassroots/TGLP/CLAUDE.md` and `/Grassroots/IGLP/CLAUDE.md` --- then asks Udi which paper(s) it works on, reads each end to end (claude.md, "Sessions"), and reads the current handover its `CLAUDE.md` names.  The current handover, for all three papers, is `docs/handover-2026-11-13.md` (GLP #15, the project's paper Cloud).
+A GLP session reads the three papers' `CLAUDE.md` files --- this one, `/Grassroots/TGLP/CLAUDE.md` and `/Grassroots/IGLP/CLAUDE.md` --- then asks Udi which paper(s) it works on, reads each end to end (claude.md, "Sessions"), and reads the current handover its `CLAUDE.md` names.  The current handover, for all three papers, is `docs/handover-2026-11-16.md` (GLP #16, the project's paper Cloud).
 
 ## Rules specific to this project
 
@@ -21,5 +21,5 @@ A GLP session reads the three papers' `CLAUDE.md` files --- this one, `/Grassroo
 - **Every language ruling is Udi's to approve before it is issued (Udi, 2026-08-02).**  A ruling is anything that decides what GLP is: whether a construct exists or is removed, its name, signature or modes, what a guard, kernel or system predicate means, and which paper carries a subject.  Put it to him with the measurement, the alternatives and what each costs, as one recommendation, and wait; never post it to another project's inbox, write it into a paper or instruct a Code session on it before he has answered.  Answering what the language already says is not a ruling.
 - **Propose; do not "rule" (Udi, 2026-08-03).**  One recommendation for his approval, with the alternatives and their costs, numbered so he can answer briefly.
 - 🔴 **Never propose what makes the implementation slower, only faster** (Udi, 2026-11-16, to GLP #16, verbatim: "NEVER propose things that make the implementation slower, only faster"; on a proposal that the engine keep each variable's occurrence count for `widowed_writer/1`: "this should be part of the underlying garbage collection process, we discuss separately, you can put the guards on hold till we do").  The cost of `widowed_writer/1` and `widowed_reader/1` is on hold until that discussion.
-- The seam predicates `self_key/1`, `sign/3`, `signature/2` and `decompose_module/4` are in the catalogue; `verify/3`, `sign/2`, `signed/4`, `signed/2` and `valid_attestation/4` are gone, from the code too (`a3e1e13a`).  `signature/2` reports `signed(Key, Hash, _)` or `unsigned` rather than failing on a forgery (Udi, 2026-09-18).
+- The seam predicates `self_key/1`, `sign/3`, `signature/2` and `decompose_module/4` are in the catalogue; `verify/3`, `sign/2`, `signed/4`, `signed/2` and `valid_attestation/4` are gone, from the code too (`a3e1e13a`).  `signature/2` reports `signed(Key, Hash, Term)` or `unsigned` rather than failing on a forgery (Udi, 2026-09-18).
 - Open since 2026-08-03: read `IGLP/main_iglp.tex` and `GNA/main.tex` end to end for anything bearing on the language that has never reached the catalogue.
