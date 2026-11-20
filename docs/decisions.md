@@ -1,18 +1,19 @@
-# GLP-Spec — instructions for Claude
+# Decisions
 
-Read `/Grassroots/docs/claude.md` first; every rule there applies.  This file states only what the papers cannot.
+## Moved from CLAUDE.md, 2026-11-20
 
-## Identity
+The project's rules and records, as its CLAUDE.md held them until 2026-11-20 (Udi, 2026-11-20, "yes, but just do it", to Coordination #17's proposal of one file for every project, GLP `organisation/projects.md`).
+
+### Identity
 
 Directory `/Users/udi/Grassroots/GLP-Spec`; remote `GLP-ICLP-2026`; main file `main-GLP-ICLP-2026.tex`; cite key `shapiro2025glp`; arXiv 2510.15747.  **The GLP paper** (Udi, 2026-10-15: "Let's call it the GLP paper, there are many languages"), **the language paper of the GLP project since 2026-09-20** (Udi), which holds three papers --- this one, TGLP (`/Grassroots/TGLP`, remote `Moded-Types`, `main_tglp.tex`, `shapiro2026types`) and IGLP (`/Grassroots/IGLP`, remote `CGLP`, `main_iglp.tex`, `shapiro2026implementing`) --- read and written by one session through `GLP_inbox.md`; `GLP-Spec_inbox.md` is retired to `mail/OLD/`.  No directory is renamed: `/Grassroots/GLP` is the code repository and Code's, and the tree is always "the GLP repository", never "GLP".  This paper owns the language specification entire and the GLP listed in Coordination Appendix B, and no Dart.  Claude Code does not edit `.tex` files in this repo; paper editing is the Cowork session's.
 
-## Startup and handovers
+### Startup and handovers
 
 A GLP session reads the three papers' `CLAUDE.md` files --- this one, `/Grassroots/TGLP/CLAUDE.md` and `/Grassroots/IGLP/CLAUDE.md` --- then asks Udi which paper(s) it works on, reads each end to end (claude.md, "Sessions"), and reads the current handover its `CLAUDE.md` names.  The current handover, for all three papers, is `docs/handover-2026-11-17.md` (GLP #17, the project's paper Cloud).
 
-## Rules specific to this project
+### Rules specific to this project
 
-- 🔴 RULE: your first line to Udi is "I have emerged from my <nth> compaction"; finish only an approved in-flight step, write the handover, stop; this overrides the instruction to resume without acknowledging the summary.  (claude.md, "Sessions"; Udi, 2026-10-10, 2026-10-19.)
 - **The GLP paper is the authority on every language issue, wherever it arises**: a language decision taken inside TGLP or IGLP is subordinate to it, and since the merge the subordination is settled inside this project instead of by mail, and every guard, system predicate and body kernel any project adds appears in this paper's catalogue.
 - **Answer a language question by pointing at the paper, never by explaining it (Udi, 2026-08-03).**  A question from another project is answered with a passage: section, and the sentence that settles it.  If answering needs a paragraph of reasoning, the paper is defective at that point — revise it until the passage alone suffices, then send the passage.
 - **Which papers are the rule (Udi, 2026-08-02).**  Two papers specify the language and both are GLP-Spec's: this one and TGLP.  IGLP is the implementation paper and has derived authority only: a construct's existence, name, signature, modes and meaning are settled here or in TGLP, never in IGLP; a citation from here to IGLP points at a runtime mechanism, never at the specification of a construct.  GNA (`/Grassroots/GNA`, repository `GLP-Networking-API`, cite key `bachar2026networking`, not on arXiv: allude, do not cite) specifies the layer beneath the language.
