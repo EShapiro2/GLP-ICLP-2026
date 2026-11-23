@@ -1,0 +1,9 @@
+I propose a guard so that the Grassroots App can refuse a program that does not export the procedure it calls, and not stop.
+
+In the GLP paper, after the sentence on run/3 in Dynamic activation, and as a new row of the table of guards:
+
+e̲x̲p̲o̲r̲t̲s̲(̲M̲o̲d̲u̲l̲e̲,̲ ̲P̲/̲N̲,̲ ̲T̲y̲p̲e̲)̲ ̲s̲u̲c̲c̲e̲e̲d̲s̲ ̲w̲h̲e̲n̲ ̲t̲h̲e̲ ̲e̲x̲p̲o̲r̲t̲s̲ ̲o̲f̲ ̲M̲o̲d̲u̲l̲e̲ ̲r̲e̲c̲o̲r̲d̲ ̲t̲h̲e̲ ̲t̲y̲p̲e̲ ̲i̲d̲e̲n̲t̲i̲t̲y̲ ̲T̲y̲p̲e̲ ̲f̲o̲r̲ ̲P̲/̲N̲.̲
+
+e̲x̲p̲o̲r̲t̲s̲ ̲|̲ ̲p̲r̲o̲c̲e̲d̲u̲r̲e̲ ̲e̲x̲p̲o̲r̲t̲s̲(̲M̲o̲d̲u̲l̲e̲?̲,̲ ̲_̲?̲,̲ ̲C̲o̲n̲s̲t̲a̲n̲t̲?̲)̲.̲ ̲|̲ ̲t̲h̲e̲ ̲m̲o̲d̲u̲l̲e̲'̲s̲ ̲e̲x̲p̲o̲r̲t̲s̲ ̲r̲e̲c̲o̲r̲d̲ ̲t̲h̲e̲ ̲t̲h̲i̲r̲d̲ ̲a̲r̲g̲u̲m̲e̲n̲t̲ ̲a̲s̲ ̲t̲h̲e̲ ̲t̲y̲p̲e̲ ̲i̲d̲e̲n̲t̲i̲t̲y̲ ̲o̲f̲ ̲t̲h̲e̲ ̲s̲e̲c̲o̲n̲d̲ ̲|̲ ̲y̲e̲s̲
+
+Q: Do you approve?

@@ -1,0 +1,202 @@
+%==============================================================================
+\section{Module System}
+\label{sec:modules}
+%==============================================================================
+
+This section extends Typed GLP with a module system for type-safe composition of separately developed modules.
+
+\begin{definition}[Typed Procedure, Module]
+\label{def:module}
+A \temph{typed procedure} is a procedure declaration \verb|procedure |$p(T_1,\ldots,T_n)$\verb|.| immediately followed by a procedure for $p/n$ (\cref{def:glp-program}).  A \temph{module} is a sequence of type definitions and typed procedures, in which every type is defined before its use in a declaration, with a subset of the typed procedures \temph{exported}.
+\end{definition}
+
+\subsection{Design}
+\label{sec:mod-design}
+
+The module system rests on four principles.
+
+\mypara{Hierarchy mirrors the file system}
+A GLP program is organised as a source-code directory hierarchy, with a \verb|self.glp| module in its top directory.  Each \verb|.glp| file is a module; each directory is a scope.  A distinguished file \verb|self.glp| in any directory defines types and procedures shared by all modules in that directory and its descendants, following FCP's \verb|self.cp| convention~\cite{silverman1988logix}.  A directory's \verb|self.glp| is the directory's interface: alongside the shared definitions it declares which of the directory's procedures are \temph{exported}, and a call into the directory from outside it resolves only to a procedure its \verb|self.glp| exports.  A Typed GLP module is \temph{self-contained} if it does not include a cross-module call \verb|M#p| or an uninstantiated type parameter; self-containment concerns a module's calls and its types, not its scope, so a self-contained module still sees every scope above it.  A Typed GLP program is a directory carrying a \verb|self.glp| module, or a self-contained module, with one or more concrete initial goals (\cref{def:program}).  Compilation (Section~\ref{sec:compilation}) takes a program and yields a compiled module.
+
+\mypara{Implicit ancestor scoping}
+A module sees every type and procedure definition from every ancestor scope without any import directive.  The chain is anchored at the root, which lies at or above the directory of the program being compiled, so a program below the root sees the scopes between them.
+
+\mypara{Self-contained type checking}
+Every module declares the full moded type of every cross-module procedure it calls, via \verb|imported procedure| declarations.  A module may be checked separately against its own text and its ancestor scope; soundness is established on the linked program (\cref{def:program}), the unit of type checking.
+
+\mypara{Structural type compatibility}
+Two types with the same type automaton are compatible, regardless of their names or defining modules.
+
+\mypara{Procedure declarations}
+Every procedure declaration is one of three kinds:
+
+\begin{center}
+\begin{tabular}{ll}
+\verb|procedure p(...).| & private to the module \\
+\verb|exported procedure p(...).| & callable from other modules \\
+\verb|imported procedure M#p(...).| & declares dependency on module~$M$ \\
+\end{tabular}
+\end{center}
+
+Types referenced in an \verb|imported| declaration are resolved against the caller's type scope, or, written \verb|M#T|, against the exports of module \verb|M|: \verb|M#T| is the type \verb|T| that a declaration \verb|M| exports references, under \verb|M|'s definition of it, so a module importing a compiled procedure names its types once, by the module that defines them, and writes no copy of them.  \verb|M#Procedure| is the type of a goal of a procedure \verb|M| exports held as a term: the union of the declarations \verb|M| exports, the type \verb|Procedure| of Section~\ref{sec:procedure-declarations} restricted to them, with each argument type complemented, as an end of a channel is held at the dual of its other end's type.  A meta-program is parameterised by the type of the goals it interprets and called at it: a meta-interpreter declared \verb|procedure(G) reduce(Goal(G)?)|, with \verb|Goal(G) ::= true ; (Goal(G), Goal(G)) ; G|, is called as \verb|reduce(Goal(M#Procedure)?)| for the program \verb|M| it interprets, and, \verb|G| being an alternative of \verb|Goal(G)|, it is checked at each program it interprets (\cref{sec:abstract-parameters}), the functors of \verb|M|'s declarations distinct from \verb|true| and \verb|,|.  Its clauses read the interpreted program's clauses from a table typed at \verb|G|, \verb|procedure(G) clause(Goal(G)?, Goal(G))|, with the entries \verb|clause(true, true)| and \verb|clause((A, B), (A?, B?))| beside the program's own, since an \verb|otherwise| guard narrows no type.  Export and import are declared per procedure; there are no separate export or import lists.  A declaration carries the transitive closure of the types its signature references, so types are not exported separately.
+
+\mypara{External access}
+A procedure of a program is externally accessible only if the program's \verb|self.glp| exports it.  The program's \verb|self.glp| exports a procedure by declaring it \verb|exported| and either defining it directly or giving a forwarding clause whose body is the cross-module call $M\#p$ to a module that defines $p$, each argument threaded at its declared polarity.  Depth does not decide accessibility: a procedure is an entry point exactly when the program's \verb|self.glp| exports it, by definition or by forwarding.
+
+\mypara{Scope construction}
+A device nominates one directory as its \temph{root}, and every compilation on that device is under that root.  A program lies at or below the root, and the scope of each of its modules runs from the root down to that module.
+
+\begin{definition}[Root, Scope]
+\label{def:scope}
+Let $\mathcal{D}$ be the directories of a file system, $d \preceq d'$ that $d$ is $d'$ or an ancestor of it, and $\mathrm{dir}(M)$ the directory holding a module $M$.  Write $d.\mathtt{self}$ for the module defined by the \verb|self.glp| of $d$, undefined where $d$ holds no such file; $\Pi$ for the GLP language primitives (Appendix~\ref{sec:root-self}); and $E \sqcup E'$ for the merge of two scopes in which $E'$ shadows $E$.
+
+A \temph{root} is a directory $r \in \mathcal{D}$.  For a module $M$ with $r \preceq \mathrm{dir}(M)$, let $d_1,\ldots,d_k$ be the directories from $d_1 = r$ to $d_k = \mathrm{dir}(M)$ in order.  The \temph{scope of $M$ under $r$} is
+\[
+  \Sigma_r(M) \;=\; \Pi \sqcup d_1.\mathtt{self} \sqcup \cdots \sqcup d_k.\mathtt{self} \sqcup M,
+\]
+omitting each $d_i.\mathtt{self}$ that is undefined.
+\end{definition}
+
+The root is a property of the device and not of the program.  For $r \prec r' \preceq \mathrm{dir}(M)$ the scopes $\Sigma_r(M)$ and $\Sigma_{r'}(M)$ differ in general, by $d.\mathtt{self}$ for $r \preceq d \prec r'$, and nothing in the file system tells the two apart: a directory without a \verb|self.glp| is no boundary, $\Sigma_r$ omitting it and continuing past it, and a directory with one is not thereby a root.  The root is therefore nominated rather than derived, and what a party receiving a compiled module relies on is the key of the device that compiled it, which that party accepts or rejects~\cite{shapiro2025glp}.
+
+The language primitives and a directory \verb|self.glp| enter a scope by different routes.  The \temph{language primitives} are the primitive types, the guard predicates and the body kernels, which the runtime implements (Appendix~\ref{app:machine-primitives}); they are the base of every scope, for every module of every program, wherever that program sits in a file system.  They are not an ancestor directory and are not reached by the path from $r$.  A \temph{directory \texttt{self.glp}} is an ordinary module, reached only by that path, and contributes to $M$'s scope exactly when its directory is $r$ or lies between $r$ and $M$.  The root \verb|self.glp| is one, and defines in GLP the predefined types and the kernel and seam predicates~\cite{shapiro2025glp}.
+
+Two consequences follow, and they are independent of each other.  The root \verb|self.glp| is in the scope of every module compiled on the device, wherever that module's program sits below the root: it is $d_1$.  And a directory \verb|self.glp| off the path from $r$ to $M$ contributes nothing to $M$---not its definitions and not the modules it exposes---however near it lies in the file system.  A repository whose top \verb|self.glp| both declares the language primitives and holds definitions and \verb|-expose| directives of its own therefore is reached by the two routes: a module compiled under a different root keeps the primitives and loses everything else in it.
+
+Common protocol types are defined once at the lowest common ancestor of all modules that use them.
+
+\mypara{The \texttt{-expose} directive}
+A \verb|self.glp| may contain the directive \verb|-expose(M).|, which lifts the exported procedures of module \verb|M| (and the types their signatures carry) into that directory's scope, as if defined in its \verb|self.glp|.  \verb|M| is a module path (e.g., \verb|lib#streams|), resolved relative to the directory of the \verb|self.glp| containing the directive, within that directory's subtree.  Shadowing applies as usual: a procedure the \verb|self.glp| defines shadows one of the same name and arity it exposes; two exposed modules contributing the same name and arity at one level is an error.  An exposed procedure is callable by name inside the directory and its descendants, but it is not thereby exported by the program's \verb|self.glp|, so it is an entry point only if the program's \verb|self.glp| exports it in its own right.
+
+\mypara{Cross-module type checking}
+A cross-module call \verb|M # p(|$a_1, \ldots, a_n$\verb|)| in module~$N$ is well-typed if $N$ contains a declaration \verb|imported procedure M#p(|$T_1, \ldots, T_n$\verb|)| and for each argument $a_i$, the type of $a_i$ in the clause context is compatible with $T_i$ under the standard well-typing rules of Section~\ref{section:well-typing}, including subtyping with mode variance.  This is identical to the well-typing rule for local calls, substituting the imported declaration for a local one.  The imported declaration must agree with the declaration \verb|M| exports: their type automata are equal (structural type compatibility) once the exported declaration's type parameters, if any, are instantiated (\cref{def:instantiation}); subtyping applies to the arguments of a call, not between the two declarations.  Where the imported declaration names type parameters, as an exported one may (\cref{sec:param-procedures}), the call instantiates them as a local call does (\cref{def:instantiation}): a parameter the importing module holds open stays open across the module boundary and is fixed at the call, the clauses of the called procedure being those of the linked program (\cref{def:program}).  The qualifier \verb|M| is a single child directory or module file relative to the caller's directory: a directory is entered through its \verb|self.glp|, a module file through its own \verb|exported| declarations.  Multi-segment path qualifiers \verb|d1#...#dk#p| are future work.
+
+\mypara{Example}
+Consider a social graph application with an agent module and an application module.  Shared types are defined in \verb|self.glp|:
+
+\begin{verbatim}
+%% self.glp
+Response ::= accept(FriendChannel) ; no.
+AgentContent ::= befriend(Constant, Response?)
+               ; connected(Constant)
+               ; rejected.
+AgentChannel ::= ch(AgentToUserStream, UserToAgentStream?).
+\end{verbatim}
+
+The agent module exports a single procedure:
+
+\begin{verbatim}
+%% agent.glp
+exported procedure agent(Constant?, UserInStream?,
+                         NetInStream?, OutputsList?).
+procedure(X) merge(Stream(X)?, Stream(X)?, Stream(X)).
+\end{verbatim}
+
+The application module declares its dependency:
+
+\begin{verbatim}
+%% app.glp
+imported procedure agent#agent(Constant?, UserInStream?,
+                               NetInStream?, OutputsList?).
+\end{verbatim}
+
+and calls \verb|agent # agent(alice, UserIn?, NetIn?, Outs)|.  The type checker verifies this call against the local \verb|imported| declaration using the types from \verb|self.glp| (visible to both modules via ancestor scoping), without reading \verb|agent.glp|.  Both modules may define a private \verb|merge/3| without conflict, since each is scoped to its own module.
+
+\subsection{Compilation}
+\label{sec:compilation}
+
+Compilation takes a program (Section~\ref{sec:mod-design}) and yields a \temph{compiled module}, a value of the primitive type \verb|Module|, or rejects the program and yields none.  Linking is a step of it rather than a process after it: a compiled module is a single flat program in which every cross-module call has become a local call.
+
+The transformation proceeds in five steps.  First, the compiler collects every \verb|.glp| file of the program's directory tree, together with the \verb|self.glp| of each directory from the root down to the program, and every module a \verb|self.glp| among them exposes, with the \verb|self.glp| of each directory from the root down to that module, and constructs the scope of each module (\cref{def:scope}); an exposed module outside the program's tree is compiled in its own scope, as every module is, and a call it makes to a procedure of a \verb|self.glp| on its own chain resolves there.  Second, each module is checked against its scope---for SRSW, its guards and its types---exactly as a single-module program is, whether or not an entry point reaches it.  Third, after type checking, every procedure $p/n$ and every type $T$ in every \verb|.glp| file (including \verb|self.glp| files) is renamed to $M{:}p/n$ and $M{:}T$, where $M$ is the module's path from the root, eliminating name collisions---for example, both \verb|agent.glp| and \verb|app.glp| may define \verb|merge/3| and a type \verb|Msg|, yielding \verb|agent:merge/3| against \verb|app:merge/3| and \verb|agent:Msg| against \verb|app:Msg|, while \verb|secure/app.glp| yields the distinct \verb|secure/app:merge/3|.  Types are renamed on the same argument as procedures: two sibling modules have distinct scopes, so two same-named types defined in them are two types, which one flat namespace would otherwise make one, checking a module against a definition it cannot see.  Fourth, every goal in every clause body is resolved: a local call to $p$ in module~$M$ becomes $M{:}p$, a cross-module call $M'\#p$, whose qualifier is a single child directory or module file relative to the caller's directory, resolves to the procedure $p$ that the qualifier exports---a directory exports through its \verb|self.glp|, a module file through its own \verb|exported| declarations---renamed to its prefix ($M'{:}p$), and a call matching a procedure in an ancestor \verb|self.glp| is resolved to its renamed form by walking the scope; every type reference is resolved the same way, to the renamed type of the nearest scope defining it.  A type is named by its name and its number of parameters, as a procedure is named by its name and arity.  Exposed procedures resolve like procedures of the exposing directory's \verb|self.glp|.  Fifth, the compiler retains the \temph{reachable} procedures: the exported procedures of the program's \verb|self.glp|, and every procedure called in the body of a reachable one.  These exports are the compiled module's \temph{entry points}, called by plain name by a goal posted to it.  For each entry point the compiler generates an \temph{alias clause}, whose head carries the entry point's plain name and whose body is the single goal naming the renamed procedure, each argument threaded at its declared polarity as in the forwarding clause of Section~\ref{sec:mod-design}: a writer in the head and its paired reader in the body at each consumed argument, a reader in the head and its paired writer in the body at each produced one.  A single-module program, having no \verb|self.glp|, exports all its procedures, so every one is an entry point.  Restricting the program to its reachable procedures is semantically equivalent to the whole.
+
+\mypara{Sources compiled to GLP}
+A directory may hold sources in a language compiled to GLP modules, as the \verb|.vglp| sources of~\cite{shapiro2026volition} are.  The types the compilation of a directory's sources forms are defined in that directory's scope, as if its \verb|self.glp| defined them, and so are in the scope of every module at or below that directory, in whatever program it is compiled and when it is loaded alone; a module elsewhere names them by \verb|M#T|, as it names any type of another module's exports.  The sources are compiled in the directory's scope without those types, and the directory's \verb|self.glp| is checked after, with them.
+
+The flat program is the linked program of \cref{def:program}, and it is the object checked.  Every clause in it satisfies SRSW, as \cref{def:glp-program} requires of a GLP program, the alias clauses of the fifth step included, and every clause in it is type-checked, an alias clause at the declaration of its entry point.  Type checking it verifies each procedure's clauses at the concrete types of every call to it, now that every call is local.  This check is more stringent than the per-module check, as it checks the called procedure's clauses against the concrete types the call supplies.  A program failing it is rejected, and compilation yields the rejection and no module.
+
+\mypara{Obtaining a compiled module}
+Compilation and file reading are language constructs, specified in the GLP language paper~\cite{shapiro2025glp}.  \verb|compile| compiles the program a path names, assigning either the compiled module or the errors that rejected it and, where it succeeds, writing the module as an artefact in that program's own directory; \verb|load_file| reads a file within the calling module's own directory, assigning the module the file holds where it is a certified compiled module, and its text otherwise.  A module also reaches an agent as a value over a typed stream, which is the case of Section~\ref{sec:dynamic-linking}.
+
+\mypara{Entry and the absence of a boot module}
+A directory program is identified by its directory, and that directory is what compilation is given.
+A compiled module is entered by posting a goal to it, and the goal calls an entry point by plain
+name.  The module defining the procedure a program starts from is reached like any other: the
+program's \verb|self.glp| exports that procedure, by definition or by forwarding.  No module has a
+distinguished status as the program's start, so there is no boot module to find, and the procedures
+that may be posted are exactly the entry points.  A module named \verb|boot| is an ordinary module
+and the name carries no status; several of the applications of
+Section~\ref{sec:mod-implementation} have one, and it is reached like any other.
+
+A program whose \verb|self.glp| exports no procedure therefore has no entry points, which the fifth
+step restricts to the empty set of procedures.  No goal resolves against it, so it is not a program
+in the sense of \cref{def:program}, and compilation rejects it rather than flattening it and
+reporting success.  A directory with no \verb|self.glp| at all is rejected for the prior reason: a
+program is a directory carrying a \verb|self.glp| or a self-contained module
+(Section~\ref{sec:mod-design}), and such a directory is neither.  A directory of modules that is not
+a program---a library reached by ancestor scoping, or a collection of examples compiled one at a
+time---is used as those are used, and is not compiled as a program at all.
+
+A single file used to start several agents at once---a test, a demonstration---may carry a clause
+whose body goals are written $G@p$, naming an initial goal and the agent to run it at, and the persons
+scripted in GLP that the clause names~\cite{shapiro2026implementing}, and nothing else: the agents' program is a
+program directory, which the agents load.  That is
+invocation notation and not a construct of the language: it says what the runtime starts and where,
+as a command line does, and the compiler consumes it before type checking.  No term of GLP has that
+form, no module may contain one, and a program directory carries none.
+
+Only a well-typed program (\cref{def:well-typed-program-modular}) yields a compiled module.
+
+\subsection{Dynamic Activation}
+\label{sec:dynamic-linking}
+
+Dynamic activation runs a goal on a module that is not present at compile time but arrives at run time as a value of the primitive type \verb|Module|.  Its type discipline rests on a \emph{type identity}: the hash of the full type automaton of a procedure declaration, in canonical minimised form, with every type the signature references expanded and the procedure-name label abstracted---not of the declaration's text.  By structural type compatibility (Section~\ref{sec:mod-design}), two declarations are compatible exactly when their automata are equal, hence exactly when their type identities are equal.  The name is abstracted because two declarations with the same argument types are compatible whatever they are called: the procedure transition of \cref{def:transition-function} contributes to the identity its arity, argument position and mode, and not its functor.  The two constructs that obtain an identity and perform an activation, \verb|find_type/2| and \verb|run/3|, are language constructs and are specified in the GLP language paper~\cite{shapiro2025glp}, which cites this one for the type identity and the compatibility they rest on.  \verb|find_type| assigns the type identity of a declaration in the caller's scope; \verb|run| activates a module value and posts a goal to it where the identity supplied equals the one the module's exports record for the goal's predicate.
+
+The activation check compares hashes; no runtime type checking of terms is introduced.  Soundness is conditional: if \verb|Goal| is well-typed by a declaration whose type identity is \verb|Type|, and \verb|run| activates, then the goal's author and the module hold equal automata for the conversation, and the terms crossing the boundary conform on both sides.  The condition is a requirement on the clause that authors the goal: it must have \verb|Goal| well-typed by the declaration of its predicate in scope, with \verb|Type| that declaration's identity, obtained via \verb|find_type|.  Under delegation the running module holds no declaration of \verb|Goal|'s predicate: \verb|Goal| and \verb|Type| arrive together over a typed stream, the condition having been enforced where they were authored.
+
+A procedure declared at a scope shared by the goal's author and the module---their lowest common ancestor \verb|self.glp|---has the same automaton on both sides by construction; the hash covers the case with no shared scope, a module shipped from another agent.  Within one agent every module was compiled there, and equality of type identities completes the check; for a shipped module, that it is a well-typed module whose exports record true identities rests on the attestation of Section~\ref{sec:runtime-boundary}.  Section~\ref{sec:runtime-boundary} exchanges this same identity for the types of a conversation; the module source hash exchanged alongside it identifies the code and not the types, so two agents holding one type under two defining sources still match on it.
+
+\mypara{Opaque types}
+A program that activates modules it was not compiled with, as a platform hosting applications does, cannot hold a declaration of every type of every module it activates.  It need not.  Such a \temph{host} and a module it activates, its \temph{guest}, communicate in two ways: with the host, at types the host declares, which the guest uses as they are; and with the executions of the same guest at other agents, at the guest's own types, which are opaque to the host.  For the second, the host declares one parameterised procedure, its \temph{entry template}, whose type parameters type the channel between two executions of a guest and every value of the guest's own that passes through the host uninspected, such as a value the guest draws for its person on a channel the host declares; a guest whose values are of several types instantiates a parameter with their union.  The host's procedures that handle such values pass them on and never inspect a term of a parameter's type, so they are parametrically well-typed (\cref{def:parametrically-well-typed}) and checked once for every guest.  A guest declares its entry as the template's instance at its own types.  A host that holds the ends of several guests in one structure, as a stream of invitations does, types them by \verb|Opaque|, the union of all opaque types (\cref{def:abstract-type}), in place of the parameter---\verb|Stream(Opaque)| for ends typed by the parameter itself, \verb|Stream(C(Opaque))| for ends of a channel type \verb|C| over it---and can only pass them on.  The type checker takes \verb|Opaque| back to one opaque type in one place: in a goal that \verb|run| activates at an opaque instance at $h_1, \ldots, h_k$, a variable of type $T^\circ$ may stand at a position typed $T$, for a type $T$ whose opaque types are labelled among $h_1, \ldots, h_k$.
+
+\begin{definition}[Type Identity of a Type, Opaque Instance]
+\label{def:opaque-instance}
+The \temph{type identity} $\iota(T)$ of a type $T$ is the hash of its type automaton in canonical minimised form, as for a procedure declaration.  Let $D$ be a parameterised procedure declaration with type parameters $X_1, \ldots, X_k$, and $h_1, \ldots, h_k$ type identities.  Where no $X_i$ occurs as an alternative of a type definition, the \temph{opaque instance} $D\langle h_1, \ldots, h_k\rangle$ replaces each $X_i$ by an opaque type (\cref{def:abstract-type}) labelled $h_i$, two such opaque types being one state exactly when their labels are equal; its type identity is that of the resulting declaration, an opaque type printed as its label.
+\end{definition}
+
+We write $\bar T$ for types $T_1, \ldots, T_k$ and $\iota(\bar T)$ for the list $\iota(T_1), \ldots, \iota(T_k)$, in the order of $D$'s parameters.  A guest $M$ records in its exports, for each entry that is a template $D$'s instance at its types $\bar T$, the type identity of $D\langle\iota(\bar T)\rangle$, and with it the list $\iota(\bar T)$.  The host obtains $\iota(\bar T)$ from the module value and computes the type identity of $D\langle\iota(\bar T)\rangle$ from its own declaration of $D$; \verb|run| activates $M$ where the two are equal.  The constructs that do so are the GLP language paper's~\cite{shapiro2025glp}; each takes the list, and refuses one whose length is not the number of $D$'s parameters.
+
+\mypara{The invitation discipline}
+An agent running a guest $M$ invites another agent with two things and nothing else: the module identity of $M$ (Section~\ref{sec:runtime-boundary}), and one end of a channel of the host's entry template at the guest's types, opaque to the host.  The invitee's host activates the same module $M$ and hands it the other end.  Both ends run $M$, so they instantiate the template with the same types, and the attestation of Section~\ref{sec:runtime-boundary} compares the type identity of the template's opaque instance as the type identity of the conversation's root channel.  The discipline is what makes the step from \verb|Opaque| sound: the end the invitee's host hands to $M$ arrived with $M$'s module identity, from an execution of $M$.  The step is sound also where the host itself mints a channel at a parameter's type and hands its two ends to two activations of one module value at one list $\iota(\bar T)$, as a host does for a guest's channel to its person: \verb|opaque_type| yields one list for the two entries, which the host checks, and both ends run $M$ at $\bar T$.
+
+\begin{proposition}[Opaque Activation]
+\label{prop:opaque-activation}
+Let a host's procedures that handle its entry template $D$'s parameters be parametrically well-typed, no type parameter occurring as an alternative of a type definition, and let a guest $M$ be well-typed, its entry declared as $D$'s instance at its types $\bar T$.  Let \verb|run| activate $M$ on a goal the host authors, the type identity of $D\langle\iota(\bar T)\rangle$ equal to the one $M$'s exports record for its entry, each variable of type $S^\circ$ that the goal places at a position typed $S$, the opaque types of $S$ labelled among $\iota(\bar T)$, holding an end received under the invitation discipline with $M$'s module identity, or one end of a channel the host minted whose other end it hands to an activation of the same module value at $\iota(\bar T)$.  Then the host's clauses at $D\langle\iota(\bar T)\rangle$ and $M$'s clauses are well-typed with subtyping, and every term that crosses between the host and $M$, or between two executions of $M$, conforms at $\bar T$ to the declaration of the side that reads it, though the host was never checked at $\bar T$.
+\end{proposition}
+
+\begin{proof}
+By \cref{lem:parametricity}, the host's clauses instantiated at the opaque types labelled $\iota(T_1), \ldots, \iota(T_k)$ are well-typed with subtyping.  Equal type identities are equal automata, by structural type compatibility, and an opaque type labelled $\iota(T_i)$ stands for the minimised automaton of $T_i$, whose hash it is; so the host's declaration of $D$ at those opaque types and $M$'s declaration of its entry have equal automata once each label is read as its type, and a goal the host authors, well-typed by the one, is well-typed by the other.  A variable of type $S^\circ$ that the goal places at a position typed $S$ holds an end that arrived with $M$'s module identity from an execution of $M$, or one end of a channel the host minted whose other end an activation of the same module value holds, so that both ends run $M$, where $D$'s parameters type it at $\bar T$, and the attestation of Section~\ref{sec:runtime-boundary} compares the root channel's type identity.  $M$'s clauses are well-typed by its own declarations, and the host inspects no term of an opaque type.  Hence every term that crosses between the host and $M$, or between two executions of $M$, conforms at $\bar T$ to the declaration of the side that reads it.
+\end{proof}
+
+The type identity is implemented---automaton expansion, minimisation, canonical serialisation, hash, and the declared and exported tables of a module (Appendix~\ref{sec:implementation-notes}).  The two constructs are implemented and type checking their call sites is future work; compilation ahead of execution (Section~\ref{sec:compilation}) is the model in force.
+
+\subsection{Type-Compatible Attestation Between Agents}
+\label{sec:runtime-boundary}
+
+The guarantee of Theorem~\ref{thm:soundness} requires a well-typed program and a well-typed initial goal.  Within a single program both are established at compile time.  A term arriving from another agent, however, is produced outside the scope of the receiver's type checker, so for such a term neither hypothesis is fulfilled by the checks above.
+
+Cross-agent communication takes place only between mutually attested runtimes.  Participants prove to one another that they run the same module encoding the shared protocol, and that the variables through which they communicate carry the same types, by exchanging the module identity---the hash of its source---and the type identity of the conversation's root channel (Section~\ref{sec:dynamic-linking})---and proceeding only on equality; derived variables undergo no handshake, their types being determined at both ends by the root type and the communications.  Equal type identities are equal type automata, hence one type by structural compatibility, so the peer writes every variable of the conversation as a well-typed program under the same type discipline, fulfilling the well-typed-input hypothesis and eschewing runtime typechecking.  The architecture, and the theorem that mutually attested well-typed agents compose into a well-typed system, are developed in work in preparation.
+
+The remaining producer of unchecked terms is the initial goal posted to the runtime, at boot or interactively; it is type-checked before execution as a body goal (\cref{def:well-typed-clause}).
+
+\subsection{Implementation}
+\label{sec:mod-implementation}
+
+The module system has been implemented in Dart as part of the GLP runtime.  Ancestor type scoping, the three procedure declaration kinds, and cross-module type checking are operational.
+
+Compilation is implemented as the AST-to-AST transformation of Section~\ref{sec:compilation}.
+
+An earlier dynamic-dispatch mechanism, which routed cross-module calls through channels at runtime, could not be typed without runtime type-checking, which the language avoids; it was removed from the runtime once dynamic activation (Section~\ref{sec:dynamic-linking}) was implemented.
+
+The system is validated by the multi-module programs of the GLP repository's test suite.  One is the social graph of \verb|programs/social/graph|, a directory program whose test scenarios---silent plays, befriending, unfriending from either side, and introductions---load through compilation and run.
+
+Before parameterised types, a generic stream utility such as \verb|merge| could not be fully typed: its declaration could not express ``this operation preserves the specific type of its input.''  With the parameterised type declarations of Section~\ref{sec:parameterized-types} it can, and the root \verb|self.glp| declares \verb|procedure(X) merge(Stream(X)?, Stream(X)?, Stream(X)).|

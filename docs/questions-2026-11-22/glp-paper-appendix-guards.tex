@@ -1,0 +1,343 @@
+\section{Guards, Kernel and Seam Predicates}\label{appendix:guards-system}
+
+Guards, kernel predicates and seam predicates extend GLP programs with access to the GLP runtime state, operating system and hardware capabilities.
+
+\mypara{Predefined types}
+The predefined types, available in every GLP program, are \verb|Stream(X)|, \verb|List(X)|, \verb|OpenStream(X)|, \verb|DiffList(X)|, \verb|Channel(In, Out)|, \verb|Closed|, \verb|MwmInput(X)|, \verb|Number|, \verb|Constant|, \verb|Key|, \verb|SignedTerm|, \verb|Hash|, \verb|Signature|, \verb|GlobalName|, \verb|NetMsg(X)|, \verb|Answer|, \verb|PeerAddress|, \verb|App|, \verb|Declaration|, \verb|Removal|, \verb|ProximityUnderlay|, \verb|Network|, \verb|TrustLevel|, \verb|PlaceEvent|, \verb|Presence|, \verb|Reach|, \verb|Token|, \verb|ClockStep|, \verb|Compiled|, \verb|Content|, \verb|Path|, \verb|Input(T)|, \verb|Widget|, \verb|Draw(T)|, \verb|PersonChannel(T)|, \verb|RootChannel(T)|, \verb|Conversation(T)|, \verb|SgToApp(T)|, \verb|AppToSg|, \verb|SgChannel(T)|, and the arithmetic-expression type \verb|Exp|; their definitions are in \verb|programs/self.glp| of the public GLP repository, which also declares the entry templates \verb|miniapp/3| and \verb|miniapp_person/5| that a host's guests instantiate (Typed GLP companion paper~\cite{shapiro2026types}), and defines \verb|SSchema|, \verb|SContract| and \verb|SDeclared| and the types they are built of, the term form of a contract in the clause syntax of~\cite{shapiro2026formalising}, which the contracts of every platform share, the root being the one directory above them all (Typed GLP companion paper, Module System). \verb|Integer|, \verb|Real|, \verb|String|, \verb|Module| and \verb|MutualRef| are primitive types built into the runtime.  An \verb|Integer| is a 64-bit two's-complement integer and a \verb|Real| an IEEE~754 binary64 number, and integer arithmetic wraps on overflow, as Dart's does: GLP is implemented in Dart, and its integers are Dart's.  A number is written as its digits, with an optional minus directly before them; a minus after an operand is subtraction. An integer and a real are distinct constants, as \verb|Number| is the union of the two: \verb|1| and \verb|1.0| do not match.  A functor and its opening parenthesis, and a type or a variable and its \verb|?|, are written with nothing between them, and the reader refuses a program that puts white space or a line break there.  \verb|Opaque|, the union of all opaque types, is built into the type checker: a program can only pass a term of it on (Typed GLP companion paper~\cite{shapiro2026types}).  \verb|Term|, the type of every term, is built into the type checker likewise (Typed GLP companion paper).
+
+Some predefined types name a structure another already denotes. Type identity being structural, the checker treats such a pair as one type and will accept either where the other is declared; the second name buys no checking. It is declared all the same, for two reasons. It says what a value is for where the structure alone does not --- a key and a hash are both strings and are not the same thing to a reader --- and it localises a later change of representation to one definition rather than to every declaration that would otherwise have named the structure directly.
+
+\mypara{Guard predicates}
+Guards provide read-only access to the runtime state of GLP computation; a defined guard (below) also assigns writers. A guard appears after the clause head, separated by \verb=|=, and must be satisfied for the clause to be selected. The ``Ground'' column indicates whether success of the guard implies that the argument is ground; such guards permit multiple occurrences of both the writer and the reader in the clause (Definitions~\ref{def:ground-guarded} and~\ref{def:guarded-srsw}). A guard suspends while no instance of its argument under a readers substitution decides it (Section~\ref{sec:guards}).
+
+\begin{center}
+{\footnotesize
+\begin{tabular}{@{}llp{0.31\textwidth}l@{}}
+\textbf{Guard} & \textbf{Signature} & \textbf{Succeeds when} & \textbf{Ground} \\
+\hline
+\verb|integer| & \verb|procedure integer(Integer?).| & the argument is an integer & yes \\
+\verb|real| & \verb|procedure real(Real?).| & the argument is a real & yes \\
+\verb|number| & \verb|procedure number(Number?).| & the argument is a number & yes \\
+\verb|string| & \verb|procedure string(String?).| & the argument is a string & yes \\
+\verb|constant| & \verb|procedure constant(Constant?).| & the argument is a constant & yes \\
+\verb|module| & \verb|procedure module(Module?).| & the argument is a module & yes \\
+\verb|compound| & \verb|procedure compound(_?).| & the argument is a compound term & no \\
+\verb|list| & \verb|procedure list(_?).| & the argument is the empty list or a list cell & no \\
+\verb|ground| & \verb|procedure ground(_?).| & the argument is ground & yes \\
+\verb|known| & \verb|procedure known(_?).| & the argument is assigned a term & no \\
+\verb|unknown| & \verb|procedure unknown(_?).| & the argument is an unassigned variable & no \\
+\verb|no_readers| & \verb|procedure no_readers(_?).| & no reader occurs in the argument & no \\
+\verb|widowed_writer| & \verb|procedure widowed_writer(_).| & the reader paired to the writer the argument stands for is reachable from no goal of the agent, the goal being reduced not counted, and occurs in no link end the agent holds & no \\
+\verb|widowed_reader| & \verb|procedure widowed_reader(_?).| & the writer paired to the reader the argument stands for is reachable from no goal of the agent, the goal being reduced not counted, and occurs in no link end the agent holds & no \\
+\verb|is_mutual_ref| & \verb|procedure is_mutual_ref(MutualRef?).| & the argument is a mutual reference & no \\
+\verb|@<| & \verb|procedure @<(Constant?, Constant?).| & both arguments are ground constants and the first precedes the second in the standard order & yes \\
+\verb|=?=| & \verb|procedure =?=(_?, _?).| & both arguments are ground and equal & yes (both) \\
+\verb|=?\=| & \verb|procedure =?\=(_?, _?).| & no readers substitution makes the arguments ground and equal & no \\
+\verb|otherwise| & (no arguments) & every previous clause of the procedure fails & --- \\
+\end{tabular}
+}
+\end{center}
+
+The standard order of constants: a number precedes a string; numbers compare by value, and strings by the codes of their characters, lexicographically; the empty list orders as the string \verb|[]|.
+
+A variable is \emph{reachable} from a goal if it occurs in the goal, or in the term that a readers substitution of the agent, not yet communicated, assigns to a reader reachable from the goal. A variable sent to another agent occurs in the link end the agent keeps for it until that end is retired, which the companion implementation paper specifies~\cite{shapiro2026implementing}: an agent that crashed retires every link end at its restart, and its peers retire their ends of the links with it when they learn of the crash. So a writer whose reader was sent away is not widowed while the link stands; a reader whose writer is at a peer that crashed, and a writer whose reader is there, are widowed once the agent learns of the crash, and a program waiting on either can take a clause guarded by \verb|widowed_reader| or \verb|widowed_writer| in place of the one that waits.
+
+\verb|is_mutual_ref| is admitted only to a system module, as are the body kernels that create, append through and close a mutual reference, the handle through which \verb|mwm/2| appends to the tail of its output stream in constant time: no other module can obtain one, so no other module can put the guard to use.
+
+\mypara{Arithmetic comparison guards}
+Arithmetic comparison guards evaluate their arguments as arithmetic expressions of type \verb|Exp| and compare the results; an argument with no value --- a zero divisor, a non-integer under \verb|//| or \verb|mod|, an argument outside a function's domain --- fails the guard. Success implies both arguments are ground.
+
+\begin{center}
+\begin{tabular}{lll}
+\textbf{Guard} & \textbf{Signature} & \textbf{Ground} \\
+\hline
+\verb|<| & \verb|procedure <(Exp?, Exp?).| & yes \\
+\verb|>| & \verb|procedure >(Exp?, Exp?).| & yes \\
+\verb|=<| & \verb|procedure =<(Exp?, Exp?).| & yes \\
+\verb|>=| & \verb|procedure >=(Exp?, Exp?).| & yes \\
+\verb|=:=| & \verb|procedure =:=(Exp?, Exp?).| & yes \\
+\verb|=\=| & \verb|procedure =\=(Exp?, Exp?).| & yes \\
+\end{tabular}
+\end{center}
+
+\mypara{Time guards}
+Time guards provide access to the machine's clock for scheduling and synchronization:
+
+\begin{center}
+\begin{tabular}{ll}
+\textbf{Guard} & \textbf{Signature} \\
+\hline
+\verb|wait| & \verb|procedure wait(Number?).| \\
+\verb|wait_until| & \verb|procedure wait_until(Number?).| \\
+\verb|when_idle| & (no arguments) \\
+\end{tabular}
+\end{center}
+\noindent\verb|wait(D)| suspends until the clock reads \verb|D| milliseconds more than it read when the wait began, then succeeds. \verb|wait_until(T)| suspends until the clock reads \verb|T| or more, then succeeds. \verb|when_idle| suspends while the machine has a Reduce or a Communicate to make, and succeeds when it has none.
+
+\mypara{Monotonicity and implications}
+\verb|ground/1|, \verb|no_readers/1|, \verb|known/1|, \verb|widowed_writer/1| and \verb|widowed_reader/1| are monotonic. \verb|ground(X)| implies both \verb|no_readers(X)| and \verb|known(X)|, which do not imply each other: \verb|no_readers(X)| succeeds but \verb|known(X)| fails for an unassigned writer; \verb|no_readers(f(X?))| suspends but \verb|known(f(X?))| succeeds.
+
+\mypara{Defined guard predicates}
+To support abstract data types and cleaner code organization, GLP provides for user-defined guards via unit clauses. A unit clause \verb|p(T1,...,Tn).| defines a guard predicate; the call \verb|p(S1,...,Sn)| in guard position is unfolded to the term matching of \verb|T1| with \verb|S1|, ..., \verb|Tn| with \verb|Sn|, the unit clause renamed apart. The guard succeeds, suspends or fails as the matching does, and its writer mgu assigns the writers of the clause among the \verb|Si| and the writers in the values of the readers among them (Definition~\ref{def:guarded-reduction}): \verb|new_channel(PQCh, QPCh)| assigns the clause's writers \verb|PQCh| and \verb|QPCh| the two ends of a fresh channel, and \verb|send(M?, Ch?, Ch1)| assigns the writer of the output stream in the value of \verb|Ch?| a cell carrying \verb|M?| and \verb|Ch1| the advanced channel. For example, unification is defined by the unit clause \verb|X? = X.|, so the guard \verb|A = B| unfolds to matching both \verb|A| and \verb|B| against the same variable \verb|X|.
+
+The following defined guard predicates are shipped with the runtime:
+
+\begin{center}
+\begin{tabular}{ll}
+\textbf{Predicate} & \textbf{Unit clause} \\
+\hline
+\verb|=| & \verb|X? = X.| \\
+\verb|new_channel| & \verb|new_channel(ch(Xs?, Ys), ch(Ys?, Xs)).| \\
+\verb|send| & \verb+send(X, ch(In, [X?|Out?]), ch(In?, Out)).+ \\
+\verb|receive| & \verb+receive(X?, ch([X|In], Out?), ch(In?, Out)).+ \\
+\verb|close| & \verb|close(ch([], [])).| \\
+\verb|dl_append| & \verb|dl_append(A\B?, B\C?, A?\C).| \\
+\verb|dl_to_list| & \verb|dl_to_list(L\[], L?).| \\
+\end{tabular}
+\end{center}
+
+\mypara{Naming and admission of body kernels}
+A body kernel is named by a quoted constant whose name begins with an underscore, as \verb|'_add'| is. Quoting is necessary: an unquoted name beginning with an underscore is an anonymous variable (Remark~\ref{rem:anonymous-variables}). A module declaring \verb|-mode(system)| may define and call procedures whose names are so written; a module that does not may neither define nor call one. The restriction is on names in call position only; a constant beginning with an underscore is unrestricted as data, as a message tag or a member of a type union. The system modules are the root \verb|programs/self.glp| and the modules under \verb|programs/system/|.
+
+\mypara{Body kernel predicates}
+\temph{Body kernel predicates} are runtime-implemented primitives that execute in the clause body with two-valued semantics: they either succeed or abort. Body kernels are not directly accessible to user programs. They are invoked only by the kernel and seam predicates below---predicates defined by GLP clauses that are shipped with the runtime and have privileged access to the body kernel registry. A body kernel whose precondition fails --- a zero divisor, an argument out of its domain --- aborts.
+
+The table below is the interface between GLP and its runtime, and is documentation for the writers of system modules rather than a facility of ordinary programs: no application module may call any of it. Every kernel the runtime registers appears here, whether or not an ordinary program can reach what it does.
+
+The following table lists all body kernels:
+
+\begin{center}
+{\footnotesize
+\begin{tabular}{@{}l@{\hspace{4pt}}l@{\hspace{4pt}}p{0.17\textwidth}@{}}
+\textbf{Category} & \textbf{Kernel} & \textbf{Operation} \\
+\hline
+Arithmetic & \verb|'_add'(Number?, Number?, Number)| & Addition; a real where an operand is real \\
+ & \verb|'_sub'(Number?, Number?, Number)| & Subtraction; a real where an operand is real \\
+ & \verb|'_mul'(Number?, Number?, Number)| & Multiplication; a real where an operand is real \\
+ & \verb|'_div'(Number?, Number?, Real)| & Division \\
+ & \verb|'_idiv'(Number?, Number?, Integer)| & Integer division; aborts on a non-integer operand \\
+ & \verb|'_mod'(Number?, Number?, Integer)| & Modulo; aborts on a non-integer operand \\
+ & \verb|'_abs'(Number?, Number)| & Absolute value; a real of a real \\
+\hline
+Random & \verb|'_random'(Integer?, Integer?, Integer, Integer)| & Seeded random integer \\
+ & \verb|'_split_random_seed'(Integer?, Integer, Integer)| & Two independent seeds from one \\
+\hline
+Math & \verb|'_sqrt'(Number?, Real)| & Square root \\
+ & \verb|'_sin'(Number?, Real)| & Sine \\
+ & \verb|'_cos'(Number?, Real)| & Cosine \\
+ & \verb|'_tan'(Number?, Real)| & Tangent \\
+ & \verb|'_asin'(Number?, Real)| & Arc sine \\
+ & \verb|'_acos'(Number?, Real)| & Arc cosine \\
+ & \verb|'_atan'(Number?, Real)| & Arc tangent \\
+ & \verb|'_exp'(Number?, Real)| & Exponential ($e^x$) \\
+ & \verb|'_ln'(Number?, Real)| & Natural logarithm \\
+ & \verb|'_log10'(Number?, Real)| & Base-10 logarithm \\
+ & \verb|'_pow'(Number?, Number?, Number)| & Power ($x^y$); a real where an operand is real or the exponent negative \\
+\hline
+Conversion & \verb|'_integer'(Number?, Integer)| & Convert to integer \\
+ & \verb|'_real'(Number?, Real)| & Convert to real \\
+ & \verb|'_round'(Number?, Integer)| & Round to nearest integer \\
+ & \verb|'_floor'(Number?, Integer)| & Floor \\
+ & \verb|'_ceil'(Number?, Integer)| & Ceiling \\
+\hline
+Structure & \verb|'_list_to_tuple'(Stream(_)?, _)| & List to compound term \\
+ & \verb|'_tuple_to_list'(_?, Stream(_))| & Compound term to list \\
+\hline
+Text & \verb|'_string_concat'(List(String)?, String)| & Concatenation of strings \\
+ & \verb|'_term_to_string'(_?, String)| & The text the reader reads as a term \\
+ & \verb|'_hash'(String?, Hash)| & The SHA-256 of a string \\
+\hline
+Time & \verb|'_now'(Integer)| & The machine's clock, a Unix timestamp (ms) \\
+ & \verb|'_set_clock'(Integer?)| & Set the machine's clock \\
+\hline
+Simulation & \verb|'_start_clock'(Integer?)| & Start the simulated clock \\
+ & \verb|'_rated'(Number?, Token)| & A token pending for an exponential delay \\
+ & \verb|'_step_clock'(Number?, ClockStep)| & Release the earliest pending token, or stop \\
+\hline
+I/O & \verb|procedure(X) '_output'(X?).| & Send term to output callback \\
+\hline
+MWM & \verb|procedure(X) '_allocate_mutual_reference'(MutualRef, Stream(X)).| & Create mutual reference for O(1) append \\
+ & \verb|procedure(X) '_stream_append'(MutualRef?, X?, MutualRef).| & Append value via mutual reference \\
+ & \verb|procedure '_close_mutual_reference'(MutualRef?).| & Close stream (bind tail to \verb|[]|) \\
+\hline
+Network & \verb|procedure(X) '_send'(X?, GlobalName?, Key?).| & Send madGLP message to remote agent \\
+ & \verb|'_authorise_link'(_?, _?)| & Release or drop a reported held link \\
+ & \verb|'_peer_address'(Key?, PeerAddress)| & Address at which the layer observes a peer \\
+ & \verb|'_peer_app'(Key?, App)| & The app a peer attested \\
+ & \verb|'_self_app'(App, App)| & The app that runs and the app installed \\
+ & \verb|'_punch_udp'(String?)| & Open a path to an address \\
+ & \verb|'_declare'(Declaration?)| & A declaration to the layer or the platform \\
+ & \verb|'_remove'(Removal?)| & The end of a declaration \\
+\hline
+Signature & \verb|'_self_key'(Key)| & The agent's public key \\
+ & \verb|'_sign'(_?, Key?, SignedTerm)| & Sign a term under a key and the calling module \\
+ & \verb|'_signature'(_?, Signature)| & Signer, signing module and what was signed, or \verb|unsigned| \\
+\hline
+Modules & \verb|'_self_module'(Module)| & The caller's own module \\
+ & \verb|'_decompose_module'(Module?, Key, Hash, Hash)| & Compiler's key, source and compiled identity \\
+ & \verb|'_run'(_?, Module?)| & Activate module and post goal to it \\
+ & \verb|'_run'(_?, Constant?, Module?)| & As \verb|'_run'/2|, under a required type identity \\
+ & \verb|'_find_type'(_?, Constant)| & The type identity of a declaration \\
+ & \verb|'_find_type'(_?, List(Constant)?, Constant)| & The type identity of an opaque instance \\
+ & \verb|'_opaque_type'(_?, Module?, List(Constant))| & The types a module records for its entry \\
+ & \verb|'_compile'(String?, Compiled)| & Compile a program and store the module \\
+ & \verb|'_load_file'(String?, Content)| & Read a file in the calling module's directory \\
+\end{tabular}
+}
+\end{center}
+
+\mypara{Kernel and seam predicates}
+A predicate defined by GLP clauses whose body may invoke a body kernel is of one of two kinds, and the difference is what lies on the other side of it. A \temph{kernel predicate} reaches the runtime that implements GLP: arithmetic, term structure, the clock, the module system. A \temph{seam predicate} reaches something the language cannot reach at all --- the person, the person's keys, the networking layer, the platform. The first kind is GLP realised; the second is GLP joined to what is not GLP, and a seam is where two things are joined.
+
+The distinction is not one of mechanism: both are ordinary GLP clauses, both may name a body kernel in call position, and both are admitted only to a system module. It decides where the specification of a construct's behaviour belongs. A kernel predicate's behaviour is the language's own and is stated here. A seam predicate's is not: what an address is, what a geofence reports, what a signature attests are settled by the paper that specifies the thing on the far side, and this catalogue states the predicate and cites that paper.
+
+Both tables list those in root scope, where every program reaches them; a system module may define others for its own use, and those belong to that module rather than to the language.
+
+A program declares every procedure it defines, with no \verb|_| or \verb|_?| in a declaration or in a type definition; the two stand only in a signature of these tables that takes any term, as \verb|run/2| and \verb|..=| do.
+
+\begin{center}
+{\small
+\begin{tabular}{ll}
+\textbf{Kernel predicate} & \textbf{Description} \\
+\hline
+\verb|procedure =..(_, Stream(_)?).| & Term composition \\
+\verb|procedure ..=(Stream(_), _?).| & Term decomposition \\
+\verb|procedure string_concat(List(String)?, String).| & Concatenation of strings \\
+\verb|procedure term_to_string(_?, String).| & The text the reader reads as a term \\
+\verb|procedure hash(String?, Hash).| & The SHA-256 of a string \\
+\verb|procedure now(Integer).| & The machine's clock, a Unix timestamp (milliseconds) \\
+\verb|procedure set_clock(Integer?).| & Set the machine's clock \\
+\verb|procedure :=(Number, Exp?).| & Arithmetic evaluation and assignment \\
+\verb|procedure random(Integer?, Integer?, Integer, Integer).| & Seeded random integer \\
+\verb|procedure split_random_seed(Integer?, Integer, Integer).| & Two independent seeds from one \\
+\verb|procedure start_clock(Integer?).| & Start the simulated clock \\
+\verb|procedure rated(Number?, Token).| & A token pending for an exponential delay \\
+\verb|procedure step_clock(Number?, ClockStep).| & Release the earliest pending token, or stop \\
+\verb|procedure self_module(Module).| & The caller's own module, as a value \\
+\verb|procedure run(_?, Module?).| & Activate a module value, post a goal to it \\
+\verb|procedure run(_?, Constant?, Module?).| & As \verb|run/2|, under a required type identity \\
+\verb|procedure find_type(_?, Constant).| & The type identity of a declaration \\
+\verb|procedure find_type(_?, List(Constant)?, Constant).| & The type identity of an opaque instance \\
+\verb|procedure opaque_type(_?, Module?, List(Constant)).| & The types a module records for its entry \\
+\verb|procedure(X) mwm(MwmInput(X)?, Stream(X)).| & Multiway merge of many streams into one \\
+\verb|procedure(X) allocate_mutual_reference(MutualRef, Stream(X)).| & Allocate a mutual reference on a stream's tail \\
+\verb|procedure(X) stream_append(X?, MutualRef?, MutualRef).| & Append a value through a mutual reference \\
+\verb|procedure close_mutual_reference(MutualRef?).| & Close the stream a mutual reference holds \\
+\end{tabular}
+}
+\end{center}
+
+\begin{center}
+{\small
+\begin{tabular}{lll}
+\textbf{Seam predicate} & \textbf{Description} & \textbf{Joins GLP to} \\
+\hline
+% send_to_user/1 is renamed send_to_person/1 at the next overhaul of the language, not before (Udi, 2026-10-04).
+\verb|procedure(X) send_to_user(Stream(X)?).| & Emit each term of a stream to the person & the person \\
+\verb|procedure(X) send_to_net(Stream(NetMsg(X))?).| & Send each message of a stream to the agent it names & the network \\
+\verb|procedure sign(_?, Key?, SignedTerm).| & Sign a term under a named key & the person's keys \\
+\verb|procedure authorise_link(GlobalName?, Answer?).| & Release or drop a reported held link & the network runtime \\
+\verb|procedure peer_address(Key?, PeerAddress).| & Address at which the layer observes a peer & the networking layer \\
+\verb|procedure peer_app(Key?, App).| & Developer, name and version of the app a peer attested & the networking layer \\
+\verb|procedure self_app(App, App).| & The app whose program runs, and the app installed & the platform \\
+\verb|procedure punch_udp(String?).| & Open a path to an address & the networking layer \\
+\verb|procedure declare(Declaration?).| & A peer, an address, a rendezvous server, a trust level, a place, or a watch on the agents nearby or reachable, on the agent's public address or on its local network & the networking layer, the platform \\
+\verb|procedure remove(Removal?).| & The end of a declaration & the networking layer, the platform \\
+\verb|procedure self_key(Key).| & The agent's public key & the agent's keys \\
+\verb|procedure signature(_?, Signature).| & Signer, signing module and what was signed, or \verb|unsigned| & the person's keys \\
+\verb|procedure decompose_module(Module?, Key, Hash, Hash).| & Compiler's key, source and compiled identity & the compiler \\
+\verb|procedure compile(String?, Compiled).| & Compile the program a path names & the compiler \\
+\verb|procedure load_file(String?, Content).| & Read a file in the calling module's directory & the file system \\
+\end{tabular}
+}
+\end{center}
+
+\mypara{Term composition and decomposition (\texttt{=..}, \texttt{..=})}
+Composition and decomposition are two predicates, not one bidirectional predicate. A declaration fixes one mode per argument, so a single name cannot carry both directions: \verb|=..| takes a list and produces a term, and \verb|..=| takes a term and produces a list, each with the opposite mode on both arguments. \verb|T =.. [foo, a, b]?| constructs \verb|T = foo(a, b)|; \verb|L ..= foo(a, b)?| produces \verb|L = [foo, a, b]|.
+
+Both are needed, and a program that walks an arbitrary term needs both together: \verb|..=| to take a compound apart and recurse on its arguments, \verb|=..| to rebuild it from the results. Decomposition alone descends without returning, and composition alone cannot get started.
+
+\mypara{Clock access (\texttt{now/1}, \texttt{set\_clock/1})}
+A machine has a clock, which reads the system clock until it is set. \verb|now(T)| binds \verb|T| to the clock's reading, a Unix timestamp in milliseconds since the epoch. \verb|set_clock(T)| sets the clock to \verb|T|, and the clock runs on from \verb|T|; the clause is guarded by \verb|integer(T?)| and invokes the \verb|'_set_clock'| body kernel. A test or a play sets the clock to the date it needs, and only they may: the host that starts a machine says whether its clock may be set, and the application on a smartphone says it may not; there \verb|set_clock| aborts.
+
+\mypara{Arithmetic evaluation and assignment (\texttt{:=})}
+Arithmetic assignment is defined recursively: each clause pattern-matches on an arithmetic operator, guards verify that operands are of the required type, and the body invokes the corresponding body kernel. An \verb|otherwise| clause handles the case where operands are themselves expressions, evaluating them recursively before retrying.
+
+\mypara{Seeded random numbers (\texttt{random/4})}
+\verb|random(Seed, N, Value, NextSeed)| binds \verb|Value| to a pseudo-random integer with $1 \leq \mathtt{Value} \leq \mathtt{N}$, and \verb|NextSeed| to the seed of the next draw, given a ground seed \verb|Seed| and a ground bound $\mathtt{N} \geq 1$. It is a body goal, not a guard; the clause is guarded by \verb|integer(Seed?), integer(N?), N? >= 1| and invokes the \verb|'_random'| body kernel. \verb|NextSeed| is determined by \verb|Seed| alone; \verb|Value| by \verb|Seed| and \verb|N|. The seed stream is therefore independent of the bound requested, and a computation that threads \verb|NextSeed| from each draw into the next reproduces exactly from its initial seed. The generator is SplitMix64~\cite{steele2014splitmix}, with its root increment and its mixing function, in 64-bit arithmetic modulo $2^{64}$: a seed is a 64-bit integer, and every 64-bit integer is a seed; \verb|NextSeed| is \verb|Seed| plus the increment \verb|0x9E3779B97F4A7C15|; and \verb|Value| is one plus the mix of \verb|NextSeed|, taken as an unsigned 64-bit integer, modulo \verb|N|, where the mix of $z$ is $z \leftarrow (z \oplus (z \gg 33)) \cdot \verb|0xFF51AFD7ED558CCD|$, then $z \leftarrow (z \oplus (z \gg 33)) \cdot \verb|0xC4CEB9FE1A85EC53|$, then $z \oplus (z \gg 33)$, with $\gg$ the unsigned shift.
+
+\mypara{Splitting a seed (\texttt{split\_random\_seed/3})}
+\verb|split_random_seed(Seed, S1, S2)| assigns \verb|S1| and \verb|S2| two seeds determined by \verb|Seed|, such that the sequences of draws from \verb|Seed|, from \verb|S1| and from \verb|S2| are independent streams: \verb|S1| is the mix of \verb|Seed| plus the increment, and \verb|S2| the mix of \verb|Seed| plus twice the increment, the increment and the mix those of \verb|random/4|. It is a body goal, not a guard; the clause is guarded by \verb|integer(Seed?)| and invokes the \verb|'_split_random_seed'| body kernel. A computation that draws from several seeds made by splitting one seed reproduces exactly from that seed.
+
+\mypara{Simulated time (\texttt{start\_clock/1}, \texttt{rated/2}, \texttt{step\_clock/2})}
+A machine has a \emph{simulated clock}, a real number of seconds, and a queue of \emph{pending tokens}, each with an activation time; \verb|now/1| and the time guards read the machine's clock. The types are \verb|Token ::= go(Number) ; stop| and \verb|ClockStep ::= released(Number) ; stopped(Number)|. \verb|start_clock(Seed)| binds every pending token to \verb|stop|, sets the clock to 0, and seeds the clock's generator with \verb|Seed|; the clause is guarded by \verb|integer(Seed?)|. \verb|rated(Rate, Tok)| makes the token \verb|Tok| pending, with activation time the clock plus $D$, where $D$ is drawn from the exponential distribution with rate \verb|Rate| per second; the clause is guarded by \verb|number(Rate?), Rate? > 0|. \verb|step_clock(Horizon, Step)| takes one step of the clock, and the clause is guarded by \verb|number(Horizon?)|. Where a token is pending whose activation time $T$ is the least and at most \verb|Horizon|, the step sets the clock to $T$, binds that token to \verb|go(|$T$\verb|)| and assigns \verb|Step| the term \verb|released(|$T$\verb|)|; two tokens of one activation time are released in the order in which they were made pending. Otherwise the step binds every pending token to \verb|stop| and assigns \verb|Step| the term \verb|stopped(|$C$\verb|)|, $C$ being the clock. Each of the three is a body goal that invokes the body kernel of its name, and \verb|rated| and \verb|step_clock| abort before the first \verb|start_clock|.
+
+The clock's generator is that of \verb|random/4|, its state a seed. A draw replaces the state by the state plus the increment, and $D = -\ln(U)/\mathtt{Rate}$, where $U$ is one plus the mix of the new state, taken as an unsigned 64-bit integer and shifted right by 11 bits, over $2^{53}$, so that $0 < U \le 1$. A computation that makes its tokens pending in the same order reproduces exactly from the seed.
+
+A program takes a step in the body of a clause guarded by \verb|when_idle|: the guard tests that the machine has no Reduce or Communicate to make, and the step is taken after it, a guard changing nothing. So every goal has been reduced as far as it can be at the present simulated time before the clock moves, and a goal waiting on a token is reduced once its time has come. The clock is of one machine, as \verb|when_idle| is. The three predicates implement the rated goal and the Release transition of Stochastic GLP~\cite{shapiro2026sglp}: the queue, the draws and the clock are the engine's, as they were the emulator's in the implementation of the stochastic pi-calculus in Flat Concurrent Prolog~\cite{priami2001application}, by Gillespie's method~\cite{gillespie1977exact}.
+
+\mypara{Output to the person (\texttt{send\_to\_user/1})}
+\verb|send_to_user(Stream)| emits each element of \verb|Stream|, a stream of any one type, to the person operating the agent, in order, and ends when the stream ends. Its clause is guarded by \verb|ground| on the element and invokes the \verb|'_output'| body kernel. A module reaches the person through this predicate; naming \verb|'_output'| in call position is admitted only to a system module. Where the person is a terminal, each element is printed on a line of its own, a string as its characters.
+
+\mypara{Text (\texttt{string\_concat/2}, \texttt{term\_to\_string/2}, \texttt{hash/2})}
+\verb|string_concat(Ss, S)| assigns \verb|S| the string of the characters of the strings of the list \verb|Ss|, one after another; the empty list contributes the characters \verb|[]|. Its clause is guarded by \verb|ground(Ss?)| and invokes the \verb|'_string_concat'| body kernel, which aborts where an element is not a string. \verb|term_to_string(T, S)| assigns \verb|S| a text that the reader reads as the ground term \verb|T|: a string the reader would read unquoted as anything else in single quotes, a number as the reader reads it back, a structure as its functor so written, an opening parenthesis, its arguments and a closing parenthesis, and a list as \verb|[a, b]| or \verb~[a, b | T]~, arguments and elements separated by a comma and a space, so that a term has one text at every agent. Its clause is guarded by \verb|ground(T?)| and invokes the \verb|'_term_to_string'| body kernel. A program that prints GLP source, as a compiler does, builds each line as a string by these two, a constant of the source by \verb|term_to_string/2| and a variable or a type \verb|T?| by \verb|string_concat/2|, and prints it by \verb|send_to_user/1|. \verb|hash(S, H)| assigns \verb|H| the SHA-256 of the UTF-8 bytes of the string \verb|S|, in lowercase hexadecimal. Its clause requires \verb|S| ground and calls the body kernel \verb|'_hash'|.
+
+\mypara{Output to the network (\texttt{send\_to\_net/1})}
+\verb|send_to_net(Stream)| sends each element of \verb|Stream|, a term \verb|msg(Q, T)| of type \verb|NetMsg(X) ::= msg(Key, X)| with \verb|Q| the key of an agent, to agent \verb|Q|, in the order of the stream, which the layer delivers fairly and in any order~\cite{bachar2026networking}, and ends when the stream ends: it is how a program writes the network output stream of Definition~\ref{definition:maGLP}, whose Cold-call carries \verb|msg(Q, T)| to the network input stream of \verb|Q|. Its clause is guarded by \verb|ground| on \verb|Q| and invokes the \verb|'_send'| body kernel on \verb|msg(Q?, T?)|, the link \verb|'_w'(Q?, 0, 0)| and \verb|Q?|. A module reaches the network through this predicate; naming \verb|'_send'| in call position is admitted only to a system module.
+
+\mypara{Module as a value (\texttt{self\_module/1}, \texttt{decompose\_module/4})}
+\verb|self_module(Module)| binds its argument to the caller's own module, a value of the primitive type \verb|Module|. \verb|decompose_module(Module, Key, Source, Compiled)| takes a module value apart, assigning the public key of the compiler that produced it, the identity of the source it was compiled from, and the identity of the compiled module itself.
+
+The two identities are distinct and neither determines the other. Source identity says what was written; compiled identity says what runs, and two compilers compiling one source produce two of them. The compiler's key is what joins them: it is the compiler that vouches for the correspondence, and a party relying on the pair decides for itself whether that key is one it accepts. A module value is opaque to a program, so the decomposition has to come from the runtime. Neither identity is the type identity of \verb|run/3| and \verb|find_type/2|, which is a property of a declaration and not of a module.
+
+\mypara{Dynamic activation (\texttt{run/2}, \texttt{run/3}, \texttt{find\_type/2}, \texttt{find\_type/3}, \texttt{opaque\_type/3})}
+\verb|run(Goal, Module)| activates the module value \verb|Module| and posts \verb|Goal| to it; the predicate of \verb|Goal| must be exported by \verb|Module|, else an error. The readers and writers of \verb|Goal| connect the caller and the activated module. \verb|run(Goal, Type, Module)| activates \verb|Module| and posts \verb|Goal| to it where \verb|Type| equals the type identity that \verb|Module|'s exports record for \verb|Goal|'s predicate, and errs otherwise. \verb|find_type(P/N, Type)| assigns \verb|Type| the type identity of the declaration of \verb|P/N| in the caller's scope, and \verb|error| where \verb|P/N| is not declared there. Type identity is defined in the Typed GLP companion paper~\cite{shapiro2026types}, which also gives its construction and proves the compatibility it rests on.  \verb|find_type(P/N, Hs, Type)| assigns \verb|Type| the type identity of the opaque instance at \verb|Hs| of the caller's parameterised declaration of \verb|P/N|, \verb|Hs| a list of type identities, one per type parameter of the declaration in declaration order, and errs where \verb|P/N| is not declared there or the length of \verb|Hs| is not the number of its type parameters.  \verb|opaque_type(P/N, Module, Hs)| assigns \verb|Hs| the list of the type identities of the types at which \verb|Module|'s exports record its entry \verb|P/N| as the instance of a parameterised declaration, in the order of its parameters, and errs where they record none.  A host activates a guest it was not compiled with by \verb|opaque_type(P/N, M, Hs)|, \verb|find_type(P/N, Hs, Type)| and \verb|run(Goal, Type, M)|, holding no declaration of the guest's own types.  At a position whose type has a parameter of the template in it, \verb|Goal| may hold a variable whose type has \verb|Opaque| in its place, at which a host holds the channel ends of its guests.  The opaque instance, \verb|Opaque|, the invitation discipline under which this is sound, and its proof are in the Typed GLP companion paper.
+
+\mypara{Compilation and file reading (\texttt{compile/2}, \texttt{load\_file/2})}
+\verb|compile(Source, Compiled)| compiles the program the path \verb|Source| names, under the root the device nominates, and assigns \verb|Compiled| either \verb|module(M)| for the compiled module \verb|M| or \verb|error(Es)| for the stream of diagnostics that rejected the program; where it succeeds it also writes \verb|M| as an artefact in that program's own directory. \verb|load_file(Name, Content)| reads the file \verb|Name| names and assigns \verb|Content| the module that file holds where it is a certified compiled module, and its text otherwise. The types are \verb|Compiled ::= module(Module) ; error(Stream(String))| and \verb|Content ::= String ; Module|, the caller discriminating with the \verb|string| and \verb|module| guards. What a program is, what compilation does to one, and what the root is are specified in the Typed GLP companion paper~\cite{shapiro2026types}.
+
+A module value therefore cannot be forged by writing a file: a file whose certificate does not check is text and is not a \verb|Module|, which is what \verb|decompose_module/4| rests on.
+
+\verb|Name| is resolved within the calling module's own directory, and the caller can neither escape it nor choose otherwise. That directory is the module's path from the root, which compilation assigns it, and it is the runtime's contribution for the same reason the module identity in a signature is. A module needing something outside its own area receives it from whoever holds it, as a value or over a stream, rather than by naming it. Neither predicate admits a path where a module value is expected, a path being resolved by the device and carrying none of the identities \verb|decompose_module/4| takes apart; \verb|run/2| and \verb|run/3| take the value. \verb|compile/2| is not yet implemented.
+
+\mypara{Identity and signature (\texttt{self\_key/1}, \texttt{sign/3}, \texttt{signature/2})}
+The runtime makes the agent's key pair when it spawns the agent, before anything is compiled or sent, from a seed drawn from outside the program, as the companion implementation paper says, and gives it to the networking layer, which holds the private key and signs with it~\cite{bachar2026networking}.  A \verb|Key| is the 64-character lowercase hexadecimal of the 32-byte Ed25519 public key, so \verb|@<| orders keys as their bytes. \verb|self_key(Key)| assigns \verb|Key| the agent's public key. \verb|sign(Term, Key, Signed)| requires \verb|Term| ground and \verb|Key| a key of that person, and assigns \verb|Signed| the signature under \verb|Key| of the pair of \verb|Term| and the source identity of the module making the call; \verb|Key| is the agent's own, the layer holding no other, and any other key aborts the call.  A signed term is a string, so it travels as text, as an invitation link does~\cite{bachar2026networking}. \verb|signature(Signed, Signature)| takes a signed term apart and reports what it finds. Where \verb|Signed| is a signed term whose signature verifies, it assigns \verb|Signature| the term \verb|signed(Key, Hash, Term)|, giving the signer's key, the identity of the module under which the signature was made, and the term signed; otherwise it assigns the constant \verb|unsigned|. The type is \verb|Signature ::= signed(Key, Hash, Term) ; unsigned|, a signed term being ground, and the caller discriminates by matching, taking \verb|signed(Key, _, _)| where it needs to know who signed and not what. A predicate that did not hold on a forgery could not refuse one and carry on, which is what an agent presented with an invitation, an undertaking or a creator's certification does.
+
+The module identity is the runtime's contribution and cannot be the program's, because a program can build any term it likes. Were the signature over \verb|Term| alone, any module the person runs could obtain that person's signature on any statement whatever, and a signature would attest only that the person ran something. Scoped, it says that the person ran this module and that this module asked for this term, which is what a relying party needs.
+
+A signature is what carries a claim to a party that has neither an authenticated channel to its author nor an attestation of the runtime that produced it. Within a conversation none is needed: authorship of every stream extension is already established to its reader by the channel and by the attested runtime at the writer's end. It is needed outside one --- a rendezvous agent belongs to no social graph and is itself unattested, and admits a connecting agent on a signed capability and on nothing else.
+
+\mypara{Held links (\texttt{authorise\_link/2})}
+\verb|authorise_link(L, A)| answers a link that the runtime holds and reports because its other end is at an agent with which the name was not exchanged. \verb|L| is the global name of the reported link, of type \verb|GlobalName|, and \verb|A| is of type \verb|Answer|, either \verb|authorise| or \verb|refuse|: on \verb|authorise| the runtime releases the held message or assignment, on \verb|refuse| it drops the link. The type is \verb|GlobalName ::= '_r'(Key, Integer, Integer) ; '_w'(Key, Integer, Integer)|, naming the reader or the writer end of a link at the agent whose key it carries, by that agent's epoch and the index it allocated in it~\cite{shapiro2026implementing}, and it is the type of the link \verb|'_send'| names likewise. The clause is guarded by \verb|known(A?)| and invokes the \verb|'_authorise_link'| body kernel. A link end is held when the agent at its other end is not the one with which the name was exchanged; while it is held the runtime places nothing on its channel and applies nothing arriving on it. The decision is the program's rather than the runtime's because the reason to release or drop such a link is not visible to the runtime, which therefore reports and waits. The mechanism that holds a link and reports it is described in the companion implementation paper~\cite{shapiro2026implementing}.
+
+\mypara{Networking seam (\texttt{peer\_address/2}, \texttt{peer\_app/2}, \texttt{self\_app/2}, \texttt{punch\_udp/1}, \texttt{declare/1}, \texttt{remove/1})}
+\verb|peer_address(P, A)| assigns \verb|A| \verb|address(S)|, \verb|S| the address, \verb|ip:port|, at which the networking layer observes peer \verb|P| on its live session over the WAN, or else over the LAN, or \verb|none| where it has no live session with \verb|P|~\cite{bachar2026networking}; \verb|PeerAddress ::= address(String) ; none|. \verb|peer_app(P, A)| assigns \verb|A| \verb|app(D, N, V)|, the developer \verb|D|, the name \verb|N| and the version number \verb|V| of the app attested in the networking layer's session with peer \verb|P|, the session reported last where \verb|P| is connected over several underlays, \verb|unattested| where that session is unattested, or \verb|none| where the layer has no session with \verb|P|; \verb|App ::= app(String, String, Integer) ; unattested ; none|.  \verb|self_app(R, I)| assigns \verb|R| \verb|app(D, N, V)| for the app whose program the agent runs, the app the networking layer attests to the agent's peers, and \verb|I| the same for the app installed on the device; the two differ after an update the runtime refused~\cite{shapiro2026implementing}, and where the runtime is given no app, as in a simulation or on a headless server, each is \verb|none|. \verb|punch_udp(A)| opens a path to address \verb|A| and assigns nothing. \verb|declare(D)| makes the declaration \verb|D| to the networking layer or the platform, and \verb|remove(R)| ends one: \verb|Declaration ::= peer(Key) ; address(Key, String) ; rendezvous(Key, String) ; trust(ProximityUnderlay, TrustLevel) ; place(Constant, Number, Stream(PlaceEvent)?) ; nearby(ProximityUnderlay, Stream(Presence)?) ; reachable(Stream(Reach)?) ; public_address(Stream(PeerAddress)?) ; network(Stream(Network)?)| and \verb|Removal ::= peer(Key) ; rendezvous(Key) ; place(Constant) ; nearby(ProximityUnderlay) ; reachable ; public_address ; network|, with \verb|ProximityUnderlay ::= pan ; lan|, \verb|Network ::= attached(String) ; none|, \verb|TrustLevel ::= open ; closed|, \verb|PlaceEvent ::= entered ; exited ; observable ; unobservable| \verb|Presence ::= seen(Key) ; gone(Key)| and \verb|Reach ::= connected(Key) ; lost(Key)|. Each clause is guarded by \verb|ground| on what it consumes, and the clauses themselves are in \verb|programs/self.glp|.
+
+\verb|peer(P)| gives the networking layer the public key \verb|P| of a peer the program knows, and \verb|remove(peer(P))| takes \verb|P|, and any address recorded for it, off the layer's known peers and ends its sessions on every underlay; \verb|address(P, A)| gives the layer the address \verb|A| at which peer \verb|P| is reached, making \verb|P| a known peer, and an address the layer observes later replaces it.  The layer contacts over the WAN only a known peer and a declared rendezvous server~\cite{bachar2026networking}. Who learns an agent's address is the social graph's decision, and the layer holds no social graph, so the program tells the layer what it knows. \verb|rendezvous(P, A)| gives the layer a rendezvous server, the agent of key \verb|P| at address \verb|A|, or replaces its address, keeping a session standing with it, and \verb|remove(rendezvous(P))| takes the server off and ends the layer's session with it, a key not declared doing nothing; the program knows a rendezvous server by the key it declared, which tells it from an unattested phone, the layer reporting no app for either.
+
+\verb|place(P, R, E)| declares a place \verb|P| of radius \verb|R| metres, centred on the declaring agent's location at the declaration, which centre the runtime keeps and declares the place about again at a restart~\cite{shapiro2026implementing}, and assigns \verb|E| a stream of that agent's own \verb|entered| and \verb|exited| events for the place, interleaved with \verb|unobservable| where the layer has stopped reporting crossings and \verb|observable| where it resumes; between the two no crossing is seen and none is delivered late, and a place declared while reporting is stopped begins with \verb|unobservable|.  A place the layer cannot register --- a radius that is not a positive number, a place the platform refuses, any place on a headless server, which has no location service --- stands declared, its stream beginning with \verb|unobservable|~\cite{bachar2026networking,shapiro2026implementing}. A further declaration of the same place supersedes the earlier one and closes its stream. \verb|remove(place(P))| ends the declaration of \verb|P|, and does nothing where \verb|P| is not declared.
+
+\verb|nearby(U, S)| assigns \verb|S| a stream of the agents nearby over the proximity underlay \verb|U|, beginning with \verb|seen| for every agent nearby when it is declared: \verb|seen(K)| when the layer discovers on \verb|U| an agent of key \verb|K| that it recognises or, under open trust, contacts, and \verb|gone(K)| when its presence is no longer observed on \verb|U| and the layer holds no session with it there~\cite{bachar2026networking}.  A further declaration on the same underlay supersedes the earlier one and closes its stream, and \verb|remove(nearby(U))| ends the declaration and closes its stream.  The agents seen over the PAN are the physically near ones, so a program learns which of its friends are near from this stream~\cite{bachar2026networking}.
+
+\verb|reachable(S)| assigns \verb|S| a stream of the agents the networking layer connects to over the WAN: \verb|connected(K)| when the layer's session with the agent of key \verb|K| over the WAN is established, authenticated and attested, a declared rendezvous server being reported too, unattested~\cite{bachar2026networking}, beginning with every agent it has one with when it is declared, and \verb|lost(K)| when that session ends.  A further declaration supersedes the earlier one and closes its stream, and \verb|remove(reachable)| ends the declaration and closes its stream.
+
+\verb|public_address(S)| assigns \verb|S| a stream of the agent's own public address, beginning with \verb|address(A)|, \verb|A| the \verb|ip:port| the layer has learnt from a rendezvous server, or \verb|none| where it knows none, when it is declared, and then the address at each change, \verb|none| where it is lost.  An agent cannot observe its own public address, which changes as it roams; a program sends it to its friends over the channels that remain, so that each declares it to its layer and reconnects~\cite{bachar2026networking}.  \verb|network(S)| assigns \verb|S| a stream of the local network the agent is attached to, beginning with \verb|attached(N)|, \verb|N| an opaque fingerprint of that network, or \verb|none| where it is attached to none or the platform makes the fingerprint unreadable, when it is declared, and then the network at each change; the fingerprint is best-effort, two networks possibly giving one, so a program compares it only with its own earlier ones, as one that opens LAN trust on a network its person declared trusted does~\cite{bachar2026networking}.  For each, a further declaration supersedes the earlier one and closes its stream, and the removal ends the declaration and closes its stream.  The address and the network change independently of each other.
+
+An agent whose layer does not run an underlay declares nothing on it: a trust level for it has no effect and its stream carries nothing~\cite{bachar2026networking}.
+
+\verb|peer_address/2| and \verb|punch_udp/1| are on this seam because a GLP program cannot reach the platform by itself: \verb|peer_address/2| is address discovery, an agent behind a NAT learning from a peer the public address that peer observes for it, and \verb|punch_udp/1| opens a path to a peer so observed, the two together standing in for external address-discovery infrastructure. A place declaration registers a geofence with the platform's location service. Crossings reach the program as messages on a stream rather than through a guard, and must: a guard is a test on the resolvent alone, so one that consulted the device's location would let the same local state reduce differently at different times. A declaration carries a name and a radius and returns no coordinates, so a program learns of its own device's location only that it entered or left a place it named itself. The runtime behind the kernels they invoke is described in the companion implementation paper~\cite{shapiro2026implementing}; the layer beneath that is specified in the networking companion paper.
+
+\mypara{Proximity trust}
+A \emph{proximity underlay} carries a \emph{cold-call trust level}, which decides whether the agent contacts, and answers, a device it does not already know~\cite{bachar2026networking}. \verb|trust(U, L)| declares that level for one underlay: \verb|U| is \verb|pan| (Bluetooth Low Energy) or \verb|lan| (the local network) and \verb|L| is \verb|open| or \verb|closed|. Both underlays stand at \verb|closed| until declared, a later declaration of an underlay replaces the level then standing, and the two are declared independently, so an agent may answer strangers over one and ignore them over the other.
+
+The level is the program's to set and cannot be the layer's, for a reason that decides where the predicate belongs: an agent raises the level on entering a place it trusts and lowers it on leaving, and lowers it again when that place's crossings become unobservable, doubt resolving to closed --- and the layer cannot do any of that, because it does not know which place is trusted. The program declared the place.
+
+\mypara{Multiway merge (\texttt{mwm/2})}
+\verb|mwm(In, Out)| merges the streams named by \verb|In| into the single stream \verb|Out|, preserving the order of each input stream and interleaving them fairly. \verb|In| is a stream of \verb|merge(S)| elements, each contributing the stream \verb|S| to the merge, following the merger of FCP~\cite{shapiro1989family}. Since \verb|In| is itself a stream, a \verb|merge(S)| element arriving later grafts a further stream into a running merge: the set of merged streams need not be known when the merge begins, and a merge is closed by closing \verb|In|.
+
+\verb|mwm/2| is the construct to use whenever many streams are merged into one, and is preferred to a tree of \verb|merge/3| goals for that purpose. The difference is asymptotic, not stylistic. Merging $n$ streams with binary \verb|merge/3| passes each message through $\log n$ merge processes on a balanced tree, and through as many as $n$ on the linear tree a program most easily writes; \verb|mwm/2| appends each message once, in constant time, through a handle on the tail of \verb|Out|. A program that builds its own merge tree pays a factor no implementation can recover, since the cost is in the process structure the program chose. None of this makes a hand-built merge tree wrong: it is sound, and knowing how to build one is worth having. The preference is about which construct a program should reach for when many streams must arrive at one receiver, not about which technique is worth understanding.
+
+\verb|merge/3| remains the right construct where two streams are merged, or where the merge tree itself carries meaning --- a merge goal that is also the point at which a process terminates. \verb|mwm/2| is for many-to-one merging, which is the common case in a program routing many senders to one receiver.
+
+The complete definitions of \verb|:=|, \verb|now|, \verb|set_clock|, \verb|=..|, \verb|..=|, \verb|string_concat|, \verb|term_to_string|, \verb|hash|, \verb|random|, \verb|split_random_seed|, \verb|start_clock|, \verb|rated|, \verb|step_clock|, \verb|send_to_user|, \verb|send_to_net|, \verb|self_module|, \verb|decompose_module|, \verb|run|, \verb|self_key|, \verb|sign|, \verb|signature|, \verb|authorise_link| and \verb|mwm| are in \verb|programs/self.glp| of the public GLP repository.
+

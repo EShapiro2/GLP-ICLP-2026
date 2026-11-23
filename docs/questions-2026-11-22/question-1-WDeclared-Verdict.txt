@@ -1,0 +1,7 @@
+The Grassroots App must run GSC's contract checker when it installs a program, so the root programs/self.glp must define the checker's types.
+
+I propose a new last sentence of the paragraph Predefined types, in the GLP paper's appendix on guards and kernels:
+
+I̲t̲ ̲a̲l̲s̲o̲ ̲d̲e̲f̲i̲n̲e̲s̲ ̲W̲D̲e̲c̲l̲a̲r̲e̲d̲,̲ ̲a̲ ̲c̲o̲n̲t̲r̲a̲c̲t̲ ̲a̲s̲ ̲t̲h̲e̲ ̲c̲h̲e̲c̲k̲e̲r̲ ̲o̲f̲ ̲G̲S̲C̲ ̲r̲e̲a̲d̲s̲ ̲i̲t̲,̲ ̲a̲n̲d̲ ̲V̲e̲r̲d̲i̲c̲t̲,̲ ̲t̲h̲e̲ ̲c̲h̲e̲c̲k̲e̲r̲'̲s̲ ̲v̲e̲r̲d̲i̲c̲t̲.̲
+
+Q: Do you approve?
